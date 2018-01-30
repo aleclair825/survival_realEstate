@@ -1,0 +1,255 @@
+#T!!! = Task
+#NM!!! = Not Match
+
+
+
+
+
+---
+title: "| Survival Analysis    \n| Data Scraping from Coldwell\n"
+author: "April Leclair"
+output:
+  bookdown::tufte_html2:
+    number_sections: no
+    split_by: none
+    toc: no
+  bookdown::pdf_document2:
+    latex_engine: pdflatex
+    number_sections: no
+    toc: no
+  bookdown::tufte_handout2:
+    latex_engine: xelatex
+    number_sections: no
+    toc: no
+  bookdown::html_document2:
+    number_sections: no
+    split_by: none
+    toc: no
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+library(tidyverse)
+library(devtools)
+library(rvest)
+library(stringr)
+knitr::opts_chunk$set(tidy = FALSE, message=FALSE, cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+```
+
+
+## Retrieving Data Using `rvest` and the Selector Gadget
+
+```{r cache=TRUE}
+coldwell_tc1 <- read_html("https://www.coldwellbankerhomes.com/mn/saint-paul/recent-sales/kvc-17_1/uloc-75799_0/?sortId=2&offset=0&z=7&c=44.887712%2C-93.166878")
+coldwell_tc2 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=24")
+coldwell_tc3 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=48")
+coldwell_tc4 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=72")
+coldwell_tc5 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=96")
+coldwell_tc6 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=120")
+coldwell_tc7 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=144")
+coldwell_tc8 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=168")
+coldwell_tc9 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=192")
+coldwell_tc10 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=216")
+coldwell_tc11 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=240")
+coldwell_tc12 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=264")
+coldwell_tc13 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/kvc-17_1/uloc-76156_0/?sortId=2&offset=288")
+```
+
+```{r}
+coldwell_tc <- list(coldwell_tc1, coldwell_tc2, coldwell_tc3, coldwell_tc4, coldwell_tc5, coldwell_tc6, coldwell_tc7, coldwell_tc8, coldwell_tc9, coldwell_tc10, coldwell_tc11, coldwell_tc12, coldwell_tc13)
+```
+
+Once the webpage is loaded, we can retrieve data using the CSS selectors we specified earlier. The following code retrieves the course numbers and names as a vector:
+
+
+# Function: `onepg` scrapes a variable (determined by `path`) on a single page of a website
+```{r}
+onepg <- function(html, path) {
+  varlst <- html %>%
+      html_nodes(path) %>%
+      html_text() 
+  return(varlst) }
+```
+
+
+# Function: `onevar` stacks all cases of a variable (determined by `path`) on multiple pages of a website 
+### Uses a nested function and a loop for each output of `onepg`
+```{r}
+# #T!!!
+# INPUT:
+# v1. 
+# onevar <- function(htmlst, path)
+# v2. 
+# onevar <- function(13, path)
+# 
+# 
+# OUTPUT:
+# address <- c(onepg(coldwell_tc1, ".street-address"), onepg(coldwell_tc2, ".street-address"), onepg(coldwell_tc3, ".street-address"), onepg(coldwell_tc4, ".street-address"), onepg(coldwell_tc5, ".street-address"), onepg(coldwell_tc6, ".street-address"), onepg(coldwell_tc7, ".street-address"), onepg(coldwell_tc8, ".street-address"), onepg(coldwell_tc9, ".street-address"), onepg(coldwell_tc10, ".street-address"), onepg(coldwell_tc11, ".street-address"), onepg(coldwell_tc12, ".street-address"), onepg(coldwell_tc13, ".street-address"))
+# 
+# 
+# onevar <- function(htmlst, path) {
+#   lst = lst()
+#   for (i in 1:length(htmlst)) {
+#     lst[i] = onepg(htmlst[[i]], path)
+#   }
+#   return(lst)
+# }
+# 
+# onevar(coldwell_tc, ".street-address")
+```
+
+
+## Address
+```{r}
+address <- c(onepg(coldwell_tc1, ".street-address"), onepg(coldwell_tc2, ".street-address"), onepg(coldwell_tc3, ".street-address"), onepg(coldwell_tc4, ".street-address"), onepg(coldwell_tc5, ".street-address"), onepg(coldwell_tc6, ".street-address"), onepg(coldwell_tc7, ".street-address"), onepg(coldwell_tc8, ".street-address"), onepg(coldwell_tc9, ".street-address"), onepg(coldwell_tc10, ".street-address"), onepg(coldwell_tc11, ".street-address"), onepg(coldwell_tc12, ".street-address"), onepg(coldwell_tc13, ".street-address"))
+
+address <- data.frame(address)
+nrow(address)==24*13
+```
+
+
+## City & Zipcode
+```{r}
+cityzip <- c(onepg(coldwell_tc1, ".city-st-zip"), onepg(coldwell_tc2, ".city-st-zip"), onepg(coldwell_tc3, ".city-st-zip"), onepg(coldwell_tc4, ".city-st-zip"), onepg(coldwell_tc5, ".city-st-zip"), onepg(coldwell_tc6, ".city-st-zip"), onepg(coldwell_tc7, ".city-st-zip"), onepg(coldwell_tc8, ".city-st-zip"), onepg(coldwell_tc9, ".city-st-zip"), onepg(coldwell_tc10, ".city-st-zip"), onepg(coldwell_tc11, ".city-st-zip"), onepg(coldwell_tc12, ".city-st-zip"), onepg(coldwell_tc13, ".city-st-zip"))
+
+cityzip <- data.frame(cityzip)
+nrow(cityzip)==24*13
+
+cityzip <- cityzip %>%
+  mutate(city = as.factor(gsub(",.*$", "", cityzip)),
+         zip = as.numeric(str_sub(cityzip, start= -5))) %>%
+  select(city, zip)
+
+# Note: 180 houses in Minnepolis & 132 houses in Saint Paul
+```
+
+
+# Number of Beds
+```{r}
+beds <- c(onepg(coldwell_tc1, ".beds .val"), onepg(coldwell_tc2, ".beds .val"), onepg(coldwell_tc3, ".beds .val"), onepg(coldwell_tc4, ".beds .val"), onepg(coldwell_tc5, ".beds .val"), onepg(coldwell_tc6, ".beds .val"), onepg(coldwell_tc7, ".beds .val"), onepg(coldwell_tc8, ".beds .val"), onepg(coldwell_tc9, ".beds .val"), onepg(coldwell_tc10, ".beds .val"), onepg(coldwell_tc11, ".beds .val"), onepg(coldwell_tc12, ".beds .val"), onepg(coldwell_tc13, ".beds .val"))
+
+beds <- data.frame(beds)
+nrow(beds)==24*13 #NM!!!
+24*13-nrow(beds)
+```
+
+
+# Number of Full Bath
+```{r}
+bathf <- c(onepg(coldwell_tc1, "li:nth-child(2) .val"), onepg(coldwell_tc2, "li:nth-child(2) .val"), onepg(coldwell_tc3, "li:nth-child(2) .val"), onepg(coldwell_tc4, "li:nth-child(2) .val"), onepg(coldwell_tc5, "li:nth-child(2) .val"), onepg(coldwell_tc6, "li:nth-child(2) .val"), onepg(coldwell_tc7, "li:nth-child(2) .val"), onepg(coldwell_tc8, "li:nth-child(2) .val"), onepg(coldwell_tc9, "li:nth-child(2) .val"), onepg(coldwell_tc10, "li:nth-child(2) .val"), onepg(coldwell_tc11, "li:nth-child(2) .val"), onepg(coldwell_tc12, "li:nth-child(2) .val"), onepg(coldwell_tc13, "li:nth-child(2) .val"))
+
+bathf <- data.frame(bathf)
+nrow(bathf)==24*13
+```
+
+
+# Number of Car Garage
+```{r}
+carg <- c(onepg(coldwell_tc1, ".car-garage .val"), onepg(coldwell_tc2, ".car-garage .val"), onepg(coldwell_tc3, ".car-garage .val"), onepg(coldwell_tc4, ".car-garage .val"), onepg(coldwell_tc5, ".car-garage .val"), onepg(coldwell_tc6, ".car-garage .val"), onepg(coldwell_tc7, ".car-garage .val"), onepg(coldwell_tc8, ".car-garage .val"), onepg(coldwell_tc9, ".car-garage .val"), onepg(coldwell_tc10, ".car-garage .val"), onepg(coldwell_tc11, ".car-garage .val"), onepg(coldwell_tc12, ".car-garage .val"), onepg(coldwell_tc13, ".car-garage .val"))
+
+carg <- data.frame(carg)
+nrow(carg)==24*13 #NM!!!
+24*13-nrow(carg)  
+```
+
+
+# Price
+```{r}
+price <- c(onepg(coldwell_tc1, ".price-normal"), onepg(coldwell_tc2, ".price-normal"), onepg(coldwell_tc3, ".price-normal"), onepg(coldwell_tc4, ".price-normal"), onepg(coldwell_tc5, ".price-normal"), onepg(coldwell_tc6, ".price-normal"), onepg(coldwell_tc7, ".price-normal"), onepg(coldwell_tc8, ".price-normal"), onepg(coldwell_tc9, ".price-normal"), onepg(coldwell_tc10, ".price-normal"), onepg(coldwell_tc11, ".price-normal"), onepg(coldwell_tc12, ".price-normal"), onepg(coldwell_tc13, ".price-normal"))
+
+price <- data.frame(price)
+price <- price %>%
+  mutate(price = as.numeric(gsub("\\$|,", "", as.character(price))))
+
+nrow(price)==24*13
+```
+
+
+# Update Date: "updated __ days ago"
+```{r}
+updatedate <- c(onepg(coldwell_tc1, ".updated-info"), onepg(coldwell_tc2, ".updated-info"), onepg(coldwell_tc3, ".updated-info"), onepg(coldwell_tc4, ".updated-info"), onepg(coldwell_tc5, ".updated-info"), onepg(coldwell_tc6, ".updated-info"), onepg(coldwell_tc7, ".updated-info"), onepg(coldwell_tc8, ".updated-info"), onepg(coldwell_tc9, ".updated-info"), onepg(coldwell_tc10, ".updated-info"), onepg(coldwell_tc11, ".updated-info"), onepg(coldwell_tc12, ".updated-info"), onepg(coldwell_tc13, ".updated-info"))
+
+updatedate <- data.frame(updatedate)
+nrow(updatedate)==24*13
+24*13-nrow(updatedate) #NT!!
+```
+
+
+# Number of Car Garage
+### This is one way to insert missing data
+```{r}
+# numcarg <-
+#   coldwell_tc %>%
+#   html_nodes(".car-garage .val") %>%
+#   html_text()
+# 
+# numcarg[3:23] <- c(NA, numcarg[3:22])
+# numcarg[16:24] <- c(NA, numcarg[16:23])
+#NT!!
+```
+
+
+# Make the Data Table
+```{r}
+house <- cbind(address, cityzip, bathf, price)
+```
+
+
+## Bind multiple pages
+```{r}
+# Make a variable `pid <- "pid_21803186/"` this pair #T!!!
+# Make a variable `lid <- "minneapolis/4540-penn-avenue-n/" + pid` for each address #T!!!
+link <- "https://www.coldwellbankerhomes.com/mn/minneapolis/4540-penn-avenue-n/pid_21803186/"
+link2 <- "https://www.coldwellbankerhomes.com/mn/saint-paul/766-jackson-street/pid_20380688/"
+coldwell_ind <- read_html(link)
+
+
+
+
+
+
+pid <- "pid_21803186/"
+# FOR ONE PID FOR NOW #T!!!
+# Makes a link id for each house (a part of the full link)
+lstlid <- house %>%
+  mutate(first = paste(tolower(gsub("\\s", "-", city)), "/"),
+         second = paste(tolower(gsub("\\s", "-", address)), "/"),
+         lid = gsub("\\s", "", paste(first, second, pid))) %>%
+  select(-first, -second)
+
+
+
+
+# Makes a list of web link for each house
+lstlink <- function(lid) {
+  link <- "https://www.coldwellbankerhomes.com/mn/"
+  str <- ""
+  lst <- lst()
+  for (i in 1: length(lid)) {
+    link <- gsub("\\s", "", paste(link, lid[i]))
+    lst[i] <- link
+  }
+  return(lst)
+}
+
+
+
+
+
+# Personal note: test for adding strings
+t <- lst()
+d <- "dd" 
+t[1] <- gsub("\\s", "", paste("rg", d))
+```
+
+# Paths saved
+```{r}
+soldat <- "ul:nth-child(4) li:nth-child(2)"
+listedat <- "ul:nth-child(4) li:nth-child(3)"
+schname <- ".school-name"
+schaddr <- ".school-address"
+schgd <- ".property-detail-school-listing .school-data-grades"
+schdist <- ".property-detail-school-listing .school-data-distance"
+schdstr <- ".split-2 .col:nth-child(2) li" #?
+```
