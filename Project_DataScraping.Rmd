@@ -60,8 +60,6 @@ coldwell_tc13 <- read_html("https://www.coldwellbankerhomes.com/mn/minneapolis/r
 coldwell_tc <- list(coldwell_tc1, coldwell_tc2, coldwell_tc3, coldwell_tc4, coldwell_tc5, coldwell_tc6, coldwell_tc7, coldwell_tc8, coldwell_tc9, coldwell_tc10, coldwell_tc11, coldwell_tc12, coldwell_tc13)
 ```
 
-Once the webpage is loaded, we can retrieve data using the CSS selectors we specified earlier. The following code retrieves the course numbers and names as a vector:
-
 
 # Function: `onepg` scrapes a variable (determined by `path`) on a single page of a website
 ```{r}
@@ -70,33 +68,6 @@ onepg <- function(html, path) {
       html_nodes(path) %>%
       html_text() 
   return(varlst) }
-```
-
-
-# Function: `onevar` stacks all cases of a variable (determined by `path`) on multiple pages of a website 
-### Uses a nested function and a loop for each output of `onepg`
-```{r}
-# #T!!!
-# INPUT:
-# v1. 
-# onevar <- function(htmlst, path)
-# v2. 
-# onevar <- function(13, path)
-# 
-# 
-# OUTPUT:
-# address <- c(onepg(coldwell_tc1, ".street-address"), onepg(coldwell_tc2, ".street-address"), onepg(coldwell_tc3, ".street-address"), onepg(coldwell_tc4, ".street-address"), onepg(coldwell_tc5, ".street-address"), onepg(coldwell_tc6, ".street-address"), onepg(coldwell_tc7, ".street-address"), onepg(coldwell_tc8, ".street-address"), onepg(coldwell_tc9, ".street-address"), onepg(coldwell_tc10, ".street-address"), onepg(coldwell_tc11, ".street-address"), onepg(coldwell_tc12, ".street-address"), onepg(coldwell_tc13, ".street-address"))
-# 
-# 
-# onevar <- function(htmlst, path) {
-#   lst = lst()
-#   for (i in 1:length(htmlst)) {
-#     lst[i] = onepg(htmlst[[i]], path)
-#   }
-#   return(lst)
-# }
-# 
-# onevar(coldwell_tc, ".street-address")
 ```
 
 
@@ -132,6 +103,49 @@ beds <- c(onepg(coldwell_tc1, ".beds .val"), onepg(coldwell_tc2, ".beds .val"), 
 beds <- data.frame(beds)
 nrow(beds)==24*13 #NM!!!
 24*13-nrow(beds)
+
+
+# coldwell_tc2 #23
+# coldwell_tc3 #23
+# coldwell_tc4 #23
+# coldwell_tc6 #23
+# coldwell_tc8 #22
+# coldwell_tc12 #22
+# coldwell_tc13 #23
+
+
+beds2 <- (onepg(coldwell_tc2, ".beds .val"))
+beds2[8:24] <- c(1, beds2[8:23])
+
+beds3 <- (onepg(coldwell_tc3, ".beds .val"))
+beds3[22:24] <- c(1, beds2[22:23])
+
+beds4 <- (onepg(coldwell_tc4, ".beds .val"))
+beds4[19:24] <- c(1, beds4[22:23])
+
+beds6 <- (onepg(coldwell_tc6, ".beds .val"))
+beds6[17:24] <- c(1, beds6[17:23])
+
+beds8 <- (onepg(coldwell_tc8, ".beds .val"))
+beds8[3:23] <- c(1, beds8[3:22])
+beds8[15:24] <- c(1, beds8[15:23])
+
+beds12 <- (onepg(coldwell_tc12, ".beds .val"))
+beds12[5:23] <- c(1, beds12[5:22])
+beds12[10:24] <- c(1, beds12[10:23])
+
+beds13 <- (onepg(coldwell_tc13, ".beds .val"))
+beds13[12:24] <- c(1, beds13[12:23])
+
+beds <- c(onepg(coldwell_tc1, ".beds .val"), beds2, beds3, beds4, onepg(coldwell_tc5, ".beds .val"), beds6, onepg(coldwell_tc7, ".beds .val"), beds8, onepg(coldwell_tc9, ".beds .val"), onepg(coldwell_tc10, ".beds .val"), onepg(coldwell_tc11, ".beds .val"), beds12, beds13)
+
+beds <- data.frame(beds)
+nrow(beds)==24*13
+
+test <- data.frame(cbind(address, beds))
+test %>% filter(beds==1)
+
+rm(test, beds2, beds3, beds4, beds6, beds8, beds12, beds13)
 ```
 
 
@@ -144,13 +158,72 @@ nrow(bathf)==24*13
 ```
 
 
-# Number of Car Garage
+# Number of Car carg
 ```{r}
 carg <- c(onepg(coldwell_tc1, ".car-garage .val"), onepg(coldwell_tc2, ".car-garage .val"), onepg(coldwell_tc3, ".car-garage .val"), onepg(coldwell_tc4, ".car-garage .val"), onepg(coldwell_tc5, ".car-garage .val"), onepg(coldwell_tc6, ".car-garage .val"), onepg(coldwell_tc7, ".car-garage .val"), onepg(coldwell_tc8, ".car-garage .val"), onepg(coldwell_tc9, ".car-garage .val"), onepg(coldwell_tc10, ".car-garage .val"), onepg(coldwell_tc11, ".car-garage .val"), onepg(coldwell_tc12, ".car-garage .val"), onepg(coldwell_tc13, ".car-garage .val"))
+
 
 carg <- data.frame(carg)
 nrow(carg)==24*13 #NM!!!
 24*13-nrow(carg)  
+
+
+carg2 <- (onepg(coldwell_tc2, ".car-carg.val"))
+carg2[8:23] <- c(0, carg2[8:22])
+carg2[9:24] <- c(0, carg2[9:23])
+
+carg3 <- (onepg(coldwell_tc3, ".car-carg.val"))
+carg3[6:24] <- c(0, carg3[6:23])
+
+carg4 <- (onepg(coldwell_tc4, ".car-carg.val"))
+carg4[2:23] <- c(0, carg4[2:22])
+carg4[21:24] <- c(0, carg4[21:23])
+
+carg5 <- (onepg(coldwell_tc5, ".car-carg.val"))
+carg5[14:23] <- c(0, carg5[14:22])
+carg5[21:24] <- c(0, carg5[21:23])
+
+carg6 <- (onepg(coldwell_tc6, ".car-carg.val"))
+carg6[6:23] <- c(0, carg6[6:22])
+carg6[10:24] <- c(0, carg6[10:23])
+
+carg7 <- (onepg(coldwell_tc7, ".car-carg.val"))
+carg7[2:19] <- c(0, carg7[2:18])
+carg7[4:20] <- c(0, carg7[4:19])
+carg7[5:21] <- c(0, carg7[5:20])
+carg7[7:22] <- c(0, carg7[7:21])
+carg7[8:23] <- c(0, carg7[8:22])
+carg7[12:24] <- c(0, carg7[12:23])
+
+carg8 <- (onepg(coldwell_tc8, ".car-carg.val"))
+carg8[16:22] <- c(0, carg8[16:21])
+carg8[20:23] <- c(0, carg8[20:22])
+carg8[23:24] <- c(0, carg8[23:23])
+
+carg9 <- (onepg(coldwell_tc9, ".car-carg.val"))
+carg9[8:24] <- c(0, carg9[8:23])
+
+carg10 <- (onepg(coldwell_tc10, ".car-carg.val"))
+carg10[2:19] <- c(0, carg10[2:18])
+carg10[8:20] <- c(0, carg10[8:19])
+carg10[11:21] <- c(0, carg10[11:20])
+carg10[14:22] <- c(0, carg10[14:21])
+carg10[16:23] <- c(0, carg10[16:22])
+carg10[18:24] <- c(0, carg10[18:23])
+
+carg12 <- (onepg(coldwell_tc12, ".car-carg.val"))
+carg12[6:22] <- c(0, carg12[6:21])
+carg12[19:23] <- c(0, carg12[19:22])
+carg12[20:24] <- c(0, carg12[20:23])
+
+
+carg <- c(onepg(coldwell_tc1, ".car-carg .val"), carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, onepg(coldwell_tc11, ".car-carg .val"), carg12, onepg(coldwell_tc13, ".car-carg .val"))
+
+carg <- data.frame(carg)
+nrow(carg)==24*13
+
+test <- data.frame(cbind(address, carg))
+test %>% filter(carg==0)
 ```
 
 
@@ -166,33 +239,9 @@ nrow(price)==24*13
 ```
 
 
-# Update Date: "updated __ days ago"
-```{r}
-updatedate <- c(onepg(coldwell_tc1, ".updated-info"), onepg(coldwell_tc2, ".updated-info"), onepg(coldwell_tc3, ".updated-info"), onepg(coldwell_tc4, ".updated-info"), onepg(coldwell_tc5, ".updated-info"), onepg(coldwell_tc6, ".updated-info"), onepg(coldwell_tc7, ".updated-info"), onepg(coldwell_tc8, ".updated-info"), onepg(coldwell_tc9, ".updated-info"), onepg(coldwell_tc10, ".updated-info"), onepg(coldwell_tc11, ".updated-info"), onepg(coldwell_tc12, ".updated-info"), onepg(coldwell_tc13, ".updated-info"))
-
-updatedate <- data.frame(updatedate)
-nrow(updatedate)==24*13
-24*13-nrow(updatedate) #NT!!
-```
-
-
-# Number of Car Garage
-### This is one way to insert missing data
-```{r}
-# numcarg <-
-#   coldwell_tc %>%
-#   html_nodes(".car-garage .val") %>%
-#   html_text()
-# 
-# numcarg[3:23] <- c(NA, numcarg[3:22])
-# numcarg[16:24] <- c(NA, numcarg[16:23])
-#NT!!
-```
-
-
 # Make the Data Table
 ```{r}
-house <- cbind(address, cityzip, bathf, price)
+house <- cbind(address, cityzip, beds, bathf, price)
 ```
 
 
@@ -205,10 +254,6 @@ link2 <- "https://www.coldwellbankerhomes.com/mn/saint-paul/766-jackson-street/p
 coldwell_ind <- read_html(link)
 
 
-
-
-
-
 pid <- "pid_21803186/"
 # FOR ONE PID FOR NOW #T!!!
 # Makes a link id for each house (a part of the full link)
@@ -217,7 +262,6 @@ lstlid <- house %>%
          second = paste(tolower(gsub("\\s", "-", address)), "/"),
          lid = gsub("\\s", "", paste(first, second, pid))) %>%
   select(-first, -second)
-
 
 
 
@@ -234,13 +278,21 @@ lstlink <- function(lid) {
 }
 
 
-
-
-
 # Personal note: test for adding strings
 t <- lst()
 d <- "dd" 
 t[1] <- gsub("\\s", "", paste("rg", d))
+```
+
+
+pid_21201050
+
+
+```{r}
+address
+pid <- c("pid_21201050", "pid_21134768", "pid3")
+
+cbind(address,pid)
 ```
 
 # Paths saved
@@ -253,3 +305,12 @@ schgd <- ".property-detail-school-listing .school-data-grades"
 schdist <- ".property-detail-school-listing .school-data-distance"
 schdstr <- ".split-2 .col:nth-child(2) li" #?
 ```
+
+
+
+```{r}
+coldwell_ind <- read_html(link)
+onepg(coldwell_ind, soldat)
+```
+
+
