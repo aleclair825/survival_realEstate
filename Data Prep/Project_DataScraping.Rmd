@@ -1,0 +1,365 @@
+#T!!! = Task
+#NM!!! = Not Match
+
+
+
+
+
+---
+title: "| Survival Analysis    \n| Data Scraping from Coldwell\n"
+author: "April Leclair"
+output:
+  bookdown::tufte_html2:
+    number_sections: no
+    split_by: none
+    toc: no
+  bookdown::pdf_document2:
+    latex_engine: pdflatex
+    number_sections: no
+    toc: no
+  bookdown::tufte_handout2:
+    latex_engine: xelatex
+    number_sections: no
+    toc: no
+  bookdown::html_document2:
+    number_sections: no
+    split_by: none
+    toc: no
+---
+
+```{r setup, include=FALSE, message=FALSE}
+library(tufte)
+library(tidyverse)
+library(devtools)
+library(rvest)
+library(stringr)
+knitr::opts_chunk$set(tidy = FALSE, message=FALSE, cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+```
+
+
+# Read the Saved HTML
+```{r}
+# file.choose()
+coldwell_tc1a <- "../Source/Minneapolis, MN Recent Home Sales (Page 1).html"
+coldwell_tc2a <- "../Source/Minneapolis, MN Recent Home Sales (Page 2).html"
+coldwell_tc3a <- "../Source/Minneapolis, MN Recent Home Sales (Page 3).html"
+coldwell_tc4a <- "../Source/Minneapolis, MN Recent Home Sales (Page 4).html"
+coldwell_tc5a <- "../Source/Minneapolis, MN Recent Home Sales (Page 5).html"
+coldwell_tc6a <- "../Source/Minneapolis, MN Recent Home Sales (Page 6).html"
+coldwell_tc7a <- "../Source/Minneapolis, MN Recent Home Sales (Page 7).html"
+coldwell_tc8a <- "../Source/Minneapolis, MN Recent Home Sales (Page 8).html"
+coldwell_tc9a <- "../Source/Minneapolis, MN Recent Home Sales (Page 9).html"
+coldwell_tc10a <- "../Source/Minneapolis, MN Recent Home Sales (Page 10).html"
+coldwell_tc11a <- "../Source/Minneapolis, MN Recent Home Sales (Page 11).html"
+coldwell_tc12a <- "../Source/Minneapolis, MN Recent Home Sales (Page 12).html"
+coldwell_tc13a <- "../Source/Minneapolis, MN Recent Home Sales (Page 13).html"
+```
+
+```{r}
+coldwell_tc1 <- read_html(coldwell_tc1a)
+coldwell_tc2 <- read_html(coldwell_tc2a)
+coldwell_tc3 <- read_html(coldwell_tc3a)
+coldwell_tc4 <- read_html(coldwell_tc4a)
+coldwell_tc5 <- read_html(coldwell_tc5a)
+coldwell_tc6 <- read_html(coldwell_tc6a)
+coldwell_tc7 <- read_html(coldwell_tc7a) 
+coldwell_tc8 <- read_html(coldwell_tc8a)
+coldwell_tc9 <- read_html(coldwell_tc9a)
+coldwell_tc10 <- read_html(coldwell_tc10a)
+coldwell_tc11 <- read_html(coldwell_tc11a)
+coldwell_tc12 <- read_html(coldwell_tc12a)
+coldwell_tc13 <- read_html(coldwell_tc13a)
+```
+
+
+# Create a Scraping Function 
+```{r}
+# `scrape` scrapes a variable (determined by `path`) on a single page of a website
+scrape <- function(readhtml, path) {
+  varlst <- readhtml %>%
+    html_nodes(path) %>%
+    html_text() 
+  return(varlst) }
+```
+
+
+
+# Variables
+
+## Address
+```{r}
+address <- c(scrape(coldwell_tc1, ".street-address"), scrape(coldwell_tc2, ".street-address"), scrape(coldwell_tc3, ".street-address"), scrape(coldwell_tc4, ".street-address"), scrape(coldwell_tc5, ".street-address"), scrape(coldwell_tc6, ".street-address"), scrape(coldwell_tc7, ".street-address"), scrape(coldwell_tc8, ".street-address"), scrape(coldwell_tc9, ".street-address"), scrape(coldwell_tc10, ".street-address"), scrape(coldwell_tc11, ".street-address"), scrape(coldwell_tc12, ".street-address"), scrape(coldwell_tc13, ".street-address"))
+
+address <- data.frame(address) 
+address <- address %>% mutate(address = str_trim(address))
+nrow(address)==24*13
+```
+
+
+## City & Zipcode
+```{r}
+cityzip <- c(scrape(coldwell_tc1, ".city-st-zip"), scrape(coldwell_tc2, ".city-st-zip"), scrape(coldwell_tc3, ".city-st-zip"), scrape(coldwell_tc4, ".city-st-zip"), scrape(coldwell_tc5, ".city-st-zip"), scrape(coldwell_tc6, ".city-st-zip"), scrape(coldwell_tc7, ".city-st-zip"), scrape(coldwell_tc8, ".city-st-zip"), scrape(coldwell_tc9, ".city-st-zip"), scrape(coldwell_tc10, ".city-st-zip"), scrape(coldwell_tc11, ".city-st-zip"), scrape(coldwell_tc12, ".city-st-zip"), scrape(coldwell_tc13, ".city-st-zip"))
+
+cityzip <- data.frame(cityzip)
+nrow(cityzip)==24*13
+
+cityzip <- cityzip %>%
+  mutate(city = as.factor(gsub(",.*$", "", cityzip)),
+         zip = as.numeric(str_sub(cityzip, start= -5))) %>%
+  select(city, zip)
+
+# Note: 171 houses in Minnepolis & 141 houses in Saint Paul
+# sum(cityzip$city=="Minneapolis")
+# sum(cityzip$city=="Saint Paul")
+```
+
+
+## Number of Beds
+```{r}
+beds <- c(scrape(coldwell_tc1, ".beds .val"), scrape(coldwell_tc2, ".beds .val"), scrape(coldwell_tc3, ".beds .val"), scrape(coldwell_tc4, ".beds .val"), scrape(coldwell_tc5, ".beds .val"), scrape(coldwell_tc6, ".beds .val"), scrape(coldwell_tc7, ".beds .val"), scrape(coldwell_tc8, ".beds .val"), scrape(coldwell_tc9, ".beds .val"), scrape(coldwell_tc10, ".beds .val"), scrape(coldwell_tc11, ".beds .val"), scrape(coldwell_tc12, ".beds .val"), scrape(coldwell_tc13, ".beds .val"))
+
+beds <- data.frame(beds)
+nrow(beds)==24*13 
+24*13-nrow(beds) #8
+
+# length(scrape(coldwell_tc2, ".beds .val"))
+# scrape(coldwell_tc2, ".street-address")
+
+beds2 <- (scrape(coldwell_tc2, ".beds .val"))
+beds2[20:24] <- c(1, beds2[20:23]) #3415
+
+beds4 <- (scrape(coldwell_tc4, ".beds .val"))
+beds4[11:24] <- c(1, beds4[11:23])
+
+beds5 <- (scrape(coldwell_tc5, ".beds .val"))
+beds5[8:24] <- c(1, beds5[8:23])
+
+beds7 <- (scrape(coldwell_tc7, ".beds .val"))
+beds7[6:24] <- c(1, beds7[6:23])
+
+beds8 <- (scrape(coldwell_tc8, ".beds .val"))
+beds8[16:24] <- c(1, beds8[16:23])
+
+beds9 <- (scrape(coldwell_tc9, ".beds .val"))
+beds9[4:24] <- c(1, beds9[4:23])
+
+beds12 <- (scrape(coldwell_tc12, ".beds .val"))
+beds12[18:23] <- c(1, beds12[18:22])
+beds12[23:24] <- c(1, beds12[23:23])
+
+beds <- c(scrape(coldwell_tc1, ".beds .val"), beds2, scrape(coldwell_tc3, ".beds .val"), beds4, beds5, scrape(coldwell_tc6, ".beds .val"), beds7, beds8, beds9, scrape(coldwell_tc10, ".beds .val"), scrape(coldwell_tc11, ".beds .val"), beds12, scrape(coldwell_tc13, ".beds .val"))
+
+beds <- data.frame(beds)
+beds <- beds %>% mutate(beds = as.numeric(beds))
+nrow(beds)==24*13
+
+# test <- data.frame(cbind(address, beds))
+# test %>% filter(beds==1)
+# rm(test)
+rm(beds2, beds4, beds5, beds7, beds8, beds9, beds12)
+```
+
+
+## Number of Full Bath
+```{r}
+bathf <- c(scrape(coldwell_tc1, "li:nth-child(2) .val"), scrape(coldwell_tc2, "li:nth-child(2) .val"), scrape(coldwell_tc3, "li:nth-child(2) .val"), scrape(coldwell_tc4, "li:nth-child(2) .val"), scrape(coldwell_tc5, "li:nth-child(2) .val"), scrape(coldwell_tc6, "li:nth-child(2) .val"), scrape(coldwell_tc7, "li:nth-child(2) .val"), scrape(coldwell_tc8, "li:nth-child(2) .val"), scrape(coldwell_tc9, "li:nth-child(2) .val"), scrape(coldwell_tc10, "li:nth-child(2) .val"), scrape(coldwell_tc11, "li:nth-child(2) .val"), scrape(coldwell_tc12, "li:nth-child(2) .val"), scrape(coldwell_tc13, "li:nth-child(2) .val"))
+
+bathf <- data.frame(bathf)
+bathf <- bathf %>% mutate(bathf = as.numeric(bathf))
+nrow(bathf)==24*13
+```
+
+
+## Number of Partial Bath
+```{r}
+bathp1 <- c(1, 2, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 2, 1, 1, 2, 0, 1, 1, 0)
+bathp2 <- c(0, 1, 0, 1, 1, 1, 0, 1, 0, 2, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1)
+bathp3 <- c(0, 1, 1, 3, 0, 1, 0, 1, 0, 2, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 2, 0)
+bathp4 <- c(2, 1, 0, 1, 2, 0, 2, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0)
+bathp5 <- c(0, 3, 0, 1, 1, 0, 1, 0, 1, 2, 2, 1, 0, 0, 1, 1, 2, 3, 1, 1, 1, 1, 1, 1)
+bathp6 <- c(2, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1, 0, 1, 0, 0, 0)
+bathp7 <- c(2, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 2, 1)
+bathp8 <- c(1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 3, 1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1)
+bathp9 <- c(1, 0, 3, 0, 0, 0, 1, 2, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0) 
+bathp10 <- c(1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0)
+bathp11 <- c(2, 1, 0, 1, 5, 1, 1, 1, 1, 2, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 2, 1, 0, 1)
+bathp12 <- c(2, 2, 0, 2, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 2, 0, 2, 0)
+bathp13 <- c(0, 1, 3, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 2, 2, 1, 0, 0, 1, 1, 0, 1, 3)
+
+# test <- data.frame(cbind(address, bathp))
+# test
+# rm(test)
+
+bathp <- c(bathp1, bathp2, bathp3, bathp4, bathp5, bathp6, bathp7, bathp8, bathp9, bathp10, bathp11, bathp12, bathp13)
+bathp <- data.frame(bathp)
+nrow(bathp)==24*13
+rm(bathp1, bathp2, bathp3, bathp4, bathp5, bathp6, bathp7, bathp8, bathp9, bathp10, bathp11, bathp12, bathp13)
+```
+
+
+## Number of Car Garage
+```{r}
+carg <- c(scrape(coldwell_tc1, ".car-garage .val"), scrape(coldwell_tc2, ".car-garage .val"), scrape(coldwell_tc3, ".car-garage .val"), scrape(coldwell_tc4, ".car-garage .val"), scrape(coldwell_tc5, ".car-garage .val"), scrape(coldwell_tc6, ".car-garage .val"), scrape(coldwell_tc7, ".car-garage .val"), scrape(coldwell_tc8, ".car-garage .val"), scrape(coldwell_tc9, ".car-garage .val"), scrape(coldwell_tc10, ".car-garage .val"), scrape(coldwell_tc11, ".car-garage .val"), scrape(coldwell_tc12, ".car-garage .val"), scrape(coldwell_tc13, ".car-garage .val"))
+
+carg <- data.frame(carg)
+nrow(carg)==24*13 
+24*13-nrow(carg) # 29  
+
+# length(scrape(coldwell_tc1, ".car-garage .val"))
+# scrape(coldwell_tc6, ".street-address")
+
+carg1 <- (scrape(coldwell_tc1, ".car-garage .val"))
+carg1[18:24] <- c(0, carg1[18:23])
+
+carg2 <- (scrape(coldwell_tc2, ".car-garage .val"))
+carg2[20:23] <- c(0, carg2[20:22])
+carg2[21:24] <- c(0, carg2[21:23])
+
+carg3 <- (scrape(coldwell_tc3, ".car-garage .val"))
+carg3[19:24] <- c(0, carg3[19:23])
+
+carg4 <- (scrape(coldwell_tc4, ".car-garage .val"))
+carg4[15:24] <- c(0, carg4[15:23])
+
+carg5 <- (scrape(coldwell_tc5, ".car-garage .val"))
+carg5[10:24] <- c(0, carg5[10:23]) 
+
+carg6 <- (scrape(coldwell_tc6, ".car-garage .val"))
+carg6[3:21] <- c(0, carg6[3:20]) 
+carg6[10:22] <- c(0, carg6[10:21]) 
+carg6[19:23] <- c(0, carg6[19:22]) 
+carg6[23:24] <- c(0, carg6[23:23]) 
+
+carg7 <- (scrape(coldwell_tc7, ".car-garage .val")) 
+carg7[15:20] <- c(0, carg7[15:19]) 
+carg7[17:21] <- c(0, carg7[17:20]) 
+carg7[18:22] <- c(0, carg7[18:21]) 
+carg7[20:23] <- c(0, carg7[20:22]) 
+carg7[21:24] <- c(0, carg7[21:23]) 
+
+carg8 <- (scrape(coldwell_tc8, ".car-garage .val")) 
+carg8[1:24] <- c(0, carg8[1:23]) 
+
+carg9 <- (scrape(coldwell_tc9, ".car-garage .val"))
+carg9[5:21] <- c(0, carg9[5:20]) 
+carg9[9:22] <- c(0, carg9[9:21]) 
+carg9[12:23] <- c(0, carg9[12:22]) 
+carg9[21:24] <- c(0, carg9[21:23]) 
+
+carg10 <- (scrape(coldwell_tc10, ".car-garage .val"))
+carg10[15:22] <- c(0, carg10[15:21])
+carg10[21:23] <- c(0, carg10[21:22])
+carg10[24:24] <- c(0)
+
+carg11 <- (scrape(coldwell_tc11, ".car-garage .val"))
+carg11[3:22] <- c(0, carg11[3:21])
+carg11[5:23] <- c(0, carg11[5:22])
+carg11[7:24] <- c(0, carg11[7:23])
+
+carg12 <- (scrape(coldwell_tc12, ".car-garage .val"))
+carg12[19:24] <- c(0, carg12[19:23])
+
+carg13 <- (scrape(coldwell_tc13, ".car-garage .val"))
+carg13[8:23] <- c(0, carg13[8:22])
+carg13[9:24] <- c(0, carg13[9:23])
+
+carg <- c(carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13)
+
+carg <- data.frame(carg)
+carg <- carg %>% mutate(carg = as.numeric(carg))
+nrow(carg)==24*13
+
+# test <- data.frame(cbind(address, carg))
+# test %>% filter(carg==0)
+# rm(test)
+
+rm(carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13)
+```
+
+
+# Price
+```{r}
+price <- c(scrape(coldwell_tc1, ".price-normal"), scrape(coldwell_tc2, ".price-normal"), scrape(coldwell_tc3, ".price-normal"), scrape(coldwell_tc4, ".price-normal"), scrape(coldwell_tc5, ".price-normal"), scrape(coldwell_tc6, ".price-normal"), scrape(coldwell_tc7, ".price-normal"), scrape(coldwell_tc8, ".price-normal"), scrape(coldwell_tc9, ".price-normal"), scrape(coldwell_tc10, ".price-normal"), scrape(coldwell_tc11, ".price-normal"), scrape(coldwell_tc12, ".price-normal"), scrape(coldwell_tc13, ".price-normal"))
+
+price <- data.frame(price)
+price <- price %>%
+  mutate(price = as.numeric(gsub("\\$|,", "", as.character(price))))
+nrow(price)==24*13
+```
+
+
+# Make the Data Table
+```{r}
+house <- cbind(address, cityzip, beds, bathf, bathp, carg, price)
+save(house, file = "../Source/house.csv")
+```
+
+
+############################## BELOW IS INCOMPLETE #############################################
+
+## Bind multiple pages
+```{r}
+# Make a variable `pid <- "pid_21803186/"` this pair #T!!!
+# Make a variable `lid <- "minneapolis/4540-penn-avenue-n/" + pid` for each address #T!!!
+link <- "https://www.coldwellbankerhomes.com/mn/minneapolis/4540-penn-avenue-n/pid_21803186/"
+link2 <- "https://www.coldwellbankerhomes.com/mn/saint-paul/766-jackson-street/pid_20380688/"
+coldwell_ind <- read_html(link)
+
+
+pid <- "pid_21803186/"
+# FOR ONE PID FOR NOW #T!!!
+# Makes a link id for each house (a part of the full link)
+lstlid <- house %>%
+  mutate(first = paste(tolower(gsub("\\s", "-", city)), "/"),
+         second = paste(tolower(gsub("\\s", "-", address)), "/"),
+         lid = gsub("\\s", "", paste(first, second, pid))) %>%
+  select(-first, -second)
+
+
+
+# Makes a list of web link for each house
+lstlink <- function(lid) {
+  link <- "https://www.coldwellbankerhomes.com/mn/"
+  str <- ""
+  lst <- lst()
+  for (i in 1: length(lid)) {
+    link <- gsub("\\s", "", paste(link, lid[i]))
+    lst[i] <- link
+  }
+  return(lst)
+}
+
+
+# Personal note: test for adding strings
+t <- lst()
+d <- "dd" 
+t[1] <- gsub("\\s", "", paste("rg", d))
+```
+
+```{r}
+address
+pid <- c("pid_21201050", "pid_21134768", "pid3")
+
+cbind(address,pid)
+```
+
+# Paths saved
+```{r}
+soldat <- "ul:nth-child(4) li:nth-child(2)"
+listedat <- "ul:nth-child(4) li:nth-child(3)"
+schname <- ".school-name"
+schaddr <- ".school-address"
+schgd <- ".property-detail-school-listing .school-data-grades"
+schdist <- ".property-detail-school-listing .school-data-distance"
+schdstr <- ".split-2 .col:nth-child(2) li" #?
+```
+
+
+
+```{r}
+coldwell_ind <- read_html(link)
+scrape(coldwell_ind, soldat)
+```
+
+
