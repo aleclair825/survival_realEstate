@@ -1,10 +1,3 @@
-#T!!! = Task
-#NM!!! = Not Match
-
-
-
-
-
 ---
 title: "| Survival Analysis    \n| Data Scraping from Coldwell\n"
 author: "April Leclair"
@@ -96,7 +89,6 @@ address <- address %>% mutate(address = str_trim(address))
 nrow(address)==24*13
 ```
 
-
 ## City & Zipcode
 ```{r}
 cityzip <- c(scrape(coldwell_tc1, ".city-st-zip"), scrape(coldwell_tc2, ".city-st-zip"), scrape(coldwell_tc3, ".city-st-zip"), scrape(coldwell_tc4, ".city-st-zip"), scrape(coldwell_tc5, ".city-st-zip"), scrape(coldwell_tc6, ".city-st-zip"), scrape(coldwell_tc7, ".city-st-zip"), scrape(coldwell_tc8, ".city-st-zip"), scrape(coldwell_tc9, ".city-st-zip"), scrape(coldwell_tc10, ".city-st-zip"), scrape(coldwell_tc11, ".city-st-zip"), scrape(coldwell_tc12, ".city-st-zip"), scrape(coldwell_tc13, ".city-st-zip"))
@@ -113,7 +105,6 @@ cityzip <- cityzip %>%
 # sum(cityzip$city=="Minneapolis")
 # sum(cityzip$city=="Saint Paul")
 ```
-
 
 ## Number of Beds
 ```{r}
@@ -160,7 +151,6 @@ nrow(beds)==24*13
 rm(beds2, beds4, beds5, beds7, beds8, beds9, beds12)
 ```
 
-
 ## Number of Full Bath
 ```{r}
 bathf <- c(scrape(coldwell_tc1, "li:nth-child(2) .val"), scrape(coldwell_tc2, "li:nth-child(2) .val"), scrape(coldwell_tc3, "li:nth-child(2) .val"), scrape(coldwell_tc4, "li:nth-child(2) .val"), scrape(coldwell_tc5, "li:nth-child(2) .val"), scrape(coldwell_tc6, "li:nth-child(2) .val"), scrape(coldwell_tc7, "li:nth-child(2) .val"), scrape(coldwell_tc8, "li:nth-child(2) .val"), scrape(coldwell_tc9, "li:nth-child(2) .val"), scrape(coldwell_tc10, "li:nth-child(2) .val"), scrape(coldwell_tc11, "li:nth-child(2) .val"), scrape(coldwell_tc12, "li:nth-child(2) .val"), scrape(coldwell_tc13, "li:nth-child(2) .val"))
@@ -169,7 +159,6 @@ bathf <- data.frame(bathf)
 bathf <- bathf %>% mutate(bathf = as.numeric(bathf))
 nrow(bathf)==24*13
 ```
-
 
 ## Number of Partial Bath
 ```{r}
@@ -196,7 +185,6 @@ bathp <- data.frame(bathp)
 nrow(bathp)==24*13
 rm(bathp1, bathp2, bathp3, bathp4, bathp5, bathp6, bathp7, bathp8, bathp9, bathp10, bathp11, bathp12, bathp13)
 ```
-
 
 ## Number of Car Garage
 ```{r}
@@ -277,8 +265,7 @@ nrow(carg)==24*13
 rm(carg1, carg2, carg3, carg4, carg5, carg6, carg7, carg8, carg9, carg10, carg11, carg12, carg13)
 ```
 
-
-# Price
+## Price
 ```{r}
 price <- c(scrape(coldwell_tc1, ".price-normal"), scrape(coldwell_tc2, ".price-normal"), scrape(coldwell_tc3, ".price-normal"), scrape(coldwell_tc4, ".price-normal"), scrape(coldwell_tc5, ".price-normal"), scrape(coldwell_tc6, ".price-normal"), scrape(coldwell_tc7, ".price-normal"), scrape(coldwell_tc8, ".price-normal"), scrape(coldwell_tc9, ".price-normal"), scrape(coldwell_tc10, ".price-normal"), scrape(coldwell_tc11, ".price-normal"), scrape(coldwell_tc12, ".price-normal"), scrape(coldwell_tc13, ".price-normal"))
 
@@ -292,60 +279,35 @@ nrow(price)==24*13
 # Make the Data Table
 ```{r}
 house <- cbind(address, cityzip, beds, bathf, bathp, carg, price)
-save(house, file = "../Source/house.csv")
+# save(house, file = "../Source/house.Rda")
+# write_csv(house, "../Source/house.csv")
+# house <- read_csv("~/MATH-453-Survival-Analysis/Project/survival_realEstate/Source/house.csv")
 ```
 
 
-############################## BELOW IS INCOMPLETE #############################################
-
-## Bind multiple pages
-```{r}
-# Make a variable `pid <- "pid_21803186/"` this pair #T!!!
-# Make a variable `lid <- "minneapolis/4540-penn-avenue-n/" + pid` for each address #T!!!
-link <- "https://www.coldwellbankerhomes.com/mn/minneapolis/4540-penn-avenue-n/pid_21803186/"
-link2 <- "https://www.coldwellbankerhomes.com/mn/saint-paul/766-jackson-street/pid_20380688/"
-coldwell_ind <- read_html(link)
 
 
-pid <- "pid_21803186/"
-# FOR ONE PID FOR NOW #T!!!
-# Makes a link id for each house (a part of the full link)
-lstlid <- house %>%
+
+
+
+
+# Getting Difficult Variables
+
+# Make a List of lid
+```{r message=FALSE, warning=FALSE}
+house1 <- read_csv("~/MATH-453-Survival-Analysis/Project/survival_realEstate/Source/house1.csv")
+lstlid <- house1 %>%
   mutate(first = paste(tolower(gsub("\\s", "-", city)), "/"),
          second = paste(tolower(gsub("\\s", "-", address)), "/"),
-         lid = gsub("\\s", "", paste(first, second, pid))) %>%
-  select(-first, -second)
-
-
-
-# Makes a list of web link for each house
-lstlink <- function(lid) {
-  link <- "https://www.coldwellbankerhomes.com/mn/"
-  str <- ""
-  lst <- lst()
-  for (i in 1: length(lid)) {
-    link <- gsub("\\s", "", paste(link, lid[i]))
-    lst[i] <- link
-  }
-  return(lst)
-}
-
-
-# Personal note: test for adding strings
-t <- lst()
-d <- "dd" 
-t[1] <- gsub("\\s", "", paste("rg", d))
+         lid = gsub("\\s", "", 
+                    paste("https://www.coldwellbankerhomes.com/mn/", first, second, pid))) %>%
+  select(lid)
 ```
 
-```{r}
-address
-pid <- c("pid_21201050", "pid_21134768", "pid3")
 
-cbind(address,pid)
-```
-
-# Paths saved
+# Inventory
 ```{r}
+lidvec <- lstlid$lid
 soldat <- "ul:nth-child(4) li:nth-child(2)"
 listedat <- "ul:nth-child(4) li:nth-child(3)"
 schname <- ".school-name"
@@ -355,11 +317,110 @@ schdist <- ".property-detail-school-listing .school-data-distance"
 schdstr <- ".split-2 .col:nth-child(2) li" #?
 ```
 
-
-
+# Function to create a vector of a variable from a given path
 ```{r}
-coldwell_ind <- read_html(link)
-scrape(coldwell_ind, soldat)
+scrape2 <- function(path) {
+  megalst <- c()
+  for (i in 1:length(lidvec)) {
+    upd <- scrape(read_html(lidvec[i]), path)
+    megalst <- c(megalst, upd)
+  }
+  return(megalst)
+}
+```
+
+# Function to Saefely Scrape
+```{r}
+safely <- function(fn, ..., max_attempts = 10) {
+  function(...) {
+    this_env <- environment()
+    for(i in seq_len(max_attempts)) {
+      ok <- tryCatch({
+          assign("result", fn(...), envir = this_env)
+          TRUE
+        },
+        error = function(e) {
+          FALSE
+        }
+      )
+      if(ok) {
+        return(this_env$result)
+      }
+    }
+    msg <- sprintf(
+      "%s failed after %d tries; returning NULL.",
+      deparse(match.call()),
+      max_attempts
+    )
+    warning(msg)
+    NULL
+  }
+}
+```
+
+# New Function
+```{r}
+safe_scrape2 <- safely(scrape2)
 ```
 
 
+# More Variables
+
+## Sold at
+```{r}
+soldatvar <- safe_scrape2(soldat)
+# save(soldatvar,  file = "../Source/soldatvar.Rda")
+```
+
+## Listed at
+```{r}
+listedatvar <- safe_scrape2(listedat)
+length(listedatvar)
+# save(listedatvar,  file = "../Source/listedatvar.Rda")
+```
+
+## School Name
+```{r}
+schnamevar <- safe_scrape2(schname)
+# save(schnamevar,  file = "../Source/schnamevar.Rda")
+```
+
+## School Address
+```{r}
+schaddrvar <- safe_scrape2(schaddr)
+```
+
+## School Grade
+```{r}
+schgdrvar <- safe_scrape2(schgd)
+```
+
+## School Distance
+```{r}
+schdistvar <- safe_scrape2(schdist)
+```
+
+## School District
+```{r}
+schdstrvar <- safe_scrape2(schdstr)
+```
+
+
+
+
+# Unused
+### GOLDEN! ####
+```{r}
+# Scraping pid
+# scrape_pid <- function(readhtml, path) {
+#   varlst <- readhtml %>%
+#     html_nodes(path) %>%
+#     html_attr("data-pid") 
+#   return(varlst) }
+
+# Notes
+## . for class
+## # for id
+
+# scrape_pid(coldwell_tc1, ".property-snapshot-psr-panel")
+```
