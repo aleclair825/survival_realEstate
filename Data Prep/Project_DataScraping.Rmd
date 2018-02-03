@@ -19,7 +19,7 @@ output:
     split_by: none
     toc: no
 ---
-
+ 
 ```{r setup, include=FALSE, message=FALSE}
 library(tufte)
 library(tidyverse)
