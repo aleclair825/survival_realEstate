@@ -66,7 +66,7 @@ coldwell_tc13 <- read_html(coldwell_tc13a)
 ```
 
 
-# Create a Scraping Function 
+# Function: Create a Scraping Function 
 ```{r}
 # `scrape` scrapes a variable (determined by `path`) on a single page of a website
 scrape <- function(readhtml, path) {
@@ -276,12 +276,13 @@ nrow(price)==24*13
 ```
 
 
-# Make the Data Table
+# Data: Make the Data Table
 ```{r}
 house <- cbind(address, cityzip, beds, bathf, bathp, carg, price)
+# house <- house[-27, ] # remove duplicate
 # save(house, file = "../Source/house.Rda")
 # write_csv(house, "../Source/house.csv")
-# house <- read_csv("~/MATH-453-Survival-Analysis/Project/survival_realEstate/Source/house.csv")
+# house <- read_csv("../Source/house.csv")
 ```
 
 
@@ -295,8 +296,31 @@ house <- cbind(address, cityzip, beds, bathf, bathp, carg, price)
 
 # Make a List of lid
 ```{r message=FALSE, warning=FALSE}
-house1 <- read_csv("~/MATH-453-Survival-Analysis/Project/survival_realEstate/Source/house1.csv")
-lstlid <- house1 %>%
+## Load Data
+## Temporary. Store in one eventually. Clean. !!!
+
+house  <- read_csv("../Source/house.csv")
+house2 <- read_csv("../Source/house2.csv")
+
+house2 <- data.frame(house2) %>% select(address, sqft, pid)
+house2$pid[45] <- "pid_21734880/"
+house2 <- house2[-27,]
+
+house3 <- house %>% left_join(house2, by = "address")
+
+house3$pid[duplicated(house3$pid)]
+duplicated(house3$pid)
+
+house3$address[duplicated(house3$address)]
+duplicated(house3$address)
+
+# save(house3, file = "../Source/house3.Rda")
+# write_csv(house3, "../Source/house3.csv")
+# house3 <- read_csv("../Source/house3.csv")
+
+
+## Make a List
+lstlid <- house3 %>%
   mutate(first = paste(tolower(gsub("\\s", "-", city)), "/"),
          second = paste(tolower(gsub("\\s", "-", address)), "/"),
          lid = gsub("\\s", "", 
@@ -309,13 +333,14 @@ lstlid <- house1 %>%
 ```{r}
 lidvec <- lstlid$lid
 soldat <- "ul:nth-child(4) li:nth-child(2)"
-listedat <- "ul:nth-child(4) li:nth-child(3)"
+listedat <- "body > section.content > div:nth-child(1) > div.layout-main.property-details > div:nth-child(8) > div > div > div.col-1 > ul:nth-child(4)"
 schname <- ".school-name"
 schaddr <- ".school-address"
 schgd <- ".property-detail-school-listing .school-data-grades"
 schdist <- ".property-detail-school-listing .school-data-distance"
 schdstr <- ".split-2 .col:nth-child(2) li" #?
 ```
+
 
 # Function to create a vector of a variable from a given path
 ```{r}
@@ -368,15 +393,55 @@ safe_scrape2 <- safely(scrape2)
 
 ## Sold at
 ```{r}
-soldatvar <- safe_scrape2(soldat)
-# save(soldatvar,  file = "../Source/soldatvar.Rda")
+# soldatvar <- safe_scrape2(soldat)
+
+soldatpr_date <- soldatvar %>%
+  mutate(soldatpr = as.numeric(gsub("[^0-9\\.]", "", substr(soldatvar, 10, 19))),
+         soldatdate = as.Date(gsub("/18", "/2018", 
+                                   paste0("0", gsub("\\s", "", 
+                                                    sub('.*\\on', '', soldatvar)))), "%m/%d/%Y")) %>%
+  select(soldatpr, soldatdate)
+soldatpr_date <- soldatpr_date[-27, ]
+
+# save(soldatpr_date,  file = "../Source/soldatpr_date.Rda")
 ```
 
 ## Listed at
 ```{r}
 listedatvar <- safe_scrape2(listedat)
-length(listedatvar)
-# save(listedatvar,  file = "../Source/listedatvar.Rda")
+listedatvar <- data.frame(listedatvar)
+nrow(listedatvar) # only 221 houses available
+
+tem <- listedatvar %>% # listedat price and date for only 221 houses
+  mutate(var = gsub("\r\n", "", sub('.*\\Listed at', '', as.character(listedatvar) ))) %>%
+  select(var)
+
+listedatpr <- listedatvar %>%
+  mutate(var = gsub("\r\n", "", sub('.*\\Listed at', '', as.character(listedatvar) )),
+         listedatpr = as.numeric(gsub("[^0-9\\.]", "", substr(var, 2, 11)))) %>%
+  select(listedatpr)
+
+
+## Note: Do not have listed at date variable yet due to complicated string conversion
+
+
+## Necessary adjustment due to the absence of listedat price
+### 74. 1718 Highland Parkway (no listed at) only Sold at $415,000 on 1/23/18
+listedatpr$listedatpr[74] <- 415000
+
+## Remove duplicate
+listedatpr <- soldatpr[-27, ]
+
+
+## Notes
+gsub("[^0-9\\.]", "", substr(a$var, 2, 11))
+a <- sub('.*\\on', '', a$var)
+b <- gsub("\\s", "", a)
+
+
+## Still working on it
+ifelse(b[length(a)-1:length(a)]=="18", gsub("/18","/2018", substr(4, nchar(a), a)), gsub("/17","/2017", substr(4, nchar(a), a)))
+# as.Date(gsub("/18", "/2018", paste0("0", gsub("\\s", "", sub('.*\\on', '', var)))), "%m/%d/%Y"))
 ```
 
 ## School Name
@@ -388,11 +453,13 @@ schnamevar <- safe_scrape2(schname)
 ## School Address
 ```{r}
 schaddrvar <- safe_scrape2(schaddr)
+# save(schaddrvar,  file = "../Source/schaddrvar.Rda")
 ```
 
 ## School Grade
 ```{r}
 schgdrvar <- safe_scrape2(schgd)
+# save(schgdrvar,  file = "../Source/schgdrvar.Rda")
 ```
 
 ## School Distance
@@ -405,6 +472,16 @@ schdistvar <- safe_scrape2(schdist)
 schdstrvar <- safe_scrape2(schdstr)
 ```
 
+
+
+# Load and Combine
+```{r message=FALSE, warning=FALSE}
+load("../Source/soldatpr_date.Rda")
+house3 <- cbind(house3, soldatpr_date)
+# save(house3, file = "../Source/house3.Rda")
+# write_csv(house3, "../Source/house3.csv")
+# house3 <- read_csv("../Source/house3.csv")
+```
 
 
 
