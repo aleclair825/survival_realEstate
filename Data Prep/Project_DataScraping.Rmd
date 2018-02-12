@@ -1,6 +1,7 @@
 ---
 title: "| Survival Analysis    \n| Data Scraping from Coldwell\n"
 author: "April Leclair"
+date: "2018-02-11"
 output:
   bookdown::tufte_html2:
     number_sections: no
@@ -26,10 +27,17 @@ library(tidyverse)
 library(devtools)
 library(rvest)
 library(stringr)
+library(stringi)
+library(readr)
 knitr::opts_chunk$set(tidy = FALSE, message=FALSE, cache.extra = packageVersion('tufte'))
 options(htmltools.dir.version = FALSE)
 ```
 
+#####################  SESSION 1  ##################### 
+
+```{marginfigure}
+Sources: [Recent Sales Single Family House Data for Minneapolis (Coldwell Banker), saved on 02/01/2018](https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/) and [Recent Sales Single Family House Data for Saint Paul (Coldwell Banker), saved on 02/01/2018](https://www.coldwellbankerhomes.com/mn/st-paul/recent-sales/)
+```
 
 # Read the Saved HTML
 ```{r}
@@ -288,17 +296,13 @@ house <- cbind(address, cityzip, beds, bathf, bathp, carg, price)
 
 
 
-
-
-
+#####################  SESSION 2  ##################### 
 
 # Getting Difficult Variables
 
-# Make a List of lid
-```{r message=FALSE, warning=FALSE}
-## Load Data
-## Temporary. Store in one eventually. Clean. !!!
 
+## Load, Save, and Clean Data
+```{r message=FALSE, warning=FALSE}
 house  <- read_csv("../Source/house.csv")
 house2 <- read_csv("../Source/house2.csv")
 
@@ -317,9 +321,10 @@ duplicated(house3$address)
 # save(house3, file = "../Source/house3.Rda")
 # write_csv(house3, "../Source/house3.csv")
 # house3 <- read_csv("../Source/house3.csv")
+```
 
-
-## Make a List
+## Make a List of lid
+```{r}
 lstlid <- house3 %>%
   mutate(first = paste(tolower(gsub("\\s", "-", city)), "/"),
          second = paste(tolower(gsub("\\s", "-", address)), "/"),
@@ -328,21 +333,21 @@ lstlid <- house3 %>%
   select(lid)
 ```
 
-
-# Inventory
+## Manage Inventory
 ```{r}
+# Note: All other variable paths failed to work properly, so I scraped only the sold at variable. With more CS background, scraping more variables may be possible.
+
 lidvec <- lstlid$lid
 soldat <- "ul:nth-child(4) li:nth-child(2)"
-listedat <- "body > section.content > div:nth-child(1) > div.layout-main.property-details > div:nth-child(8) > div > div > div.col-1 > ul:nth-child(4)"
-schname <- ".school-name"
-schaddr <- ".school-address"
-schgd <- ".property-detail-school-listing .school-data-grades"
-schdist <- ".property-detail-school-listing .school-data-distance"
-schdstr <- ".split-2 .col:nth-child(2) li" #?
+# listedat <- "body > section.content > div:nth-child(1) > div.layout-main.property-details > div:nth-child(8) > div > div > div.col-1 > ul:nth-child(4)"
+# schname <- ".school-name"
+# schaddr <- ".school-address"
+# schgd <- ".property-detail-school-listing .school-data-grades"
+# schdist <- ".property-detail-school-listing .school-data-distance"
+# schdstr <- ".split-2 .col:nth-child(2) li" #?
 ```
 
-
-# Function to create a vector of a variable from a given path
+## Function: Create a vector of a variable from a given path
 ```{r}
 scrape2 <- function(path) {
   megalst <- c()
@@ -354,7 +359,7 @@ scrape2 <- function(path) {
 }
 ```
 
-# Function to Saefely Scrape
+## Function: Saefely scrape variables
 ```{r}
 safely <- function(fn, ..., max_attempts = 10) {
   function(...) {
@@ -383,13 +388,12 @@ safely <- function(fn, ..., max_attempts = 10) {
 }
 ```
 
-# New Function
+## Function: Combined Function
 ```{r}
 safe_scrape2 <- safely(scrape2)
 ```
 
-
-# More Variables
+# Variable
 
 ## Sold at
 ```{r}
@@ -406,77 +410,9 @@ soldatpr_date <- soldatpr_date[-27, ]
 # save(soldatpr_date,  file = "../Source/soldatpr_date.Rda")
 ```
 
-## Listed at
-```{r}
-listedatvar <- safe_scrape2(listedat)
-listedatvar <- data.frame(listedatvar)
-nrow(listedatvar) # only 221 houses available
-
-tem <- listedatvar %>% # listedat price and date for only 221 houses
-  mutate(var = gsub("\r\n", "", sub('.*\\Listed at', '', as.character(listedatvar) ))) %>%
-  select(var)
-
-listedatpr <- listedatvar %>%
-  mutate(var = gsub("\r\n", "", sub('.*\\Listed at', '', as.character(listedatvar) )),
-         listedatpr = as.numeric(gsub("[^0-9\\.]", "", substr(var, 2, 11)))) %>%
-  select(listedatpr)
-
-
-## Note: Do not have listed at date variable yet due to complicated string conversion
-
-
-## Necessary adjustment due to the absence of listedat price
-### 74. 1718 Highland Parkway (no listed at) only Sold at $415,000 on 1/23/18
-listedatpr$listedatpr[74] <- 415000
-
-## Remove duplicate
-listedatpr <- soldatpr[-27, ]
-
-
-## Notes
-gsub("[^0-9\\.]", "", substr(a$var, 2, 11))
-a <- sub('.*\\on', '', a$var)
-b <- gsub("\\s", "", a)
-
-
-## Still working on it
-ifelse(b[length(a)-1:length(a)]=="18", gsub("/18","/2018", substr(4, nchar(a), a)), gsub("/17","/2017", substr(4, nchar(a), a)))
-# as.Date(gsub("/18", "/2018", paste0("0", gsub("\\s", "", sub('.*\\on', '', var)))), "%m/%d/%Y"))
-```
-
-## School Name
-```{r}
-schnamevar <- safe_scrape2(schname)
-# save(schnamevar,  file = "../Source/schnamevar.Rda")
-```
-
-## School Address
-```{r}
-schaddrvar <- safe_scrape2(schaddr)
-# save(schaddrvar,  file = "../Source/schaddrvar.Rda")
-```
-
-## School Grade
-```{r}
-schgdrvar <- safe_scrape2(schgd)
-# save(schgdrvar,  file = "../Source/schgdrvar.Rda")
-```
-
-## School Distance
-```{r}
-schdistvar <- safe_scrape2(schdist)
-```
-
-## School District
-```{r}
-schdstrvar <- safe_scrape2(schdstr)
-```
-
-
-
 # Load and Combine
 ```{r message=FALSE, warning=FALSE}
-load("../Source/soldatpr_date.Rda")
+# load("../Source/soldatpr_date.Rda")
 house3 <- cbind(house3, soldatpr_date)
 # save(house3, file = "../Source/house3.Rda")
 # write_csv(house3, "../Source/house3.csv")
@@ -485,8 +421,254 @@ house3 <- cbind(house3, soldatpr_date)
 
 
 
-# Unused
-### GOLDEN! ####
+
+#####################  SESSION 3  ##################### 
+
+Date: 2018-02-11
+
+# Adding the Crime Variable and Others
+
+## Load Crime Data
+```{r warning=FALSE, message=FALSE}
+crimeMinn <- read_csv("../Source/crimeMinneapolis.csv")
+crimeStPaul <- read_csv("../Source/crimeStPaul.csv")
+```
+
+```{marginfigure}
+Sources: [Minneapolis Crime Data (Kaggle)](https://www.kaggle.com/mrisdal/minneapolis-incidents-crime/data) and [Saint Paul Crime Data ](https://information.stpaul.gov/Public-Safety/Crime-Incident-Report-Dataset/gppb-g9cg)
+```
+
+
+## *Minneapolis Crime Data*
+
+### Wrangle Crime Data for Minneapolis
+```{r}
+(crimeM <- 
+  crimeMinn %>%
+  mutate(rptdate = as.Date(substr(ReportedDate, 1, 10))) %>%
+  filter(rptdate >= "2015-01-01") %>%
+  mutate(rpttime = times(substr(ReportedDate, 11, 19)),
+         offense = Offense,
+         descr = Description,
+         neighb = stri_trans_totitle(Neighborhood)) %>%
+  select(rptdate, offense, descr, neighb))
+```
+
+### Explore Variables for Minneapolis Crime
+```{r}
+# 88 neighborhoods
+length(unique(crimeM$neighb))
+
+# 35 offenses
+length(unique(crimeM$offense))
+
+# 35 descriptions
+length(unique(crimeM$descr))
+
+# Note: description is the same of offenses
+```
+
+### Explore Crime Types and Neighborhoods in Minneapolis
+```{r}
+# By description
+crimeM %>% 
+  group_by(descr) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+# By neighborhood
+crimeM %>% 
+  group_by(neighb) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+# By neighborhood and descr
+crimeM %>% 
+  group_by(neighb, descr) %>%
+  summarise(n = n()) %>%
+  arrange(desc(neighb, n))
+```
+
+
+## *Saint Paul Crime Data*
+
+### Wrangle Crime Data for Saint Paul
+```{r}
+crimeSP <- 
+  crimeStPaul %>%
+  mutate(rptdate = as.Date(DATE, "%m/%d/%Y")) %>%
+  filter(rptdate >= "2015-01-01") %>%
+  mutate(offense = `INCIDENT TYPE`,
+         descr = INCIDENT,
+         neighbtem = `NEIGHBORHOOD NAME`,
+         neighb = sub('.*\\- ', '', neighbtem)) %>%
+  filter(descr != "Proactive Police Visit") %>% # took out "Proactive Police Visit"
+  select(rptdate, offense, descr, neighb) 
+```
+
+### Explore Variables for Saint Paul Crime
+```{r}
+# 17 neighborhoods
+length(unique(crimeSP$neighb))
+
+# 162 offenses
+length(unique(crimeSP$offense))
+
+# 16 descriptions
+length(unique(crimeSP$descr))
+```
+
+### Explore Crime Types and Neighborhoods in Saint Paul
+```{r}
+# By description
+crimeSP %>% 
+  group_by(descr) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+# By neighborhood
+crimeSP %>% 
+  group_by(neighb) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+
+# By neighborhood and descr
+crimeSP %>% 
+  group_by(neighb, descr) %>%
+  summarise(n = n()) %>%
+  arrange(desc(neighb, n))
+```
+
+## Crime Summary Output
+
+Saint Paul data seems to contain more variables that are not recorded in Minneapolis. Such examples are "Proactive Police Visits", "Vandalism", and "Narcotics". This inclusion makes the number of crimes in Saint Paul relatively large compared to that in Minneapolis. We should be mindful of this fact when we analyze our results.
+
+### Saint Paul Crime Summary Output
+```{r}
+# Theft	29120			
+# Vandalism	8975			
+# Narcotics	7495			
+# Auto Theft	7164			
+# Burglary	7110			
+# Simple Asasult Dom.	3226			
+# Discharge	3221			
+# Robbery	2275			
+# Community Engagement Event	2113			
+# Agg. Assault	1411	
+# Agg. Assault Dom.	1270			
+# Graffiti	590			
+# Rape	443			
+# Arson	292			
+# Simple Assault Dom.	16			
+# Homicide	12	
+```
+
+### Minneapolis Crime Summary Output
+```{r eval=FALSE}
+(Theft = 	8300+3856+1626+1019+529+159+144) # 15633
+# Other Theft	8300			
+# Theft From Motr Vehc	3856			
+# Shoplifting	1626			
+# Bike Theft	1019			
+# Theft From Person	529			
+# Theft-motr Veh Parts	159			
+# Theft From Building	144			
+
+(Bulglary = 3984+831+414+31+5+5+4+1+1) # 5276
+# Burglary Of Dwelling	3984			
+# Burglary Of Business	831	
+# Theft By Swindle	414			
+# Theft/coinop Device	31			
+# Scrapping-Recycling Theft	5	
+# Theft By Computer	5			
+# On-line Theft	4	
+# Looting	1			
+# Pocket-picking	1	
+
+(MVT = 2389+26) # 2415
+# Motor Vehicle Theft	2389			
+# Other Vehicle Theft	26			
+
+(Robbery = 1286+1030+162) # 2478
+# Robbery Per Agg	1286			
+# Robbery Of Person	1030			
+# Robbery Of Business	162			
+
+(Assault = 1110+382+375+281+136+93+28+5) # 2410
+# Asslt W/dngrs Weapon	1110			
+# 2nd Deg Domes Aslt	382			
+# Domestic Assault/Strangulation	375			
+# Aslt-sgnfcnt Bdly Hm	281			
+# Aslt-police/emerg P	136			
+# 3rd Deg Domes Aslt	93			
+# Aslt-great Bodily Hm	28			
+# 1st Deg Domes Asslt	5			
+
+(Rape = 425) # 425
+# Crim Sex Cond-rape	425			
+
+(Arson = 142) # 142
+# Arson	142
+
+(Homicide = 40) # 40
+# Murder (general)	40			
+
+(Others = 9+9+3) # 21
+# Adulteration/poison	9			
+# Gas Station Driv-off	9			
+# Disarm a Police Officer	3			
+```
+
+## Join Two Crime Data Sets
+```{r}
+# Number of Crimes by Neighborhood
+crime_SP <- crimeSP %>% 
+  group_by(neighb) %>%
+  summarise(ncrime = n()) %>%
+  arrange(desc(ncrime))
+
+crime_M <- crimeM %>% 
+  group_by(neighb) %>%
+  summarise(ncrime = n()) %>%
+  arrange(desc(ncrime))
+
+crimeTC <- as.data.frame(rbind(crime_SP, crime_M)) %>% na.omit()
+length(unique(crimeTC$neighb))==length(crimeTC$neighb)
+crimeTC <- crimeTC[-46, ] # remove duplicate
+```
+
+
+# Compiling the Master Data
+!!!
+## Load Data with `listedatdate`, `listedatpr`, `schooldistance`, and `neighborhood` variables added 
+```{r warning=FALSE, message=FALSE}
+house4 <- read_csv("../Source/house4.csv")
+```
+
+## Wrangle Data 
+```{r}
+house4 <- house4 %>% mutate(neighb = neighborhood,
+                            schdist = schooldistance) %>% 
+  select(-neighborhood, -schooldistance)
+```
+
+## Join the finalized data: `house4` and `crimeTC`
+```{r}
+houseTC <- house4 %>% 
+  left_join(crimeTC, by = "neighb") 
+
+# save(houseTC, file = "../Source/houseTC.Rda")
+# write_csv(houseTC, "../Source/houseTC.csv")
+# houseTC <- read_csv("../Source/houseTC.csv")
+```
+
+
+
+
+
+# APPENDIX
+
+## Unused Scraping Magic
 ```{r}
 # Scraping pid
 # scrape_pid <- function(readhtml, path) {
