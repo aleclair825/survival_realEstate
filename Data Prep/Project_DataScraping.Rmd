@@ -29,6 +29,7 @@ library(rvest)
 library(stringr)
 library(stringi)
 library(readr)
+library(chron)
 knitr::opts_chunk$set(tidy = FALSE, message=FALSE, cache.extra = packageVersion('tufte'))
 options(htmltools.dir.version = FALSE)
 ```
@@ -494,7 +495,7 @@ crimeM %>%
 
 ### Wrangle Crime Data for Saint Paul
 ```{r}
-crimeSP <- 
+(crimeSP <- 
   crimeStPaul %>%
   mutate(rptdate = as.Date(DATE, "%m/%d/%Y")) %>%
   filter(rptdate >= "2015-01-01") %>%
@@ -503,7 +504,7 @@ crimeSP <-
          neighbtem = `NEIGHBORHOOD NAME`,
          neighb = sub('.*\\- ', '', neighbtem)) %>%
   filter(descr != "Proactive Police Visit") %>% # took out "Proactive Police Visit"
-  select(rptdate, offense, descr, neighb) 
+  select(rptdate, offense, descr, neighb))
 ```
 
 ### Explore Variables for Saint Paul Crime
@@ -653,7 +654,7 @@ house4 <- house4 %>% mutate(neighb = neighborhood,
 ```
 
 ## Join the finalized data: `house4` and `crimeTC`
-```{r}
+```{r message=FALSE, warning=FALSE}
 houseTC <- house4 %>% 
   left_join(crimeTC, by = "neighb") 
 
