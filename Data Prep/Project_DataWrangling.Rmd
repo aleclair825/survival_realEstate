@@ -1,0 +1,54 @@
+---
+title: "| Survival Analysis    \n| Data Wrangling & Feature Engineering\n"
+author: "April Leclair"
+date: "2018-02-11"
+output:
+  bookdown::tufte_html2:
+    number_sections: no
+    split_by: none
+    toc: no
+  bookdown::pdf_document2:
+    latex_engine: pdflatex
+    number_sections: no
+    toc: no
+  bookdown::tufte_handout2:
+    latex_engine: xelatex
+    number_sections: no
+    toc: no
+  bookdown::html_document2:
+    number_sections: no
+    split_by: none
+    toc: no
+---
+ 
+```{r setup, include=FALSE, message=FALSE}
+library(tidyverse)
+library(readr)
+knitr::opts_chunk$set(tidy = FALSE, message=FALSE, cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+```
+
+# Load Data 
+```{r message=FALSE, warning=FALSE}
+# houseTC <- read_csv("../Source/houseTC.csv")
+```
+
+# Variable Names
+```{r}
+names(houseTC)
+```
+
+# Feature Engineering
+
+### Time on Market `tom`, Price Difference `pdiff`, & Price Difference in Percentage `pdiff_perc`
+```{r}
+tem <- houseTC %>%
+  mutate(tom = soldatdate - listedatdate,
+         prdiff = soldatpr - listedatpr,
+         prdiff_perc = (soldatpr - listedatpr)/listedatpr)
+  
+# houseTC1 %>%
+#   arrange(desc(diff))
+# 
+# mean(houseTC1$diff)
+```

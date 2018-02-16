@@ -1,7 +1,7 @@
 ---
 title: "| Survival Analysis    \n| Data Scraping from Coldwell\n"
 author: "April Leclair"
-date: "2018-02-11"
+date: "02/11/2018"
 output:
   bookdown::tufte_html2:
     number_sections: no
@@ -39,6 +39,7 @@ options(htmltools.dir.version = FALSE)
 ```{marginfigure}
 Sources: [Recent Sales Single Family House Data for Minneapolis (Coldwell Banker), saved on 02/01/2018](https://www.coldwellbankerhomes.com/mn/minneapolis/recent-sales/) and [Recent Sales Single Family House Data for Saint Paul (Coldwell Banker), saved on 02/01/2018](https://www.coldwellbankerhomes.com/mn/st-paul/recent-sales/)
 ```
+
 
 # Read the Saved HTML
 ```{r}
@@ -84,7 +85,6 @@ scrape <- function(readhtml, path) {
     html_text() 
   return(varlst) }
 ```
-
 
 
 # Variables
@@ -196,6 +196,7 @@ rm(bathp1, bathp2, bathp3, bathp4, bathp5, bathp6, bathp7, bathp8, bathp9, bathp
 ```
 
 ## Number of Car Garage
+### WARNING: This did not work, so fixed it at SESSION 3
 ```{r}
 carg <- c(scrape(coldwell_tc1, ".car-garage .val"), scrape(coldwell_tc2, ".car-garage .val"), scrape(coldwell_tc3, ".car-garage .val"), scrape(coldwell_tc4, ".car-garage .val"), scrape(coldwell_tc5, ".car-garage .val"), scrape(coldwell_tc6, ".car-garage .val"), scrape(coldwell_tc7, ".car-garage .val"), scrape(coldwell_tc8, ".car-garage .val"), scrape(coldwell_tc9, ".car-garage .val"), scrape(coldwell_tc10, ".car-garage .val"), scrape(coldwell_tc11, ".car-garage .val"), scrape(coldwell_tc12, ".car-garage .val"), scrape(coldwell_tc13, ".car-garage .val"))
 
@@ -299,32 +300,34 @@ house <- cbind(address, cityzip, beds, bathf, bathp, carg, price)
 
 #####################  SESSION 2  ##################### 
 
-# Getting Difficult Variables
+# Difficult Variables
 
 
-## Load, Save, and Clean Data
+## Add Manual Variables & Clean
 ```{r message=FALSE, warning=FALSE}
 house  <- read_csv("../Source/house.csv")
-house2 <- read_csv("../Source/house2.csv")
+house2 <- read_csv("../Source/house2.csv") # load the data table with variables (sqft, pid) manually added by Nick
 
 house2 <- data.frame(house2) %>% select(address, sqft, pid)
-house2$pid[45] <- "pid_21734880/"
-house2 <- house2[-27,]
+house2$pid[45] <- "pid_21734880/" # fix error in pid
+house2 <- house2[-27,] # get rid of the duplicate
 
 house3 <- house %>% left_join(house2, by = "address")
 
-house3$pid[duplicated(house3$pid)]
-duplicated(house3$pid)
+house3$pid[duplicated(house3$pid)] # PASS
+duplicated(house3$pid) # PASS
 
-house3$address[duplicated(house3$address)]
-duplicated(house3$address)
+house3$address[duplicated(house3$address)] # PASS
+duplicated(house3$address) # PASS
 
 # save(house3, file = "../Source/house3.Rda")
 # write_csv(house3, "../Source/house3.csv")
 # house3 <- read_csv("../Source/house3.csv")
 ```
 
-## Make a List of lid
+## Scrape Difficult Variables
+
+### Make a List of lid
 ```{r}
 lstlid <- house3 %>%
   mutate(first = paste(tolower(gsub("\\s", "-", city)), "/"),
@@ -334,7 +337,7 @@ lstlid <- house3 %>%
   select(lid)
 ```
 
-## Manage Inventory
+### Manage Inventory
 ```{r}
 # Note: All other variable paths failed to work properly, so I scraped only the sold at variable. With more CS background, scraping more variables may be possible.
 
@@ -348,7 +351,7 @@ soldat <- "ul:nth-child(4) li:nth-child(2)"
 # schdstr <- ".split-2 .col:nth-child(2) li" #?
 ```
 
-## Function: Create a vector of a variable from a given path
+### Function: Create a vector of a variable from a given path
 ```{r}
 scrape2 <- function(path) {
   megalst <- c()
@@ -360,7 +363,7 @@ scrape2 <- function(path) {
 }
 ```
 
-## Function: Saefely scrape variables
+### Function: Saefely scrape variables
 ```{r}
 safely <- function(fn, ..., max_attempts = 10) {
   function(...) {
@@ -389,15 +392,17 @@ safely <- function(fn, ..., max_attempts = 10) {
 }
 ```
 
-## Function: Combined Function
+### Function: Combined Function
 ```{r}
 safe_scrape2 <- safely(scrape2)
 ```
 
-# Variable
+### Variable
 
-## Sold at
+#### Sold at
 ```{r}
+# Note: Only this variable worked properly. I hope to learn more about scraping in the next few months. 
+
 # soldatvar <- safe_scrape2(soldat)
 
 soldatpr_date <- soldatvar %>%
@@ -406,12 +411,12 @@ soldatpr_date <- soldatvar %>%
                                    paste0("0", gsub("\\s", "", 
                                                     sub('.*\\on', '', soldatvar)))), "%m/%d/%Y")) %>%
   select(soldatpr, soldatdate)
-soldatpr_date <- soldatpr_date[-27, ]
+soldatpr_date <- soldatpr_date[-27, ] # remove duplicate
 
 # save(soldatpr_date,  file = "../Source/soldatpr_date.Rda")
 ```
 
-# Load and Combine
+# Add one more manual variable: `soldatpr_date`
 ```{r message=FALSE, warning=FALSE}
 # load("../Source/soldatpr_date.Rda")
 house3 <- cbind(house3, soldatpr_date)
@@ -427,7 +432,7 @@ house3 <- cbind(house3, soldatpr_date)
 
 Date: 2018-02-11
 
-# Adding the Crime Variable and Others
+# Crime Variable and Others
 
 ## Load Crime Data
 ```{r warning=FALSE, message=FALSE}
@@ -438,7 +443,6 @@ crimeStPaul <- read_csv("../Source/crimeStPaul.csv")
 ```{marginfigure}
 Sources: [Minneapolis Crime Data (Kaggle)](https://www.kaggle.com/mrisdal/minneapolis-incidents-crime/data) and [Saint Paul Crime Data ](https://information.stpaul.gov/Public-Safety/Crime-Incident-Report-Dataset/gppb-g9cg)
 ```
-
 
 ## *Minneapolis Crime Data*
 
@@ -489,7 +493,6 @@ crimeM %>%
   summarise(n = n()) %>%
   arrange(desc(neighb, n))
 ```
-
 
 ## *Saint Paul Crime Data*
 
@@ -640,28 +643,109 @@ crimeTC <- crimeTC[-46, ] # remove duplicate
 
 
 # Compiling the Master Data
-!!!
-## Load Data with `listedatdate`, `listedatpr`, `schooldistance`, and `neighborhood` variables added 
+
+## Add Manual Variables: `listedatdate`, `listedatpr`, `schooldistance`, and `neighborhood`
+
+### Wrangle Data
 ```{r warning=FALSE, message=FALSE}
 house4 <- read_csv("../Source/house4.csv")
-```
-
-## Wrangle Data 
-```{r}
-house4 <- house4 %>% mutate(neighb = neighborhood,
-                            schdist = schooldistance) %>% 
+tem <- house4 %>% select(pid, listedatdate, listedatpr, schooldistance, neighborhood)  
+house5 <- house3 %>% left_join(tem, by = "pid") %>%
+  mutate(neighb = neighborhood, schdist = schooldistance) %>% 
   select(-neighborhood, -schooldistance)
 ```
 
+
 ## Join the finalized data: `house4` and `crimeTC`
 ```{r message=FALSE, warning=FALSE}
-houseTC <- house4 %>% 
+houseTC <- house5 %>% 
   left_join(crimeTC, by = "neighb") 
 
 # save(houseTC, file = "../Source/houseTC.Rda")
 # write_csv(houseTC, "../Source/houseTC.csv")
 # houseTC <- read_csv("../Source/houseTC.csv")
 ```
+
+
+
+
+#####################  SESSION 4  ##################### 
+
+Date: 02/15/2018
+
+# Fixing Errors and Cleaning
+
+## Load Data
+```{r warning=FALSE, message=FALSE}
+houseTC <- read_csv("../Source/houseTC.csv")
+```
+
+## Format Existing Variables
+```{r}
+tem <- houseTC %>% as.data.frame(houseTC) %>%
+  mutate(listedatdate = as.Date(listedatdate, format = "%m/%d/%Y"),
+         soldatdate = as.Date(soldatdate, format = "%m/%d/%Y"),
+         soldatprice = price,
+         zip = as.numeric(zip),
+         beds = as.numeric(beds),
+         bathf = as.numeric(bathf),
+         carg = as.numeric(carg),
+         sqft = as.numeric(sqft),
+         listedatpr = as.numeric(listedatpr),
+         ncrime = as.numeric(ncrime)) %>%
+  select(address, city, zip, beds, bathf, bathp, carg, sqft, listedatpr, soldatpr, listedatdate, soldatdate, neighb, schdist, ncrime)
+```
+
+## Fix Errors for row # 1-156
+### For Nick
+```{r}
+
+```
+
+### Fix Errors for row # 157-311
+```{r}
+# Note: didn't check crime, neighborhood, sqft 
+tem2 <- tem
+
+
+# carg
+# keeping track of the row number matching with the carg (the numbers in (()) represent the row number)
+# tem2$carg[157:311] = c(2, 0, 1, 0, 0, 1, 0 ((163)), 0,  2, 2, 2, 0, 2, 2, 2 ((171)), 1, 1, 2, 2, 1, 2 ((177)), 2, 3, 2, 2, 2 ((182)), 1, 1, 2, 1, 2, 1, 1, 2 ((190)), 2, 1, 1, 2, 2, 0, 2, 2, 2 ((199)), 0, 1, 2, 0, 2, 2 ((205)), 2, 2, 1, 1, 1, 2 ((211)), 0, 2, 2, 2 ((215)), 2, 1, 1, 1, 2, 2, 3,  1, 2, 2, 1, 2, 1, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 0 ((239)), 2, 2, 0, 1, 0, 3, 0, 3, 2, 2, 1, 1, 2, 1, 2, 2, 1, 1, 2, 2, 2, 2, 2, 1 ((263)), 2, 2, 1, 2 ,1, 2,2,2,1,1,2,1,1,2,2 ((278)), 2,2,1,0,2,1,2,1,1 ((287)), 1,2,2,2,2,1,1,0,0,2,1,2,2,2,2,2,1,1,1,2,1,2,2,2 ((311)))
+
+## ALL PASS
+tem2$carg[157:311] = c(2, 0, 1, 0, 0, 1, 0, 0,  2, 2, 2, 0, 2, 2, 2, 1, 1, 2, 2, 1, 2, 2, 3, 2, 2, 2, 1, 1, 2, 1, 2, 1, 1, 2, 2, 1, 1, 2, 2, 0, 2, 2, 2, 0, 1, 2, 0, 2, 2, 2, 2, 1, 1, 1, 2, 0, 2, 2, 2, 2, 1, 1, 1, 2, 2, 3,  1, 2, 2, 1, 2, 1, 2, 0, 2, 2, 2, 2, 2, 0, 2, 2, 0, 2, 2, 0, 1, 0, 3, 0, 3, 2, 2, 1, 1, 2, 1, 2, 2, 1, 1, 2, 2, 2, 2, 2, 1, 2, 2, 1, 2 ,1, 2, 2, 2, 1, 1, 2, 1, 1, 2, 2, 2, 2, 1, 0, 2, 1, 2, 1, 1, 1, 2, 2, 2, 2, 1, 1, 0, 0, 2, 1, 2, 2, 2, 2, 2, 1, 1, 1, 2, 1, 2, 2, 2)
+               
+             
+# soldatdate
+## ALL PASS
+tem2$soldatdate[157:163] = as.Date("2018-01-18") 
+
+
+# listedatdate
+## ALL PASS
+tem2$listedatdate[169] = as.Date("2017-12-15") 
+tem2$listedatdate[219] = as.Date("2017-11-05") 
+tem2$listedatdate[278] = as.Date("2018-01-10") 
+tem2$listedatdate[302] = as.Date("2017-08-28") 
+tem2$listedatdate[304] = as.Date("2017-11-29") 
+tem2$listedatdate[305] = as.Date("2017-11-26") 
+
+
+# bathf
+## ALL PASS
+tem2$bathf[190] = 0 # 2008 Seabury
+tem2$bathf[194] = 0 # 2652 Fremont Avenue N
+tem2$bathf[286] = 0 # 5617 1st Avenue S
+
+# schodist
+## ALL PASS
+tem2$schdist[191] = 0.8 # 2701 N Oliver Avenue
+tem2$schdist[198] = 0 # 4220 42nd Avenue S
+tem2$schdist[248] = 0.7 # 4620 Ewing Avenue S
+```
+
+
+
 
 
 
