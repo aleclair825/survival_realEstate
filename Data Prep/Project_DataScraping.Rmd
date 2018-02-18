@@ -700,12 +700,39 @@ tem <- houseTC %>% as.data.frame(houseTC) %>%
 ### For Nick
 ```{r}
 
+tem2 <- tem
+
+# carg
+## ALL PASS
+tem2$carg[1:156] = tem$carg[1:156] - 1
+
+# soldatdate
+## ALL PASS
+
+# listedatdate
+## ALL PASS
+
+# bathf
+## ALL PASS
+
+
+# schodist
+## ALL PASS
+
+# sqft
+## ALL PASS
+
+# address
+## Question mark formatting fixed
+
+tem2$address <- gsub("??", " ", tem3$address, fixed=TRUE)
+
+
 ```
 
 ### Fix Errors for row # 157-311
 ```{r}
 # Note: didn't check crime, neighborhood, sqft 
-tem2 <- tem
 
 
 # carg
