@@ -35,44 +35,140 @@ houseTC_final <- read_csv("../Source/houseTC_final.csv")
 
 # Variable Names
 ```{r}
-names(houseTC)
 names(houseTC_final)
 ```
 
 # Feature Engineering
 
-### Time on Market `tom`, Price Difference `pdiff`, & Price Difference in Percentage `pdiff_perc`
-```{r}
-tem <- houseTC_final
+* `tom` = Time on Market
+* `pdiff` = Price Difference
+* `pdiff_perc` = Price Difference in Percentage 
+* `pdiff_np` = Factored variable of `1` = positive `pdiff`, `2` = negative `pdiff`, `3` = 0 `pdiff`
 
-tem2 <- tem %>%
+```{r warning = FALSE, message=FALSE}
+tem <- houseTC_final %>%
   mutate(tom = soldatdate - listedatdate,
          prdiff = soldatpr - listedatpr,
-         prdiff_perc = (soldatpr - listedatpr)/listedatpr)
-  
-tem2 %>%
+         prdiff_perc = (soldatpr - listedatpr)/listedatpr,
+         prdiff_np = as.factor(ifelse(prdiff > 0, 1, 
+                            ifelse(prdiff < 0, 2,
+                                   ifelse(prdiff == 0, 3, 5)))))
+```
+
+
+## Inspect Variables
+
+### `tom`
+```{r}
+tem %>%
   arrange(desc(tom))
-
-tem2 %>%
+tem %>%
   arrange(tom)
+max(tem$tom)
+min(tem$tom)
+mean(tem$tom)
+median(tem$tom)
+```
+
+### `tom` by city
+```{r}
+# Saint Paul
+stp <- tem %>%
+  filter(city == "Saint Paul") %>%
+  arrange(desc(tom))
+stp %>%
+  filter(city == "Saint Paul") %>%
+  arrange(tom)
+max(stp$tom)
+min(stp$tom)
+mean(stp$tom)
+median(stp$tom)
+
+# Minneapolis
+min <- tem %>%
+  filter(city == "Minneapolis") %>%
+  arrange(desc(tom))
+min %>%
+  filter(city == "Minneapolis") %>%
+  arrange(tom)
+max(min$tom)
+min(min$tom)
+mean(min$tom)
+median(min$tom)
+
+table(tem$city)
+```
 
 
-tem2 %>%
+### `prdiff`
+```{r}
+tem %>%
   arrange(desc(prdiff))
+tem %>%
+  arrange(prdiff)
+max(tem$prdiff)
+min(tem$prdiff)
+mean(tem$prdiff)
+median(tem$prdiff)
+```
 
-tem2 %>%
-  arrange(tom)
+```{r}
+tem %>% ggplot(aes(prdiff, tom)) +
+  geom_point(show.legend = TRUE)
+```
+
+### `prdiff` by city
+```{r}
+# Saint Paul
+stp <- tem %>%
+  filter(city == "Saint Paul") %>%
+  arrange(desc(prdiff))
+stp %>%
+  filter(city == "Saint Paul") %>%
+  arrange(prdiff)
+max(stp$prdiff)
+min(stp$prdiff)
+mean(stp$prdiff)
+median(stp$prdiff)
+
+# Minneapolis
+min <- tem %>%
+  filter(city == "Minneapolis") %>%
+  arrange(desc(prdiff))
+min %>%
+  filter(city == "Minneapolis") %>%
+  arrange(prdiff)
+max(min$prdiff)
+min(min$prdiff)
+mean(min$prdiff)
+median(min$prdiff)
+
+```
+
+### `prdiff_np`
+```{r}
+table(tem$prdiff_np)
+```
+
+```{r warning = FALSE, message=FALSE}
+tem %>% ggplot(aes(prdiff_np, tom)) + 
+  geom_bar(stat = "identity", position = "stack", show.legend = TRUE) +
+  labs(title = "Short, Long Sold at Price & Time on Market")
+```
 
 
-tem3 <- tem2 %>%
-  mutate(prdiff_np = ifelse(prdiff > 0, 1, 
-                            ifelse(prdiff < 0, -1,
-                                   ifelse(prdiff == 0, 0, 5))))
+### `schdist`
+```{r warning = FALSE, message=FALSE}
+tem %>%
+  arrange(desc(schdist))
+tem %>%
+  arrange(schdist)
+max(tem$schdist)
+min(tem$schdist)
+mean(tem$schdist)
+median(tem$schdist)
 
-table(tem3$prdiff_np)
-
-
-mean(tem3$prdiff)
-plot(tem3$prdiff, tem3$tom)
-plot(tem3$prdiff_np, tem3$tom)
+tem %>% ggplot(aes(schdist)) +
+  geom_histogram(stat = "bin", bins = 30) +
+  labs(title = "Histogram of School Distance")
 ```
