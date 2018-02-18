@@ -30,25 +30,49 @@ options(htmltools.dir.version = FALSE)
 
 # Load Data 
 ```{r message=FALSE, warning=FALSE}
-# houseTC <- read_csv("../Source/houseTC.csv")
+houseTC_final <- read_csv("../Source/houseTC_final.csv")
 ```
 
 # Variable Names
 ```{r}
 names(houseTC)
+names(houseTC_final)
 ```
 
 # Feature Engineering
 
 ### Time on Market `tom`, Price Difference `pdiff`, & Price Difference in Percentage `pdiff_perc`
 ```{r}
-tem <- houseTC %>%
+tem <- houseTC_final
+
+tem2 <- tem %>%
   mutate(tom = soldatdate - listedatdate,
          prdiff = soldatpr - listedatpr,
          prdiff_perc = (soldatpr - listedatpr)/listedatpr)
   
-# houseTC1 %>%
-#   arrange(desc(diff))
-# 
-# mean(houseTC1$diff)
+tem2 %>%
+  arrange(desc(tom))
+
+tem2 %>%
+  arrange(tom)
+
+
+tem2 %>%
+  arrange(desc(prdiff))
+
+tem2 %>%
+  arrange(tom)
+
+
+tem3 <- tem2 %>%
+  mutate(prdiff_np = ifelse(prdiff > 0, 1, 
+                            ifelse(prdiff < 0, -1,
+                                   ifelse(prdiff == 0, 0, 5))))
+
+table(tem3$prdiff_np)
+
+
+mean(tem3$prdiff)
+plot(tem3$prdiff, tem3$tom)
+plot(tem3$prdiff_np, tem3$tom)
 ```

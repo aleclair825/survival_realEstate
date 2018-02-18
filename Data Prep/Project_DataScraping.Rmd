@@ -693,13 +693,12 @@ tem <- houseTC %>% as.data.frame(houseTC) %>%
          sqft = as.numeric(sqft),
          listedatpr = as.numeric(listedatpr),
          ncrime = as.numeric(ncrime)) %>%
-  select(address, city, zip, beds, bathf, bathp, carg, sqft, listedatpr, soldatpr, listedatdate, soldatdate, neighb, schdist, ncrime)
+  select(address, city, zip, beds, bathf, bathp, carg, sqft, listedatpr, soldatpr, listedatdate, soldatdate, neighb, schdist, ncrime, pid)
 ```
 
 ## Fix Errors for row # 1-156
 ### For Nick
 ```{r}
-
 tem2 <- tem
 
 # carg
@@ -707,7 +706,7 @@ tem2 <- tem
 tem2$carg[1:156] = tem$carg[1:156] - 1
 
 # soldatdate
-## ALL PASS
+tem2$soldatdate[147:156] = as.Date(c("2018-01-18", "2018-01-17", "2018-01-18", "2017-07-26", "2018-01-18", "2017-12-29", "2018-01-17", "2018-01-26", "2018-01-17", "2018-01-18"))
 
 # listedatdate
 ## ALL PASS
@@ -725,7 +724,7 @@ tem2$carg[1:156] = tem$carg[1:156] - 1
 # address
 ## Question mark formatting fixed
 
-tem2$address <- gsub("??", " ", tem3$address, fixed=TRUE)
+# tem2$address <- gsub("??", " ", tem3$address, fixed=TRUE)
 
 
 ```
@@ -771,6 +770,15 @@ tem2$schdist[198] = 0 # 4220 42nd Avenue S
 tem2$schdist[248] = 0.7 # 4620 Ewing Avenue S
 ```
 
+
+
+
+```{r warning=FALSE, message=FALSE}
+# houseTC_final <- tem2
+# save(houseTC_final, file = "../Source/houseTC_final.Rda")
+# write_csv(houseTC_final, "../Source/houseTC_final.csv")
+# houseTC_final <- read_csv("../Source/houseTC_final.csv")
+```
 
 
 
