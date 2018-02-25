@@ -1,0 +1,294 @@
+---
+title: "| Survival Analysis    \n| Data Analysis Version 1\n"
+author: "April Leclair"
+date: "2018-02-25"
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "Data Analysis - HTML Output") })
+output:
+  bookdown::tufte_html2:
+    number_sections: no
+    split_by: none
+    toc: no
+  bookdown::pdf_document2:
+    latex_engine: pdflatex
+    number_sections: no
+    toc: no
+  bookdown::tufte_handout2:
+    latex_engine: xelatex
+    number_sections: no
+    toc: no
+  bookdown::html_document2:
+    number_sections: no
+    split_by: none
+    toc: no
+---
+ 
+```{r setup, include=FALSE, message=FALSE}
+library(tidyverse)
+library(readr)
+library(ggplot2)
+library(survival)
+library(survminer)
+knitr::opts_chunk$set(tidy = FALSE, message=FALSE, cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+```
+
+
+### Load Data
+```{r message=FALSE, warning=FALSE}
+house <- read_csv("../Source/house_TC.csv")
+
+```
+
+
+### Variable Names
+```{r}
+names(house)
+```
+
+
+### Treat Time = 0
+```{r}
+# Note: Only 1 case has `tom` = 0
+house <- house %>% mutate(tom = ifelse(tom == 0, 1, tom))
+```
+
+
+### Graphs: Exponential - density, CDF, and survival curve
+```{r}
+survreg( Surv(tom) ~ 1 , dist = "exponential" , data = house )
+```
+
+```{r}
+# Density
+house %>% ggplot(aes(x=tom)) + 
+  stat_function( fun=dexp, args= 1/exp(4.454011)) + 
+  labs(title = "Exponential PDF for Time on Market", x="Time on Market", y="Density",
+       caption = "Data collected from Coldwell Banker")
+
+# CDF
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=pexp, args= 1/exp(4.454011)) + 
+  labs(title = "Exponential CDF for Time on Market", x="Time on Market", y="Cumulative Proportion",
+       caption = "Data collected from Coldwell Banker")
+
+# Survival
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=pexp, args= 1/exp(4.454011), lower.tail=FALSE) + 
+  labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
+       caption = "Data collected from Coldwell Banker")
+```
+
+
+### Graphs: Weibull - density, CDF, and survival curve
+```{r}
+survreg( Surv(tom) ~ 1 , dist = "weibull" , data = house )
+```
+
+```{r}
+# Density
+house %>% ggplot(aes(x=tom)) + 
+  stat_function( fun=dweibull, args=list(shape=1/0.5511901, scale=exp(4.575712))) + 
+  labs(title = "Weibull PDF for Time on Market", x="Time on Market", y="Density",
+       caption = "Data collected from Coldwell Banker")
+
+# CDF
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=pweibull, args=list(shape=1/0.5511901, scale=exp(4.575712))) + 
+  labs(title = "Weibull CDF for Time on Market", x="Time on Market", y="Cumulative Proportion",
+       caption = "Data collected from Coldwell Banker")
+
+# Survival
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=pweibull, args=list(shape=1/0.5511901, scale=exp(4.575712)), lower.tail=FALSE) + 
+  labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
+       caption = "Data collected from Coldwell Banker")
+```
+
+
+### Chance that the house will be on the market for more than 50 days
+```{r}
+# Exponential
+1-pexp(50, 1/exp(4.454011))
+
+# Weibull
+1-pweibull(50, shape=1/0.5511901, scale=exp(4.575712))
+```
+
+
+### Mean time to sell
+```{r}
+# Exponential
+S = function(x) 1-pexp(x, 1/exp(4.454011))
+integrate(S,0,Inf)
+
+# Weibull
+S = function(x) 1-pweibull(x, shape=1/0.5511901, scale=exp(4.575712))
+integrate(S,0,Inf)
+```
+
+
+### Median time to sell
+```{r}
+qexp(0.5, 1/exp(4.454011))
+qweibull(0.5, shape=1/0.5511901, scale=exp(4.575712))
+```
+
+
+## Kaplan-Meier curves
+
+### Kaplan-Meier curves with CI - all groups
+```{r}
+KM = survfit( Surv(tom) ~ 1 , conf.type="plain" , data=house ) 
+ggsurvplot(KM, data=house) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market",
+       caption = "Data collected from Coldwell Banker")
+```
+
+
+### Kaplan-Meier curves with CI - by price difference groups
+```{r}
+# Note: Price Difference = sold - listed
+KMECDF = survfit(Surv(tom) ~ prdiff_np, data=house )
+ggsurvplot(KMECDF, data=house, legend.title="Type", 
+           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
+    labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market",
+       caption = "Data collected from Coldwell Banker")
+```
+
+### Inspect Confidence Interval for Each Group
+```{r}
+summary(KMECDF)
+```
+
+
+### KM Median 
+```{r}
+# median for all groups
+KM
+
+# median by price difference groups
+KMECDF
+```
+
+### KM Mean Survival
+```{r}
+# Finds area under Kaplan-Meier curve (if largest observation is censored, this assumes that the K-M drops to 0 at that value).
+
+# AUCKM stands for "Area Under Curve Kaplan Meier":
+AUCKM = function(survobj,duration)
+{
+base=c(0,summary(survobj)$time,max(duration))
+heights=c(1,summary(survobj)$surv)
+new=c()
+for(i in 1:length(heights)) { new=c(new,(base[i+1]-base[i])*heights[i]) }
+c(sum(new))
+}
+
+# mean survival for all groups
+AUCKM(KM, house$tom)
+
+# mean survival by price difference groups
+AUCKM(KMECDF, house$tom)
+```
+
+
+## Actuarial Method Estimate
+
+### Life Table Function 
+```{r}
+LifeTable = function( time, status, breaks, finite ) {
+  failed = c(0,hist(time[status==1],breaks=breaks,plot=F)$counts)
+  censored = c(0,hist(time[status==0],breaks=breaks,plot=F)$counts)
+  alivestart = length(time)-cumsum(failed[-length(failed)])-cumsum(censored[-length(censored)])
+  atrisk = alivestart-c(censored[-1]/2)
+  failrate = failed[-1]/atrisk
+  survrate = 1-failrate
+  survest = c(1,cumprod(1-failrate)[1:(length(failrate))])
+  if (finite == 0) 
+    return(as.data.frame(cbind(Failed = failed[-1], Censored=censored[-1], AliveStart=alivestart,
+                             AtRisk = atrisk[-length(atrisk)], FailRate = failrate[-length(failrate)],
+                SurvRate = survrate[-length(survrate)], SurvEst = survest[-length(survest)])))
+  if (finite == 1) 
+    return(as.data.frame(cbind(Failed = failed[-1], Censored = censored[-1], AliveStart = alivestart, 
+                               AtRisk = atrisk, FailRate = failrate, SurvRate = survrate, SurvEst = survest))) }
+```
+
+### Plot Survival Estimates from Life Table
+```{r}
+status <- rep(1, 311)
+b = c( 0 , 25 , 50 , 75 , 100 , 125 , 150 , 175 , 200 , 225 , 250 , 300 , 325 , 350, 375)
+(l = LifeTable(house$tom, status, breaks=b, finite=1))
+# !!! number of rows of result is not a multiple of vector length (arg 1)
+
+step = stepfun( c(25,50,75,100,125,150,175,200,225 , 250 , 300 , 325 , 350, 375) , l$SurvEst )
+plot( step , do.points=FALSE , ylab="Survival" , xlab="Months" , main="")
+```
+
+#### Plot KM & Actuarial method estimate for Comparison
+```{r}
+# ggplot!!! both plots
+# KM = survfit( Surv(tom) ~ 1 , conf.type="plain" , data=house ) 
+# ggsurvplot(KM, data=house) +
+#   labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market",
+#        caption = "Data collected from Coldwell Banker")
+
+plot(KM, ylab="Survival" , xlab="Days" , main="House Survival")
+plot( step , do.points=FALSE, add=TRUE, col = "red")
+```
+
+### Actuarial estimate of the hazard function
+```{r}
+HazardEst = l$FailRate/25
+hazstep = stepfun( c(0,25,50,75,100,125,150,175,200,225,250,300,325,350,375,400) , c(0,HazardEst,0) )
+plot( hazstep, do.points=FALSE, ylab="h(k)", xlab="k", main="", xlim=c(0,225) )
+```
+
+
+
+### Plot Weibull: Compare estimated hazard and survival functions to those obtained via the actuarial method
+```{r}
+(weib <- survreg( Surv(tom) ~ 1 , dist='weibull' , data=house))
+```
+
+#### We can add the estimated Weibull hazard to the graph of the piecewise constant actuarial hazard estimate:
+
+```{r}
+plot(hazstep,do.points=FALSE,ylab='h(k)',xlab='k',main="",xlim=c(0,225))
+curve(dweibull(x, shape=1/0.5511901, scale=exp(4.575712)) / (1-pweibull(x, shape=1/0.5511901, scale=exp(4.575712))), add=T, col='red')
+```
+
+```{r}
+g = ggplot(data=data.frame(x=c(-1, 0,25,50,75,100,125,150,175,200,225,250,300,325,350,375,400),
+                       y=c(0,HazardEst,0)) , aes(x=x,y=y)) +
+  geom_step() +
+  labs(x='k',y='h(k)')
+
+hweibull = function(x,shape,scale) { dweibull(x,shape=shape,scale=scale)/(1-pweibull(x,shape=shape,scale=scale)) }
+
+g + stat_function(fun=hweibull,args=list(shape=1/0.5511901, scale=exp(4.575712)) , col='red') 
+```
+
+
+## Hazard Functions
+
+### Exponential
+```{r}
+hexp = function(x,lambda) { dexp(x,lambda) / ( 1-pexp(x,lambda) ) }
+```
+
+```{r}
+curve( hexp( x , 1/exp(4.454011) ) , from=0 , to=max(house$tom) , ylim = c(0,0.02), col = "red")
+```
+
+
+### Weibull
+```{r}
+hweibull = function(x, a, b) { dweibull(x, a, b) / ( 1-pweibull(x, a, b) ) }
+```
+
+```{r}
+curve( hweibull( x , 1/0.5511901, exp(4.575712)) , from=0 , to=max(house$tom) , ylim = c(0,0.06), col = "red")
+```
+
+
