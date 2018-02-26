@@ -1,10 +1,12 @@
-<<<<<<< HEAD:Midterm_paper.Rmd
 ---
 title: "Midterm Paper"
 author: "Nick McMullen, April Choi"
 date: "March 5, 2018"
 output:
-  pdf_document: default
+  pdf_document:
+    pandoc_args: [
+      "-V", "classoption=twocolumn"
+    ]
   html_document: default
 ---
 
@@ -12,11 +14,14 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ## 1 | Introduction
+
 
 ### 1.1 Background
 
-The real estate market in the Twin Cities (Minneapolis and St. Paul, MN, USA), and many places across the United States, has been thriving on the economic recovery since the end of the Great Recession. While the current market is, to the casual observer, favorable to sellers some houses in Twin Cities still take a surprisingly long time to sell. We will investigate the characteristics that impact time on market (TOM) for houses in the Twin Cities through a survival analysis, or time-to-event, framework. 
+The real estate market in the Twin Cities (Minneapolis and St. Paul, MN, USA), and many places across the United States, has been thriving on the economic recovery since the end of the Great Recession. While the current market is, to the casual observer, favorable to sellers some houses in Twin Cities still take a surprisingly long time to sell. We will investigate the characteristics that impact time on market (TOM) for houses in the Twin Cities through a survival analysis, or time-to-event, framework.
+
 
 ### 1.2 Review of Literature
 
@@ -32,6 +37,8 @@ The findings from Cheng, Lin, and Liu's (2008) investigation was that marginal b
 
 Another interesting question regarding TOM is how the probability of sale changes with time. Thomas W. Zuehlke (1987) conducted research on this very topic. He used 290 single family detached homes obtained from a 1982 multiple listing service (MLS) book in Tallahassee, FL, USA and observed how likely each house was to sell based on its status of vacant or occupied. Zuehlke utilized a Weibull hazard model to compare the two and found that stronger incentives existed for sellers of vacant houses to reduce prices faster than those of occupied homes. Thus, Zuehlke finds that vacant houses tend to exhibit positive duration dependence, while occupied homes showed little evidence of duration dependence. 
 
+Motivated by a Massachusetts state policy adopted in 2006 that prohibits sellers from resetting their home's TOM by relisting, Tucker, Zhang, and Zhu (2013) also investigated the impact of TOM on sale price. The authors agree that longer TOM is negatively associated with buyer perception, which lines up with the Massachusetts relisting policy. To investigate if TOM was indeed a significant deterrent for buyers looking at an otherwise appealing house, the authors analyzed the TOM for homes before and after the enactment of the policy. They obtained listings data for residential properties on the market between January 2005 and June 2007 from two MLSs: MLS-PIN, which serves Massachusetts, and the State-Wide Rhode Island MLS. Their analysis consisted of three groupings of homes: listed and sold before the policy change, listed before and sold after, and listed and sold after. The authors utilized simple linear regression between the three groups and found that the homes listed before the policy and sold after were most severely impacted, resulting in an average sale price reduction of $16,000. 
+
 \textbf{Listing Price Changes}
 
 Listing price changes may also affect the TOM for a house. A listing price change could attract more attention to a house on the market, but could also indicate a longer TOM. John R. Knight (2002) conducted an analysis on listing price changes, investigated which types of homes were most likely to go through multiple listing price changes, and which price changes tend to give the worst results for the seller.
@@ -41,55 +48,30 @@ Knight used 3490 detached single family homes that sold between January 1997 and
 
 ### 1.3 Research Question (and mapping paragraph)
 
+We are interested in which factors affect the TOM for a house in the Twin Cities. Some variables of interest include the amount of recorded crime in a house's designated neighborhood and the proximity of a house to the nearest school. 
+
+MAPPING PARAGRAPH HERE
 
 ##2 | Data and Methods
 
-2.1 Data and Sources
+### 2.1 Data and Sources
 
-2.2 Variables
+#### Real Estate Data
 
-2.3 Assumptions
+Our data represents a random sample of 311 single family homes in the Twin Cities. A search of all recently sold homes in the area was conducted in the Coldwell Banker MLS and 311 unique addresses were randomly selected for the project. Some variables were scraped directly from the Coldwell Banker site, while others were manually inputted. 
 
-2.4 Methods
+#### Crime Data
+
+We also obtained crime data beginning on January 1, 2015 from the government websites for the cities of Minneapolis and St. Paul. Each crime was matched with a neighborhood, aggregated into total neighborhood crime counts, and then joined with the house sales data. This addition will provide insight on the number of crimes that have been recorded over the past three years near each sold house. 
+
+### 2.2 Variables
+
+For all 311 observations, we collected unique addresses `address`, city of residence `city`, zip code `zip`, number of bedrooms `beds`, number of full bathrooms `bathf`, number of partial bathrooms `bathp`, number car garage `carg`, house squarefeet `sqft`, price the home was listed at `listedatpr`, price the home was sold for `soldatpr`, date the home was listed `listedatdate`, date the home was sold `soldatdate`, neighborhood the house is located `neighb`, distance to nearest school (mi.) `schdist`, and number of crimes that were recorded in that neighborhood beginning on January 1, 2015 `ncrime`.
+
+### 2.3 Assumptions
+
+### 2.4 Methods
 
 
 ##3 | Preliminary Results
 
-=======
----
-title: "Midterm Paper"
-author: "Nick McMullen"
-date: "February 20, 2018"
-output: html_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-##1 | Introduction
-
-1.1 Background
-
-This project developed from an interest in the Twin Cities housing market. Test test test.
-
-1.2 Literature Review
-
-1.3 Research Question (and mapping paragraph)
-
-
-##2 | Data and Methods
-
-2.1 Data and Sources
-
-2.2 Variables
-
-2.3 Assumptions
-
-2.4 Methods
-
-
-##3 | Preliminary Results
-
->>>>>>> 41a5b23d8402d63cabaa2889708196ecfe51491b:Paper Drafts/Midterm_paper.Rmd
-Weave a story that answers the research question here based on our assumptions and methods. 
