@@ -37,7 +37,6 @@ options(htmltools.dir.version = FALSE)
 ### Load Data
 ```{r message=FALSE, warning=FALSE}
 house <- read_csv("../Source/house_TC.csv")
-
 ```
 
 
@@ -49,11 +48,12 @@ names(house)
 
 ### Treat Time = 0
 ```{r}
-# Note: Only 1 case has `tom` = 0
+# Note: Only 1 case has `tom` = 0. Fix this value to 1.
 house <- house %>% mutate(tom = ifelse(tom == 0, 1, tom))
 ```
 
 
+## With only `tom`
 ### Graphs: Exponential - density, CDF, and survival curve
 ```{r}
 survreg( Surv(tom) ~ 1 , dist = "exponential" , data = house )
@@ -77,6 +77,14 @@ house %>% ggplot(aes(x=tom)) +
   stat_function(fun=pexp, args= 1/exp(4.454011), lower.tail=FALSE) + 
   labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
        caption = "Data collected from Coldwell Banker")
+```
+
+## With some variables
+### Graphs: Exponential - density, CDF, and survival curve
+```{r}
+# (sreg <- survreg( Surv(tom) ~ zip + beds + bathf + bathp + carg + sqft + listedatpr + soldatpr + listedatdate + soldatdate + neighb + schdist + ncrime + prdiff + prdiff_perc + prdiff_np , dist = "exponential" , data = house ))
+
+(sreg <- survreg( Surv(tom) ~ prdiff_np + prdiff_perc + sqft + schdist, dist = "exponential" , data = house ))
 ```
 
 
@@ -149,14 +157,71 @@ ggsurvplot(KM, data=house) +
 ### Kaplan-Meier curves with CI - by price difference groups
 ```{r}
 # Note: Price Difference = sold - listed
-KMECDF = survfit(Surv(tom) ~ prdiff_np, data=house )
+KMECDF = survfit(Surv(tom) ~ prdiff_np, conf.type="plain" , data=house )
+ggsurvplot(KMECDF, data=house, conf.int = TRUE, legend.title="Type", 
+           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
+    labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market",
+       caption = "Data collected from Coldwell Banker")
+# without conf inf
 ggsurvplot(KMECDF, data=house, legend.title="Type", 
            legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
     labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market",
        caption = "Data collected from Coldwell Banker")
 ```
 
+<br>
+
+<br>
+
+
 ### Inspect Confidence Interval for Each Group
+
+#### 30-day survival probability
+
+
+** Price difference positive ** 
+
+Note: positive = sold at > listed at, indicating high demand (hot market)
+
+* Point Estimate of one-month (30 days) survival probability: 0.9012
+* Interval Estimate of one-month (30 days) survival probability: [0.83855, 0.9686]
+
+It's a hot market, and thus, the houses sell fast.
+
+** Price difference negative **
+
+Note: negative = sold at < listed at, indicating low demand (cold market)
+
+* Point Estimate of one-month (30 days) survival probability: 0.97409 
+* Interval Estimate of one-month (30 days) survival probability: [0.951937, 0.9968]
+
+More likely to be on the market longer than price difference positive condition, which makes sense since the market is cold. Narrower confidence interval as well compared to the hot market.
+
+
+** Price difference none **
+
+* Point Estimate of one-month (30 days) survival probability: 0.8919  
+* Interval Estimate of one-month (30 days) survival probability: [0.79725, 0.998]
+
+Much larger confidence interval but this may be because there aren't many houses that did not change in price in the market. The point estimate is definitely slightly lower as well compared top the hot market, meaning that it sells quite faster than the cold market but not as fast as the hot market. However, as mentioned previously, the large CI makes it unreliable.
+
+<br>
+
+#### Point estimate and the 95% CI for the time when the survival curve drops to 0.80.
+
+** Price difference positive ** 
+
+* The point estimate for when S(k) = 0.50 is 37, and the CI is: [32, 41]
+
+HERE!!!
+** Price difference negative ** 
+
+
+#### Median survival and C.I.
+
+**The point estimate for when S(k) = 0.50 is 48, and the CI is: [42, 53].**
+
+
 ```{r}
 summary(KMECDF)
 ```
@@ -292,3 +357,5 @@ curve( hweibull( x , 1/0.5511901, exp(4.575712)) , from=0 , to=max(house$tom) , 
 ```
 
 
+
+## Hazard Functions
