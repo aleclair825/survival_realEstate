@@ -10,9 +10,19 @@ output:
   html_document: default
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(readr)
+library(ggplot2)
+library(survival)
+library(survminer)
+
+house <- read_csv("../Source/house_TC.csv")
 ```
+
+
 
 
 ## 1 | Introduction
@@ -74,4 +84,40 @@ For all 311 observations, we collected unique addresses `address`, city of resid
 
 
 ##3 | Preliminary Results
+
+We begin our preliminary analysis by investigating the length of time that houses in the Twin Cities remain on the market after their preliminary listing date.
+
+### 3.1 Survival Curves
+
+
+### 3.2 Kaplan-Meier Curves
+
+First, a Kaplan-Meier curve with confidence intervals for survival (time on market) across all groups.
+
+```{r echo=FALSE}
+
+KM = survfit( Surv(tom) ~ 1 , conf.type="plain" , data=house ) 
+ggsurvplot(KM, data=house) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market",
+       caption = "Data collected from Coldwell Banker")
+
+```
+
+
+Next, a Kaplan-Meier curve stratified for three groupings of sold houses: houses that sold below list value, at list value, and above list value.
+
+```{r echo=FALSE}
+
+# Note: Price Difference = sold - listed
+KMECDF = survfit(Surv(tom) ~ prdiff_np, data=house )
+ggsurvplot(KMECDF, data=house, legend.title="Type", 
+           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
+    labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified",
+       caption = "Data collected from Coldwell Banker")
+
+```
+
+
+
+
 
