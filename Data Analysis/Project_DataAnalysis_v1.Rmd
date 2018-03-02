@@ -359,3 +359,33 @@ curve( hweibull( x , 1/0.5511901, exp(4.575712)) , from=0 , to=max(house$tom) , 
 
 
 ## Hazard Functions
+
+
+
+
+## Log-Rank Tests
+
+#### List and Sale Price Difference
+
+In order to determine if the differences in the estimated survival curves for this category are statistically significant, we conduct a log-rank test. The results are as follows:
+
+$H_0: S_1(t) = S_2(t) = S_3(t) \ \forall \ t$
+
+$H_A: S_1(t) \neq S_2(t) \neq S_3(t) \ \text{for some} \ t$
+
+
+```{r echo=FALSE, include=FALSE}
+
+survdiff(Surv(tom) ~ prdiff_np, data=house)
+
+```
+
+A log-rank test reveals a Mantel-Cox test statistic of $53.87$. This produces a p-value of nearly 0:
+
+```{r echo=FALSE}
+
+1 - pchisq(53.87, df=2)
+
+```
+
+Thus, we confidently reject the null hypothesis and conclude that the three survival curves for price difference (negative, zero, positive) differ for some `tom`.
