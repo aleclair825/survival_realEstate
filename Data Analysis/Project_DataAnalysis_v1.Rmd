@@ -73,8 +73,9 @@ house %>% ggplot(aes(x=tom)) +
        caption = "Data collected from Coldwell Banker")
 
 # Survival
+surv <- function(x) {1-pexp(x, 1/exp(4.454011)) }
 house %>% ggplot(aes(x=tom)) + 
-  stat_function(fun=pexp, args= 1/exp(4.454011), lower.tail=FALSE) + 
+  stat_function(fun=surv, lower.tail=FALSE) + 
   labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
        caption = "Data collected from Coldwell Banker")
 ```
@@ -361,8 +362,6 @@ curve( hweibull( x , 1/0.5511901, exp(4.575712)) , from=0 , to=max(house$tom) , 
 ## Hazard Functions
 
 
-
-
 ## Log-Rank Tests
 
 #### List and Sale Price Difference
@@ -389,3 +388,81 @@ A log-rank test reveals a Mantel-Cox test statistic of $53.87$. This produces a 
 ```
 
 Thus, we confidently reject the null hypothesis and conclude that the three survival curves for price difference (negative, zero, positive) differ for some `tom`.
+
+
+
+
+## AFT
+
+* `pdiff_np` = Factored variable of `1` = positive `pdiff` (soldat - listedat), `2` = negative `pdiff`, `3` = 0 `pdiff`
+
+```{r}
+m = survreg( Surv( tom ) ~ as.factor(prdiff_np), dist = 'weibull' , data=house )
+summary(m)
+```
+
+The results show that all price difference categories are significant except for category 3, which contain houses where list and sold prices are the same (most likely due to the significantly smaller sample size). In terms of direction, unpopular houses (houses that have higher listed price than the sold at price) stay longer on market compared to popular houses (houses that sold at a higher price than the list price).   
+
+```{r}
+names(house)
+m2 = survreg( Surv( tom ) ~ sqft + strata(as.factor(prdiff_np)), dist = 'weibull' , data=house )
+summary(m2)
+```
+
+Now, we look at the effect of square feet size of the house controlling for the different price difference categories (hot and cold market). Interestingly, it seems that a one square foot increase in house size does not have an effect on the time on market at the 4% level, controlling for the price difference categories. Another interesting aspect is that holding square feet constant, popular houses is more likely to stay in market longer than unpopular houses. 
+
+```{r}
+exp(8.951e-05) # sqft
+exp(-4.260e-01) # hot mkt
+exp(-7.314e-01) # cold mkt
+exp(-3.736e-01) # indifferent mkt
+```
+
+
+```{r}
+house2 <- house %>% mutate(bedcat = ifelse(beds >=3, 1, 0))
+# m3 <- survreg(Surv( tom ) ~ as.factor(prdiff_np) + bedcat, dist = 'weibull' , data=house2)
+# summary(m3)
+```
+
+
+## By price difference np
+
+```{r}
+m = survreg( Surv( tom ) ~ as.factor(prdiff_np), dist = 'weibull' , data=house )
+summary(m)
+```
+
+
+The mean survival is lowest (time on market is the shortest) for the hot market, consistent with the results we saw before with significance. 
+
+```{r}
+# Hot
+hot = function(x) 1-pweibull(x, 1/0.534, exp(4.2485))
+integrate(hot, 0,Inf)
+
+# Cold
+cold = function(x) 1-pweibull(x, 1/0.534, exp(4.2485+0.4589))
+integrate(cold, 0,Inf)
+
+# Indifferent
+indiff =function(x) 1-pweibull(x, 1/0.534, exp(4.2485+0.1177))
+integrate(indiff,0,Inf)
+
+
+### the Hazard Ratio
+(HR = 98.336315 / 62.146431)
+```
+
+```{r}
+survdiff( Surv( tom ) ~ as.factor(prdiff_np) + bedcat, data=house2)
+```
+
+
+
+AFT
+HR
+Analysis of coefficients and p-values
+Interpretation of multivariate 
+Exponential and weibull with stratification 
+
