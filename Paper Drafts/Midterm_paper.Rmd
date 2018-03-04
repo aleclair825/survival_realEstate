@@ -23,6 +23,8 @@ house <- read_csv("../Source/house_TC.csv")
 
 house <- house %>% mutate(tom = ifelse(tom == 0, 1, tom))
 
+house$prdiff_np <- as.factor(house$prdiff_np)
+
 ```
 
 
@@ -124,10 +126,12 @@ ggsurvplot(KMECDF, data=house, legend.title="Type",
 
 ```
 
+We see that houses in our data that sold for under the listed price tended to take the longest to sell, while houses that sold for above the listed price tended to sell more quickly. This result is intuitive, as houses that are priced competitively tend to sell faster while houses that see price reductions are likely to have been on the market longer. 
+
 
 ### 3.2 Parametric Survival Curve Estimates
 
-#### Exponential 
+#### Exponential Aggregate
 
 A survival curve for all houses in the data estimated parametrically by the exponential distribution.
 
@@ -140,20 +144,90 @@ survreg(Surv(tom) ~ 1, dist = "exponential", data=house)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
+surv <- function(x){1-pexp(x, 1/exp(4.454011))}
+
 house %>% ggplot(aes(x=tom)) + 
-  stat_function(fun=pexp, args= 1/exp(4.454011), lower.tail=FALSE) + 
+  stat_function(fun=surv, lower.tail=FALSE) + 
   labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
        caption = "Data collected from Coldwell Banker")
 
 ```
 
 
+####Exponential - Categorical Price Differences
 
-#### Normal
+```{r echo=FALSE, include=FALSE, message=FALSE}
 
-#### Weibull
+survreg(Surv(tom) ~ as.factor(prdiff_np), dist = "exponential", data=house)
 
-We have visualized non-parametric and parametric estimates of the true survival curve but is there truly a difference between groupings of houses with different categorical characteristics.
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+surv <- function(x){1-pexp(x, 1/exp(4.0672313))}
+surv1 <- function(x){1-pexp(x, 1/exp(4.0672313 + 0.5522913))}
+surv2 <- function(x){1-pexp(x, 1/exp(4.0672313 + 0.1166739))}
+
+
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=surv, lower.tail=FALSE, col="black") + 
+  stat_function(fun=surv1, lower.tail=FALSE, col="red") + 
+  stat_function(fun=surv2, lower.tail=FALSE, col="blue") +
+  labs(title = "Exponential Survival Curve for Time on Market Stratified for Price Difference", x="Time on Market", y="Survival Proportion",
+       caption = "Data collected from Coldwell Banker")
+
+
+```
+
+
+
+#### Weibull - Aggregate
+
+```{r echo=FALSE, include=FALSE, message=FALSE}
+
+survreg(Surv(tom) ~ 1, dist = "weibull", data=house)
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+surv <- function(x){1-pweibull(x, shape=1/.5511901, scale=exp(4.575712))}
+
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=surv, lower.tail=FALSE) + 
+  labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
+       caption = "Data collected from Coldwell Banker")
+
+```
+
+
+####Weibull - Categorical Price Differences
+
+```{r echo=FALSE, include=FALSE, message=FALSE}
+
+survreg(Surv(tom) ~ prdiff_np, dist = "weibull", data=house)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+surv3 <- function(x){1-pweibull(x, shape=1/0.5340263, scale=exp(4.2485166))}
+surv4 <- function(x){1-pweibull(x, shape=1/0.5340263, scale=exp(4.2485166 + 0.4589256))}
+surv5 <- function(x){1-pweibull(x, shape=1/0.5340263, scale=exp(4.2485166 + 0.1177328))}
+
+
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=surv3, lower.tail=FALSE, col="black") + 
+  stat_function(fun=surv4, lower.tail=FALSE, col="red") +
+    stat_function(fun=surv5, lower.tail=FALSE, col="blue") +  labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
+       caption = "Data collected from Coldwell Banker") 
+```
+
+We observe again from this parameterization that houses that sold for more than the original list price tend to sell the fastest, while houses that underwent price reductions tend to remain on the market the longest. 
+
+We have visualized non-parametric and parametric estimates of the true survival curve but is there truly a difference between groupings of houses with different categorical characteristics? 
 
 ### 3.3 Tests for Statistical Significance
 
@@ -181,6 +255,9 @@ A log-rank test reveals a Mantel-Cox test statistic of $53.87$. This produces a 
 ```
 
 Thus, we confidently reject the null hypothesis and conclude that the three survival curves for price difference (negative, zero, positive) differ for some `tom`. 
+
+
+
 
 
 
