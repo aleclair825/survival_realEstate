@@ -122,7 +122,7 @@ We see that houses in our data that sold for under the listed price tended to ta
 
 The means for high-demand, low-demand, and neutral-demand homes are 58.40,  101.45, and 65.62, and the medians are 48, 94, and 53, respectively. The confidence interval is relatively short for both high-demand and low-demand homes, but neutral-demand homes have confidence interval that is almost as twice as much as the other two. This large confidence interval may be driven by low power, indicated by a small sample size (n = 37) in neutral-demand homes. 
 
-```{r echo=FALSE}
+```{r echo=FALSE, message=FALSE, include=FALSE}
 
 # mean(house$tom[house$prdiff_np==1])
 # mean(house$tom[house$prdiff_np==2])
@@ -130,6 +130,11 @@ The means for high-demand, low-demand, and neutral-demand homes are 58.40,  101.
 
 # Note: Price Difference = sold - listed
 (KMECDF = survfit(Surv(tom) ~ as.factor(prdiff_np), data=house ))
+
+```
+
+```{r echo=FALSE}
+
 ggsurvplot(KMECDF, data=house, conf.int=T, legend.title="Type", ggtheme = theme_minimal(),
            legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
   labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified")
