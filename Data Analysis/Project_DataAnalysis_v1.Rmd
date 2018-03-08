@@ -53,7 +53,7 @@ house <- house %>% mutate(tom = ifelse(tom == 0, 1, tom))
 ```
 
 
-## With only `tom`
+## Null Model with Only the Intercept
 ### Graphs: Exponential - density, CDF, and survival curve
 ```{r}
 survreg( Surv(tom) ~ 1 , dist = "exponential" , data = house )
@@ -79,6 +79,13 @@ house %>% ggplot(aes(x=tom)) +
   labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
        caption = "Data collected from Coldwell Banker")
 ```
+
+```{r}
+min(house$soldatdate)
+max(house$soldatdate)
+```
+
+
 
 ## With some variables
 ### Graphs: Exponential - density, CDF, and survival curve
@@ -465,4 +472,19 @@ HR
 Analysis of coefficients and p-values
 Interpretation of multivariate 
 Exponential and weibull with stratification 
+
+
+```{r echo=FALSE}
+# mean(house$tom[house$prdiff_np==1])
+# mean(house$tom[house$prdiff_np==2])
+# mean(house$tom[house$prdiff_np==3])
+
+# Note: Price Difference = sold - listed
+(KMECDF = survfit(Surv(tom) ~ as.factor(prdiff_np), data=house ))
+ggsurvplot(KMECDF, data=house, conf.int=T, risk.table = TRUE, break.time.by = 30, legend.title="Type", ggtheme = theme_minimal(),
+           risk.table.y.text.col = T,  risk.table.y.text = FALSE,
+           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified")
+
+```
 
