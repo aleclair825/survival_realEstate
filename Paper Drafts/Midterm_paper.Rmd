@@ -96,11 +96,11 @@ We utilize visualizations of parametric and non-parametric estimates of the true
 
 We begin our preliminary analysis by investigating the length of time that houses in the Twin Cities remain on the market after their preliminary listing date.
 
-### 3.1 Non-Parametric Survival Curve 
+### 3.1 Non-Parametric Survival Curve Estimates
 
 #### Kaplan-Meier Aggregate = `1=ecdf`
 
-First, we fit a Kaplan-Meier curve with confidence intervals for survival (time on market) across all groups. The mean is approximately 86 days, the median is 73 days, and the 95% CI is [66, 82]. The curve is right skewed, indicating that there are more . 
+First, we fit a Kaplan-Meier curve with confidence intervals for survival (time on market) across all groups. The mean is approximately 86 days, the median is 73 days, and the 95% CI is [66, 82]. The curve is right skewed, indicating that there are more houses that sell faster than average. 
 
 ```{r echo=FALSE}
 
@@ -109,6 +109,30 @@ First, we fit a Kaplan-Meier curve with confidence intervals for survival (time 
 KM = survfit( Surv(tom) ~ 1 , conf.type="plain" , data=house ) 
 ggsurvplot(KM, data=house) +
   labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market")
+
+```
+
+#### Kaplan-Meier - Categorical Price Differences
+
+First, we visualize a Kaplan-Meier curve stratified by the three groupings of sold houses--houses that sold above list value, at list value, and below list value. We will refer to these houses as high-demand, low-demand, and neutral-demand houses, respectively, for brevity. 
+
+Nick!!!
+
+We see that houses in our data that sold for under the listed price tended to take the longest to sell, while houses that sold for above the listed price tended to sell more quickly. This result is intuitive, as houses that are priced competitively tend to sell faster while houses that see price reductions are likely to have been on the market longer.  
+
+The means for high-demand, low-demand, and neutral-demand homes are 58.40,  101.45, and 65.62, and the medians are 48, 94, and 53, respectively. The confidence interval is relatively short for both high-demand and low-demand homes, but neutral-demand homes have confidence interval that is almost as twice as much as the other two. This large confidence interval may be driven by low power, indicated by a small sample size (n = 37) in neutral-demand homes. 
+
+```{r echo=FALSE}
+
+# mean(house$tom[house$prdiff_np==1])
+# mean(house$tom[house$prdiff_np==2])
+# mean(house$tom[house$prdiff_np==3])
+
+# Note: Price Difference = sold - listed
+(KMECDF = survfit(Surv(tom) ~ as.factor(prdiff_np), data=house ))
+ggsurvplot(KMECDF, data=house, conf.int=T, legend.title="Type", ggtheme = theme_minimal(),
+           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified")
 
 ```
 
@@ -124,12 +148,7 @@ survreg(Surv(tom) ~ 1, dist = "exponential", data=house)
 
 ```
 
-<<<<<<< HEAD
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-=======
-We see that houses in our data that sold for under the listed price tended to take the longest to sell, while houses that sold for above the listed price tended to sell more quickly. This result is intuitive, as houses that are priced competitively tend to sell faster while houses that see price reductions are likely to have been on the market longer. 
-
->>>>>>> 7fbedbb843565370d79c7a7a3149d34abeb364d6
 
 surv_exp <- function(x) {1-pexp(x, 1/exp(4.454011)) }
 # integrate(surv_exp, 0, Inf)
@@ -139,15 +158,11 @@ house %>% ggplot(aes(x=tom), conf.int = TRUE) +
   labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
        caption = "Data collected from Coldwell Banker")
 
-<<<<<<< HEAD
 ```
 
 #### Weibull
-=======
-#### Exponential Aggregate
->>>>>>> 7fbedbb843565370d79c7a7a3149d34abeb364d6
 
-A survival curve for all houses in the data estimated parametrically by the exponential distribution has a mean of 86.31 and a median of 79.34.
+A survival curve for all houses in the data estimated parametrically by the weibull distribution has a mean of 86.31 and a median of 79.34.
 
 ```{r echo=FALSE, include=FALSE, message=FALSE}
 
@@ -157,26 +172,18 @@ survreg(Surv(tom) ~ 1, dist = "weibull", data=house)
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-<<<<<<< HEAD
 surv_weibull <- function(x) {1-pweibull(x, 1/0.5511901, exp(4.575712)) }
 # integrate(surv_weibull, 0, Inf)
 # qweibull(0.5, 1/0.5511901, exp(4.575712))
 house %>% ggplot(aes(x=tom), conf.int = TRUE) +  
   stat_function(fun=surv_weibull, lower.tail=FALSE) + 
-=======
-surv <- function(x){1-pexp(x, 1/exp(4.454011))}
-
-house %>% ggplot(aes(x=tom)) + 
-  stat_function(fun=surv, lower.tail=FALSE) + 
->>>>>>> 7fbedbb843565370d79c7a7a3149d34abeb364d6
-  labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
-       caption = "Data collected from Coldwell Banker")
+  labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
+     caption = "Data collected from Coldwell Banker")
 
 ```
 
 Comparing just the point estimates, we see that the means of all three estimators lie at about the same point (86 days), while the median for weibull (79.34) is much closer to that in KM (73) than the median for exponential (59.59). To better see the distributions, we plot all three together on the same graph.
 
-<<<<<<< HEAD
 #### KM, Exponential, & Weibull
 
 From the combined plot, we can see that weibull survival model approximates the raw data (KM) much better than does exponential survival model, consistent with the closer median values.
@@ -190,16 +197,23 @@ legend(300,1,c("KM","Exponential", "Weibull"), col=c("red","blue","purple") , te
 
 ```
 
-We have visualized non-parametric and parametric estimates of the true survival curve and concluded that the weibull model is a much better fit to KM than exponential. Next, we examine whether there is a significant difference among groups of houses with different categorical characteristics.
-=======
-####Exponential - Categorical Price Differences
+We have visualized non-parametric and parametric estimates of the true survival curve and concluded that the weibull model is a much better fit to KM than exponential. 
+
+
+*** 
+
+
+### 3.3 Parametric Survival Curve Estimates with Categorical Price Differences
+
+#### Exponential - Categorical Price Differences
+
+Nick!!!
 
 ```{r echo=FALSE, include=FALSE, message=FALSE}
 
-survreg(Surv(tom) ~ as.factor(prdiff_np), dist = "exponential", data=house)
+survreg(Surv(tom) ~ as.factor(prdiff_np), dist = "weibull", data=house)
 
 ```
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -219,29 +233,7 @@ house %>% ggplot(aes(x=tom)) +
 ```
 
 
-
-#### Weibull - Aggregate
-
-```{r echo=FALSE, include=FALSE, message=FALSE}
-
-survreg(Surv(tom) ~ 1, dist = "weibull", data=house)
-
-```
-
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-surv <- function(x){1-pweibull(x, shape=1/.5511901, scale=exp(4.575712))}
-
-house %>% ggplot(aes(x=tom)) + 
-  stat_function(fun=surv, lower.tail=FALSE) + 
-  labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
-       caption = "Data collected from Coldwell Banker")
-
-```
-
-
-####Weibull - Categorical Price Differences
+#### Weibull - Categorical Price Differences
 
 ```{r echo=FALSE, include=FALSE, message=FALSE}
 
@@ -266,30 +258,11 @@ house %>% ggplot(aes(x=tom)) +
 We observe again from this parameterization that houses that sold for more than the original list price tend to sell the fastest, while houses that underwent price reductions tend to remain on the market the longest. 
 
 We have visualized non-parametric and parametric estimates of the true survival curve but is there truly a difference between groupings of houses with different categorical characteristics? 
->>>>>>> 7fbedbb843565370d79c7a7a3149d34abeb364d6
 
 
 ### 3.3 Non-Parametric Statistiscal Tests
 
 #### List and Sale Price Difference
-
-First, we visualize a Kaplan-Meier curve stratified by the three groupings of sold houses--houses that sold above list value, at list value, and below list value. We will refer to these houses as high-demand, low-demand, and neutral-demand houses, respectively, for brevity. 
-
-The means for high-demand, low-demand, and neutral-demand homes are 58.40,  101.45, and 65.62, and the medians are 48, 94, and 53, respectively. The confidence interval is relatively short for both high-demand and low-demand homes, but neutral-demand homes have confidence interval that is almost as twice as much as the other two. This large confidence interval may be driven by low power, indicated by a small sample size (n = 37) in neutral-demand homes. 
-
-```{r echo=FALSE}
-
-# mean(house$tom[house$prdiff_np==1])
-# mean(house$tom[house$prdiff_np==2])
-# mean(house$tom[house$prdiff_np==3])
-
-# Note: Price Difference = sold - listed
-(KMECDF = survfit(Surv(tom) ~ as.factor(prdiff_np), data=house ))
-ggsurvplot(KMECDF, data=house, conf.int=T, legend.title="Type", ggtheme = theme_minimal(),
-           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
-  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified")
-
-```
 
 #### Log-Rank Test
 
@@ -367,10 +340,4 @@ cat("[", HR*exp(-1.96*sqrt(1/41.5+1/25.3)), ", ", HR*exp(+1.96*sqrt(1/41.5+1/25.
 
 Despite the hazard ratio of 1.33, the interval estimate suggests that the this difference of 1.33 is insignificant. This result is inconsistent with the significant p-value we obtained from the log-rank test.
 
-<<<<<<< HEAD
 Examining the confidence intervals of the three groups from the Kaplan-Meier curves, we see that high-demand and equilibrium houses lay on top of each other almost completely until around 40 days, and the confidence intervals overlap until approximately 175 days, which explain the insignificance in the hazard ratio estimate. On the other hand, low-demand and high-demand homes are quite distinctive and separate from each other with only a few spots where the confidence intervals intersect. This distinct separation is also reflective of the large hazard ratio (2.47) with confidence interval way greater than 1 ([1.777065, 3.431999]). 
-=======
-
-
-
->>>>>>> 7fbedbb843565370d79c7a7a3149d34abeb364d6
