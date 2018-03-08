@@ -42,13 +42,13 @@ The real estate market in the Twin Cities (Minneapolis and St. Paul, MN, USA), a
 
 One of the most obvious factors that may influence TOM for any house is price. A high price may scare potential buyers away, while a low price might invite skepticism or a long bidding war. The "right" pricing decision is a difficult one to make for sellers and agents, but reaching an equilibrium between buyer and seller satisfaction may be the best way to minimize TOM. Cheng, Lin, and Liu (2008) developed a closed-form formula to uncover the theoretical relationship between price and TOM. They aim to describe the marginal benefit of keeping a house on the market longer.
 
-The authors used house sales data from Fannie Mae and Freddie Mac, U.S. federal mortgage agencies, to identify a nonlinear positive relationship between price and TOM. They approached this analysis by assuming that a buyer and seller arrive at an agreed upon price following the Poisson processes at rate $\lambda$. While utilizing methods from Bond et al. (2007), they investiaged some assumptions about the shape of TOM data, including normal, chi-square, Weibull, and exponential distributions. Like Bond et al. (2007), Cheng, Lin, and Liu (2008) found that the exponential distribution best fit the TOM data. 
+The authors used house sales data from Fannie Mae and Freddie Mac, U.S. federal mortgage agencies, and identified a nonlinear positive relationship between price and TOM. They approached this analysis by assuming that a buyer and seller arrive at an agreed upon price following the Poisson processes at rate $\lambda$. While utilizing methods from Bond et al. (2007), they investiaged some assumptions about the shape of TOM data, including normal, chi-square, Weibull, and exponential distributions. Like Bond et al. (2007), Cheng, Lin, and Liu (2008) found that the exponential distribution best fit the TOM data. 
 
 The findings from Cheng, Lin, and Liu's (2008) investigation was that marginal benefit on sale price decreases after each offer that is made on a house. As a house's price approaches equilibrium between seller and buyer satisfaction, it does the seller little good to leave the house on the market longer.
 
 \textbf{Duration Dependence}
 
-Another interesting question regarding TOM is how the probability of sale changes with time. Thomas W. Zuehlke (1987) conducted research on this very topic. He used 290 single family detached homes obtained from a 1982 multiple listing service (MLS) book in Tallahassee, FL, USA and observed how likely each house was to sell based on its status of vacant or occupied. Zuehlke utilized a Weibull hazard model to compare the two and found that stronger incentives existed for sellers of vacant houses to reduce prices faster than those of occupied homes. Thus, Zuehlke finds that vacant houses tend to exhibit positive duration dependence, while occupied homes showed little evidence of duration dependence. 
+Another interesting question regarding TOM is how the probability of sale changes with time. Thomas W. Zuehlke (1987) conducted research on this very topic. He used 290 single family detached homes obtained from a 1982 multiple listing service (MLS) book in Tallahassee, FL, USA and observed how likely each house was to sell based on its vacancy status. Zuehlke utilized a Weibull hazard model to compare the two and found that sellers of vacant houses have stronger incentives to reduce prices faster than those of occupied houses. Thus, Zuehlke finds that vacant houses tend to exhibit positive duration dependence, while occupied homes show little evidence of duration dependence. 
 
 Motivated by a Massachusetts state policy adopted in 2006 that prohibits sellers from resetting their home's TOM by relisting, Tucker, Zhang, and Zhu (2013) also investigated the impact of TOM on sale price. The authors agree that longer TOM is negatively associated with buyer perception, which lines up with the Massachusetts relisting policy. To investigate if TOM was indeed a significant deterrent for buyers looking at an otherwise appealing house, the authors analyzed the TOM for homes before and after the enactment of the policy. They obtained listings data for residential properties on the market between January 2005 and June 2007 from two MLSs: MLS-PIN, which serves Massachusetts, and the State-Wide Rhode Island MLS. Their analysis consisted of three groupings of homes: listed and sold before the policy change, listed before and sold after, and listed and sold after. The authors utilized simple linear regression between the three groups and found that the homes listed before the policy and sold after were most severely impacted, resulting in an average sale price reduction of $16,000. 
 
@@ -56,14 +56,14 @@ Motivated by a Massachusetts state policy adopted in 2006 that prohibits sellers
 
 Listing price changes may also affect the TOM for a house. A listing price change could attract more attention to a house on the market, but could also indicate a longer TOM. John R. Knight (2002) conducted an analysis on listing price changes, investigated which types of homes were most likely to go through multiple listing price changes, and which price changes tend to give the worst results for the seller.
 
-Knight used 3490 detached single family homes that sold between January 1997 and December 1998 by Metroservices Inc. of Sacramento, CA, USA. He notes that price adjustment data is generally missing from TOM datasets, but his study incorporated this into the analysis to examine the determinants of list price changes. He utilized a maximum likelihood probit model and found that the two most important determinants of price changes are TOM and initial markup. Atypical homes tend to not see significant price changes because there is little market precedent for price changes after a certain TOM. Knight's findings are consistent with previous research on pricing under demand uncertainty. 
+Knight used 3490 detached single family homes that sold between January 1997 and December 1998 by Metroservices Inc. of Sacramento, CA, USA. He notes that price adjustment data is generally missing from TOM datasets, but his study incorporated the price changes into the analysis to examine the determinants of list price changes. He utilized a maximum likelihood probit model and found that the two most important determinants of price changes are TOM and initial markup. Atypical homes tend to not see significant price changes because there is little market precedent for price changes after a certain TOM. Knight's findings are consistent with previous research on pricing under demand uncertainty. 
 
 
 ### 1.3 Research Question (and mapping paragraph)
 
-We are interested in which factors affect the TOM for a house in the Twin Cities. Some variables of interest include the amount of recorded crime in a house's designated neighborhood and the proximity of a house to the nearest school. 
+We are interested in investigating the factors that affect the TOM for a single family homes in the Twin Cities (Minneapolis and Saint Paul) that were sold between July 26, 2017 and February 1, 2018. Some variables of interest include the amount of recorded crime in a house's designated neighborhood and the proximity of a house to the nearest school. 
 
-In the following sections, we outline our data collection and methods and provide a brief descriptions of our assumptions. 
+In the following sections, we outline our data collection and methods and provide a brief description of our assumptions. 
 
 ##2 | Data and Methods
 
@@ -71,7 +71,7 @@ In the following sections, we outline our data collection and methods and provid
 
 #### Real Estate Data
 
-Our data represents a random sample of 311 single family homes in the Twin Cities. A search of all recently sold homes in the area was conducted in the Coldwell Banker MLS and 311 unique addresses were randomly selected for the project. Some variables were scraped directly from the Coldwell Banker site, while others were manually inputted. 
+Our data represents a random sample of 311 single family homes in the Twin Cities that were sold between July 26th, 2017 and February 1st, 2018. A search of all recently sold homes in the area was conducted in the Coldwell Banker MLS and 311 unique addresses were randomly selected for the project. Some variables were scraped directly from the Coldwell Banker site, while others were manually inputted. 
 
 #### Crime Data
 
@@ -83,53 +83,38 @@ For all 311 observations, we collected unique addresses `address`, city of resid
 
 ### 2.3 Assumptions
 
-An essential assumption to our research is based on censoring. We intentionally collected our data from a sample of recently sold houses to limit censoring. If we were to take a true random sample of all houses listed for sale in the past $X$ number of years, we realize that a significant amount of right censoring could be present, because at the time of data collection some houses in our sample would have not been sold yet. We acknowledge that sampling from a set of recently sold houses may introduce some bias into our results - all recently sold houses (late January to early Februray 2018) may share certain unknown or unaccounted-for characteristics that made them sell. This bias is acceptable considering the convenience and added accuracy provided by uncensored data.
+An essential assumption to our research is based on censoring. We intentionally collected our data from a sample of recently sold houses to limit censoring. If we were to take a true random sample of all houses listed for sale in the past $X$ number of years, we realize that a significant amount of right censoring could be present, because at the time of data collection some houses in our sample would have not been sold yet. We acknowledge that sampling from a set of recently sold houses may introduce some bias into our results - all recently sold houses in this particular date range (late January to early Februray 2018) may share certain unknown or unaccounted-for characteristics that made them sell. This bias is acceptable considering the convenience and added accuracy provided by uncensored data.
 
 ### 2.4 Methods
 
-We utilize visualizations of parametric and non-parametric estimates of the true survival curve for `Time on Market (tom)` and test for significant differences in `tom` between houses with different characteristics, such as difference between list and sold price and neighborhood, using the Mantel-Cox test statistic in a log-rank test. We also test for significant relationships between `tom` and other quantitative variables such as `Number of neighborhood crimes in last 2 years (ncrime)`, `Distance from the nearest school (schdist)`, `list price (listedatpr)`, and `sale price (soldatpr)`.
+!!!CHANGE
+We utilize visualizations of parametric and non-parametric estimates of the true survival curve for `Time on Market (tom)` and test for significant differences in `tom` among houses with different characteristics, such as difference between list and sold price and neighborhood, using the Mantel-Cox test statistic in a log-rank test and hazard ratio. We also test for significant relationships between `tom` and other quantitative variables such as `Number of neighborhood crimes in last 2 years (ncrime)`, `Distance from the nearest school (schdist)`, `list price (listedatpr)`, and `sale price (soldatpr)`.
 
 ##3 | Preliminary Results
 
 We begin our preliminary analysis by investigating the length of time that houses in the Twin Cities remain on the market after their preliminary listing date.
 
+### 3.1 Non-Parametric Survival Curve 
 
+#### Kaplan-Meier Aggregate = `1=ecdf`
 
-### 3.1 Kaplan-Meier Curves
-
-#### Aggregate
-
-First, a Kaplan-Meier curve with confidence intervals for survival (time on market) across all groups.
+First, we fit a Kaplan-Meier curve with confidence intervals for survival (time on market) across all groups. The mean is approximately 86 days, the median is 73 days, and the 95% CI is [66, 82]. The curve is right skewed, indicating that there are more . 
 
 ```{r echo=FALSE}
 
+# mean(house$tom)
+# median(house$tom)
 KM = survfit( Surv(tom) ~ 1 , conf.type="plain" , data=house ) 
 ggsurvplot(KM, data=house) +
   labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market")
 
 ```
 
-#### Categorical Price Differences 
-
-
-Next, a Kaplan-Meier curve stratified for three groupings of sold houses: houses that sold below list value, at list value, and above list value.
-
-```{r echo=FALSE}
-
-# Note: Price Difference = sold - listed
-KMECDF = survfit(Surv(tom) ~ prdiff_np, data=house )
-ggsurvplot(KMECDF, data=house, legend.title="Type", 
-           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
-    labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified")
-
-```
-
-
 ### 3.2 Parametric Survival Curve Estimates
 
 #### Exponential 
 
-A survival curve for all houses in the data estimated parametrically by the exponential distribution.
+A survival curve for all houses in the data estimated parametrically by the exponential distribution has a mean of approximately 86 and median of 59.59.
 
 ```{r echo=FALSE, include=FALSE, message=FALSE}
 
@@ -137,38 +122,95 @@ survreg(Surv(tom) ~ 1, dist = "exponential", data=house)
 
 ```
 
-
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-house %>% ggplot(aes(x=tom)) + 
-  stat_function(fun=pexp, args= 1/exp(4.454011), lower.tail=FALSE) + 
+surv_exp <- function(x) {1-pexp(x, 1/exp(4.454011)) }
+# integrate(surv_exp, 0, Inf)
+# qexp(0.5, 1/exp(4.454011))
+house %>% ggplot(aes(x=tom), conf.int = TRUE) +  
+  stat_function(fun=surv_exp, lower.tail=FALSE) + 
   labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
        caption = "Data collected from Coldwell Banker")
 
 ```
 
-
-
-#### Normal
-
 #### Weibull
 
-We have visualized non-parametric and parametric estimates of the true survival curve but is there truly a difference between groupings of houses with different categorical characteristics.
+A survival curve for all houses in the data estimated parametrically by the exponential distribution has a mean of 86.31 and a median of 79.34.
 
-### 3.3 Tests for Statistical Significance
+```{r echo=FALSE, include=FALSE, message=FALSE}
+
+survreg(Surv(tom) ~ 1, dist = "weibull", data=house)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+surv_weibull <- function(x) {1-pweibull(x, 1/0.5511901, exp(4.575712)) }
+# integrate(surv_weibull, 0, Inf)
+# qweibull(0.5, 1/0.5511901, exp(4.575712))
+house %>% ggplot(aes(x=tom), conf.int = TRUE) +  
+  stat_function(fun=surv_weibull, lower.tail=FALSE) + 
+  labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
+       caption = "Data collected from Coldwell Banker")
+
+```
+
+Comparing just the point estimates, we see that the means of all three estimators lie at about the same point (86 days), while the median for weibull (79.34) is much closer to that in KM (73) than the median for exponential (59.59). To better see the distributions, we plot all three together on the same graph.
+
+#### KM, Exponential, & Weibull
+
+From the combined plot, we can see that weibull survival model approximates the raw data (KM) much better than does exponential survival model, consistent with the closer median values.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+plot(KM, col="red", conf.int=F, main="KM, Exponential, and Weibull Model")
+curve(1-pexp(x, 1/exp(4.454011)), add=T, col="blue")
+curve(1-pweibull(x, 1/0.5511901, exp(4.575712)), add=T, col="purple")
+legend(300,1,c("KM","Exponential", "Weibull"), col=c("red","blue","purple") , text.col=c("red","blue","purple") , lty=1 , cex=0.8 )
+
+```
+
+We have visualized non-parametric and parametric estimates of the true survival curve and concluded that the weibull model is a much better fit to KM than exponential. Next, we examine whether there is a significant difference among groups of houses with different categorical characteristics.
+
+
+### 3.3 Non-Parametric Statistiscal Tests
 
 #### List and Sale Price Difference
 
+First, we visualize a Kaplan-Meier curve stratified by the three groupings of sold houses--houses that sold above list value, at list value, and below list value. We will refer to these houses as high-demand, low-demand, and neutral-demand houses, respectively, for brevity. 
+
+The means for high-demand, low-demand, and neutral-demand homes are 58.40,  101.45, and 65.62, and the medians are 48, 94, and 53, respectively. The confidence interval is relatively short for both high-demand and low-demand homes, but neutral-demand homes have confidence interval that is almost as twice as much as the other two. This large confidence interval may be driven by low power, indicated by a small sample size (n = 37) in neutral-demand homes. 
+
+```{r echo=FALSE}
+
+# mean(house$tom[house$prdiff_np==1])
+# mean(house$tom[house$prdiff_np==2])
+# mean(house$tom[house$prdiff_np==3])
+
+# Note: Price Difference = sold - listed
+(KMECDF = survfit(Surv(tom) ~ as.factor(prdiff_np), data=house ))
+ggsurvplot(KMECDF, data=house, conf.int=T, legend.title="Type", ggtheme = theme_minimal(),
+           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified")
+
+```
+
+#### Log-Rank Test
+
 In order to determine if the differences in the estimated survival curves for this category are statistically significant, we conduct a log-rank test. The results are as follows:
 
-$H_0: S_1(t) = S_2(t) = S_3(t) \ \forall \ t$
+$$H_0: S_1(t) = S_2(t) = S_3(t) \ \forall \ t$$
 
-$H_A: S_1(t) \neq S_2(t) \neq S_3(t) \ \text{for some} \ t$
+The TOM distributions for the three price-difference conditions are identical at all time points.
 
+$$H_A: S_1(t) \neq S_2(t) \neq S_3(t) \ \text{for some} \ t$$
+
+The TOM distributions for the three price-difference conditions differ at at least one time point.
 
 ```{r echo=FALSE, include=FALSE}
 
-survdiff(Surv(tom) ~ prdiff_np, data=house)
+survdiff(Surv(tom) ~ as.factor(prdiff_np), data=house)
 
 ```
 
@@ -176,12 +218,58 @@ A log-rank test reveals a Mantel-Cox test statistic of $53.87$. This produces a 
 
 ```{r echo=FALSE}
 
-1 - pchisq(53.87, df=2)
+1 - pchisq(37.71+10.75+5.41, df=2)
 
 ```
 
 Thus, we confidently reject the null hypothesis and conclude that the three survival curves for price difference (negative, zero, positive) differ for some `tom`. 
 
+#### Hazard Ratio
+
+Now, we compare the risk of failures (being sold) between two groups at a time by examining the hazard ratios. The first comparison is between the high-demand and low-demand homes. The hazard ratio is
+
+```{r echo=FALSE}
+# Note: + = hot houses
+(HR = (81/41.5)/(193/244.2)) # + / -
+```
+
+and the confidence interval is
+
+```{r echo=FALSE}
+cat("[", HR*exp(-1.96*sqrt(1/41.5+1/244.2)), ", ", HR*exp(+1.96*sqrt(1/41.5+1/244.2)),"]", sep="")
+```
+
+The hazard ratio indicates that the probability of high-demand houses being sold is 2.47 times higher than that for low-demand houses. The confidence interval suggests that this hazard estimate is significant since the interval does not bound 1.
 
 
+Next, we see the difference between low-demand and neutral-demand homes. The hazard ratio is
 
+```{r echo=FALSE}
+(HR = (193/244.2)/(37/25.3)) # - / 0
+```
+
+and the confidence interval is
+
+```{r echo=FALSE}
+cat("[", HR*exp(-1.96*sqrt(1/244.2+1/25.3)), ", ", HR*exp(+1.96*sqrt(1/244.2+1/25.3)),"]", sep="")
+```
+
+Hazard ratio shows that low-demand homes have around half the chance of being sold on the market compared to neutral-demand homes. Since the confidence interval does not encompass 1, the hazard estimate is significant.
+
+
+Last, we compare high-demand and neutral-demand homes. The hazard ratio is
+
+```{r echo=FALSE}
+# Note: + = hot houses
+(HR = (81/41.5)/(37/25.3)) # + / 0
+```
+
+and the confidence interval is
+
+```{r echo=FALSE}
+cat("[", HR*exp(-1.96*sqrt(1/41.5+1/25.3)), ", ", HR*exp(+1.96*sqrt(1/41.5+1/25.3)),"]", sep="")
+```
+
+Despite the hazard ratio of 1.33, the interval estimate suggests that the this difference of 1.33 is insignificant. This result is inconsistent with the significant p-value we obtained from the log-rank test.
+
+Examining the confidence intervals of the three groups from the Kaplan-Meier curves, we see that high-demand and equilibrium houses lay on top of each other almost completely until around 40 days, and the confidence intervals overlap until approximately 175 days, which explain the insignificance in the hazard ratio estimate. On the other hand, low-demand and high-demand homes are quite distinctive and separate from each other with only a few spots where the confidence intervals intersect. This distinct separation is also reflective of the large hazard ratio (2.47) with confidence interval way greater than 1 ([1.777065, 3.431999]). 
