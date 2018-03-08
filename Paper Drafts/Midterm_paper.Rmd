@@ -21,9 +21,8 @@ library(survminer)
 
 house <- read_csv("../Source/house_TC.csv")
 
-house <- house %>% mutate(tom = ifelse(tom == 0, 1, tom))
-
-house$prdiff_np <- as.factor(house$prdiff_np)
+house <- house %>% mutate(tom = ifelse(tom == 0, 1, tom),
+                          prdiff_np = as.factor(prdiff_np))
 
 ```
 
@@ -158,11 +157,11 @@ survreg(Surv(tom) ~ 1, dist = "exponential", data=house)
 surv_exp <- function(x) {1-pexp(x, 1/exp(4.454011)) }
 # integrate(surv_exp, 0, Inf)
 # qexp(0.5, 1/exp(4.454011))
-house %>% ggplot(aes(x=tom), conf.int = TRUE) +  
+(surv_exp.plot <- house %>% ggplot(aes(x=tom), conf.int = TRUE) +  
   stat_function(fun=surv_exp, lower.tail=FALSE) + 
   labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
-       caption = "Data collected from Coldwell Banker")
-
+       caption = "Data collected from Coldwell Banker"))
+  
 ```
 
 #### Weibull
@@ -180,10 +179,10 @@ survreg(Surv(tom) ~ 1, dist = "weibull", data=house)
 surv_weibull <- function(x) {1-pweibull(x, 1/0.5511901, exp(4.575712)) }
 # integrate(surv_weibull, 0, Inf)
 # qweibull(0.5, 1/0.5511901, exp(4.575712))
-house %>% ggplot(aes(x=tom), conf.int = TRUE) +  
+(surv_weibull.plot <- (house %>% ggplot(aes(x=tom), conf.int = TRUE) +  
   stat_function(fun=surv_weibull, lower.tail=FALSE) + 
   labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
-     caption = "Data collected from Coldwell Banker")
+     caption = "Data collected from Coldwell Banker")))
 
 ```
 
