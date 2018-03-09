@@ -130,7 +130,7 @@ surv_exp <- function(x) {1-pexp(x, 1/exp(4.454011)) }
 
 #### Weibull
 
-A survival curve for all houses in the data estimated parametrically by the weibull distribution has a mean of 86.31 days and a median of 79.34 days.
+A survival curve for all houses in the data estimated parametrically by the Weibull distribution has a mean of 86.31 days and a median of 79.34 days.
 
 ```{r echo=FALSE, include=FALSE, message=FALSE}
 
@@ -150,11 +150,11 @@ surv_weibull <- function(x) {1-pweibull(x, 1/0.5511901, exp(4.575712)) }
 
 ```
 
-Comparing just the point estimates, we see that the means of all three estimators lie at about the same point (86 days), while the median for weibull (79.34 days) is much closer to that in KM (73 days) than the median for exponential (59.59 days). To better compare the distributions, we plot all three together on the same graph.
+Comparing just the point estimates, we see that the means of all three estimators lie at about the same point (86 days), while the median for Weibull (79.34 days) is much closer to that in KM (73 days) than the median for exponential (59.59 days). To better compare the distributions, we plot all three together on the same graph.
 
 #### KM, Exponential, & Weibull
 
-From the combined plot, we can see that weibull survival model approximates the raw data (KM) much better than does exponential survival model, consistent with the closer median values.
+From the combined plot, we can see that Weibull survival model approximates the raw data (KM) much better than does exponential survival model, consistent with the closer median values.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -165,9 +165,7 @@ legend(300,1,c("KM","Exponential", "Weibull"), col=c("red","blue","purple") , te
 
 ```
 
-We have visualized non-parametric and parametric estimates of the true survival curve and concluded that the weibull model is a much better fit to KM (the raw data) than exponential. 
-
-*** 
+We have visualized non-parametric and parametric estimates of the true survival curve and concluded that the Weibull model is a much better fit to KM (the raw data) than exponential. 
 
 
 ### 3.3 Parametric Survival Curve Estimates with Categorical Price Differences
@@ -239,11 +237,16 @@ surv4 <- function(x){1-pweibull(x, shape=1/0.5340263, scale=exp(4.2485166 + 0.45
 surv5 <- function(x){1-pweibull(x, shape=1/0.5340263, scale=exp(4.2485166 + 0.1177328))}
 
 
-house %>% ggplot(aes(x=tom)) + 
+house %>% ggplot(aes(x=tom, color = )) + 
   stat_function(fun=surv3, lower.tail=FALSE, col="black") + 
   stat_function(fun=surv4, lower.tail=FALSE, col="red") +
-    stat_function(fun=surv5, lower.tail=FALSE, col="blue") +  labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
+  stat_function(fun=surv5, lower.tail=FALSE, col="blue") +  
+  scale_colour_manual("", 
+                      breaks = c("TempMax", "TempMedia", "TempMin"),
+                      values = c("red", "green", "blue")) +
+  labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
        caption = "Data collected from Coldwell Banker") 
+
 ```
 
 We observe again from this parameterization that houses that sold for more than the original list price tend to sell the fastest, while houses that underwent price reductions tend to remain on the market the longest. 
