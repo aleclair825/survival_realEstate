@@ -5,8 +5,7 @@ date: "March 5, 2018"
 output:
   pdf_document:
     pandoc_args: [
-      "-V", "classoption=twocolumn"
-    ]
+      "-V", "classoption=twocolumn" ]
   html_document: default
 ---
 
@@ -20,14 +19,9 @@ library(survival)
 library(survminer)
 
 house <- read_csv("../Source/house_TC.csv")
-
 house <- house %>% mutate(tom = ifelse(tom == 0, 1, tom),
                           prdiff_np = as.factor(prdiff_np))
-
 ```
-
-
-
 
 ## 1 | Introduction
 
@@ -88,18 +82,17 @@ An essential assumption to our research is based on censoring. We intentionally 
 
 ### 2.4 Methods
 
-!!!CHANGE
-We utilize visualizations of parametric and non-parametric estimates of the true survival curve for `Time on Market (tom)` and test for significant differences in `tom` among houses with different characteristics, such as difference between list and sold price and neighborhood, using the Mantel-Cox test statistic in a log-rank test and hazard ratio. We also test for significant relationships between `tom` and other quantitative variables such as `Number of neighborhood crimes in last 2 years (ncrime)`, `Distance from the nearest school (schdist)`, `list price (listedatpr)`, and `sale price (soldatpr)`.
+We utilize visualizations of parametric and non-parametric estimates of the true survival curve for `Time on Market (tom)` and test for significant differences in `tom` among houses with different characteristics, such as the price difference between list and sold price. 
 
 ##3 | Preliminary Results
 
 We begin our preliminary analysis by investigating the length of time that houses in the Twin Cities remain on the market after their preliminary listing date.
 
-### 3.1 Non-Parametric Survival Curve Estimates
+### 3.1 Non-Parametric Survival Curve Estimates for Aggregate Data
 
-#### Kaplan-Meier Aggregate = `1=ecdf`
+#### Kaplan-Meier
 
-First, we fit a Kaplan-Meier curve with confidence intervals for survival (time on market) across all groups. The mean is approximately 86 days, the median is 73 days, and the 95% CI is [66, 82]. The curve is right skewed, indicating that there are more houses that sell faster than average. 
+First, we fit a Kaplan-Meier curve with confidence intervals for survival (time on market) across all groups. Since the data contains no censoring, Kaplan-Meier is equivalent to `1-ecdf` representative of the raw data itself. From the data, the mean is approximately 85.97 days, the median is 73 days, and the 95% CI is [66, 82]. The curve is right-skewed, indicating that there are more houses that sell faster than average. 
 
 ```{r echo=FALSE}
 
@@ -111,40 +104,11 @@ ggsurvplot(KM, data=house) +
 
 ```
 
-#### Kaplan-Meier - Categorical Price Differences
-
-First, we visualize a Kaplan-Meier curve stratified by the three groupings of sold houses--houses that sold above list value, at list value, and below list value. We will refer to these houses as high-demand, low-demand, and neutral-demand houses, respectively, for brevity. 
-
-Nick!!!
-
-We see that houses in our data that sold for under the listed price tended to take the longest to sell, while houses that sold for above the listed price tended to sell more quickly. This result is intuitive, as houses that are priced competitively tend to sell faster while houses that see price reductions are likely to have been on the market longer.  
-
-The means for high-demand, low-demand, and neutral-demand homes are 58.40,  101.45, and 65.62, and the medians are 48, 94, and 53, respectively. The confidence interval is relatively short for both high-demand and low-demand homes, but neutral-demand homes have confidence interval that is almost as twice as much as the other two. This large confidence interval may be driven by low power, indicated by a small sample size (n = 37) in neutral-demand homes. 
-
-```{r echo=FALSE, message=FALSE, include=FALSE}
-
-# mean(house$tom[house$prdiff_np==1])
-# mean(house$tom[house$prdiff_np==2])
-# mean(house$tom[house$prdiff_np==3])
-
-# Note: Price Difference = sold - listed
-(KMECDF = survfit(Surv(tom) ~ as.factor(prdiff_np), data=house ))
-
-```
-
-```{r echo=FALSE}
-
-ggsurvplot(KMECDF, data=house, conf.int=T, legend.title="Type", ggtheme = theme_minimal(),
-           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
-  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified")
-
-```
-
-### 3.2 Parametric Survival Curve Estimates
+### 3.2 Parametric Survival Curve Estimates for Aggregate Data
 
 #### Exponential 
 
-A survival curve for all houses in the data estimated parametrically by the exponential distribution has a mean of approximately 86 and median of 59.59.
+A survival curve for all houses in the data estimated parametrically by the exponential distribution has a mean of approximately 85.97 days and a median of 59.59 days.
 
 ```{r echo=FALSE, include=FALSE, message=FALSE}
 
@@ -166,7 +130,7 @@ surv_exp <- function(x) {1-pexp(x, 1/exp(4.454011)) }
 
 #### Weibull
 
-A survival curve for all houses in the data estimated parametrically by the weibull distribution has a mean of 86.31 and a median of 79.34.
+A survival curve for all houses in the data estimated parametrically by the weibull distribution has a mean of 86.31 days and a median of 79.34 days.
 
 ```{r echo=FALSE, include=FALSE, message=FALSE}
 
@@ -186,7 +150,7 @@ surv_weibull <- function(x) {1-pweibull(x, 1/0.5511901, exp(4.575712)) }
 
 ```
 
-Comparing just the point estimates, we see that the means of all three estimators lie at about the same point (86 days), while the median for weibull (79.34) is much closer to that in KM (73) than the median for exponential (59.59). To better see the distributions, we plot all three together on the same graph.
+Comparing just the point estimates, we see that the means of all three estimators lie at about the same point (86 days), while the median for weibull (79.34 days) is much closer to that in KM (73 days) than the median for exponential (59.59 days). To better compare the distributions, we plot all three together on the same graph.
 
 #### KM, Exponential, & Weibull
 
@@ -201,17 +165,41 @@ legend(300,1,c("KM","Exponential", "Weibull"), col=c("red","blue","purple") , te
 
 ```
 
-We have visualized non-parametric and parametric estimates of the true survival curve and concluded that the weibull model is a much better fit to KM than exponential. 
-
+We have visualized non-parametric and parametric estimates of the true survival curve and concluded that the weibull model is a much better fit to KM (the raw data) than exponential. 
 
 *** 
 
 
 ### 3.3 Parametric Survival Curve Estimates with Categorical Price Differences
 
-#### Exponential - Categorical Price Differences
+#### Kaplan-Meier - Categorical Price Differences
 
-Nick!!!
+First, we visualize a Kaplan-Meier curve stratified by the three groupings of sold houses--houses that sold above list value, at list value, and below list value. We will refer to these houses as high-demand, low-demand, and neutral-demand houses, respectively, for brevity. 
+
+We see that houses in our data that sold for under the listed price tended to take the longest to sell, while houses that sold for above the listed price tended to sell more quickly. This result is intuitive, as houses that are priced competitively tend to sell faster while houses that see price reductions are likely to have been on the market longer.  
+
+The means for high-demand, low-demand, and neutral-demand homes are 58.40,  101.45, and 65.62 days, and the medians are 48, 94, and 53 days, respectively. The confidence interval is relatively short for both high-demand and low-demand homes, but neutral-demand homes have confidence interval that is almost as twice as much as the other two. This large confidence interval may be driven by low power, indicated by a small sample size (n = 37) in neutral-demand homes. 
+
+```{r echo=FALSE, message=FALSE, include=FALSE}
+
+# mean(house$tom[house$prdiff_np==1])
+# mean(house$tom[house$prdiff_np==2])
+# mean(house$tom[house$prdiff_np==3])
+
+# Note: Price Difference = sold - listed
+(KMECDF = survfit(Surv(tom) ~ as.factor(prdiff_np), data=house ))
+
+```
+
+```{r echo=FALSE}
+
+ggsurvplot(KMECDF, data=house, conf.int=T, legend.title="Type", ggtheme = theme_minimal(),
+           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified")
+
+```
+
+#### Exponential - Categorical Price Differences
 
 ```{r echo=FALSE, include=FALSE, message=FALSE}
 
@@ -235,7 +223,6 @@ house %>% ggplot(aes(x=tom)) +
 
 
 ```
-
 
 #### Weibull - Categorical Price Differences
 
