@@ -74,7 +74,7 @@ We also obtained crime data beginning on January 1, 2015 from the government web
 
 ### 2.2 Variables
 
-For all 311 observations, we collected unique addresses `address`, city of residence `city`, zip code `zip`, number of bedrooms `beds`, number of full bathrooms `bathf`, number of partial bathrooms `bathp`, number car garage `carg`, house squarefeet `sqft`, price the home was listed at `listedatpr`, price the home was sold for `soldatpr`, date the home was listed `listedatdate`, date the home was sold `soldatdate`, neighborhood the house is located `neighb`, distance to nearest school (mi.) `schdist`, and number of crimes that were recorded in that neighborhood beginning on January 1, 2015 `ncrime`.
+For all 311 observations, we collected unique addresses `address`, city of residence `city`, zip code `zip`, number of bedrooms `beds`, number of full bathrooms `bathf`, number of partial bathrooms `bathp`, number car garage `carg`, house squarefeet `sqft`, price the home was listed at `listedatpr`, price the home was sold for `soldatpr`, date the home was listed `listedatdate`, date the home was sold `soldatdate`, neighborhood the house is located `neighb`, distance to nearest school (mi.) `schdist`, and number of crimes that were recorded in that neighborhood beginning on January 1, 2015 `ncrime`. We also calculated the time on market `tom` for each house from list date to sale date, included the property ID `pid` from the Coldwell Banker website, calculated a price difference from list price to sale price `prdiff`, computed a percent change price `prdiff_perc`, and created a categorical variable `prdiff_np` to reflect whether a house had a positive (1), negative (2), or neutral (3) price difference. 
 
 ### 2.3 Assumptions
 
