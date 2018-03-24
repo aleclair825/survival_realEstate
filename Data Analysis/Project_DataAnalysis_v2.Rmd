@@ -1,0 +1,752 @@
+---
+title: "| Survival Analysis    \n| Data Analysis Version 2\n"
+author: "April Leclair"
+date: "2018-03-24"
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "Data Analysis - HTML Output") })
+output:
+  bookdown::tufte_html2:
+    number_sections: no
+    split_by: none
+    toc: no
+  bookdown::pdf_document2:
+    latex_engine: pdflatex
+    number_sections: no
+    toc: no
+  bookdown::tufte_handout2:
+    latex_engine: xelatex
+    number_sections: no
+    toc: no
+  bookdown::html_document2:
+    number_sections: no
+    split_by: none
+    toc: no
+---
+ 
+```{r setup, include=FALSE, message=FALSE}
+library(tidyverse)
+library(readr)
+library(ggplot2)
+library(survival)
+library(survminer)
+knitr::opts_chunk$set(tidy = FALSE, message=FALSE, cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+```
+
+
+### Load Data
+```{r message=FALSE, warning=FALSE}
+house <- read_csv("../Source/house_TC.csv")
+```
+
+
+### Variable Names
+```{r}
+names(house)
+```
+
+
+### Treat Time = 0
+```{r}
+# Note: Only 1 case has `tom` = 0. Fix this value to 1.
+house <- house %>% mutate(tom = ifelse(tom == 0, 1, tom))
+```
+
+
+## 1. Null Model 
+```{r}
+me = survreg( Surv(tom) ~ 1 , dist = "exponential" , data = house )
+mw = survreg( Surv(tom) ~ 1 , dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ 1 , dist = "lognormal" , data = house )
+
+summary(me)
+summary(mw)
+summary(mln)
+```
+
+*Hypotheses*
+
+1.
+
+* Ho: exponential: tom ~ 1 
+* Ha: weibull: tom ~ 1
+
+2. 
+
+* Ho: weibull: tom ~ 1
+* Ha: lognorm: tom ~ 1
+
+
+### 1a. Cox-Snell Residuals
+
+Log-normal looks the best!
+
+```{r}
+# Creates Cox-Snell Plot:
+CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
+  kmcs=survfit(Surv(jitter(cs,amount=(max(cs)-min(cs))/1000),status)~1)$surv
+  plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim)
+  abline(0,1,col='red') }
+```
+
+```{r}
+me
+mw
+mln
+
+# Create Cox-Snell residuals
+CS_e = -log( 1 - pexp(house$tom, 1/exp(4.454011) ) )
+CS_w = -log( 1 - pweibull(house$tom, 1/0.5511901, exp(4.575712 ) ) )
+CS_ln = -log( 1 - plnorm(house$tom, 4.284115, 0.6226858) ) 
+
+# Make appropriate graph using CoxSnell function
+house$status = rep(1, nrow(house))
+CoxSnell( CS_e , house$status )
+CoxSnell( CS_w , house$status )
+CoxSnell( CS_ln , house$status )
+```
+
+### 1b. LRT
+
+```{r}
+me$loglik
+mw$loglik
+
+2*(-1622.633 - -1696.197) # me vs. mw
+1 - pchisq( 147.128 , df=1 ) 
+```
+
+* Test Stat = 147.128  
+* p-value = 0
+* Conclusion: There is enough evidence to reject the Exponential in favor of the Weibull. That is, the extra parameter in the Weibull is providing enough improvement in order to be worthwhile. 
+
+### 1c. AIC
+
+Weibull is the best with the lowest AIC among the three models: exponential, weibull, and log-normal.
+
+```{r}
+2*(1--1696.2) # me
+2*(2--1622.6) # mw
+2*(2--1626.3) # mln
+```
+
+
+
+
+
+
+## 2. Full Model 
+```{r}
+me = survreg( Surv(tom) ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff , dist = "exponential" , data = house )
+mw = survreg( Surv(tom) ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff , dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff , dist = "lognormal" , data = house )
+
+summary(me)
+summary(mw)
+summary(mln)
+```
+
+*Hypotheses*
+
+1.
+
+* Ho: exponential: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
+* Ha: weibull: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
+
+2. 
+
+* Ho: weibull: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
+* Ha: lognorm: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
+
+
+### 2a. Cox-Snell Residuals
+
+Log-normal looks the best!
+
+```{r}
+me
+mw
+mln
+
+# Create Cox-Snell residuals
+CS_e = -log( 1 - pexp(house$tom, 1/exp(4.153050e+00 + 5.260030e-02*house$beds + 4.625418e-02*house$bathf + 3.530967e-02*house$bathp + -4.039299e-02*house$carg -2.186615e-05*house$sqft + 1.252779e-01*house$schdist + 5.489057e-06*house$ncrime + -5.267278e-06*house$prdiff) ) )
+CS_w = -log( 1 - pweibull(house$tom, 1/0.532846, exp(4.153050e+00 + 5.260030e-02*house$beds + 4.625418e-02*house$bathf + 3.530967e-02*house$bathp + -4.039299e-02*house$carg -2.186615e-05*house$sqft + 1.252779e-01*house$schdist + 5.489057e-06*house$ncrime + -5.267278e-06*house$prdiff ) ) )
+CS_ln = -log( 1 - plnorm(house$tom, 4.153050e+00 + 5.260030e-02*house$beds + 4.625418e-02*house$bathf + 3.530967e-02*house$bathp + -4.039299e-02*house$carg -2.186615e-05*house$sqft + 1.252779e-01*house$schdist + 5.489057e-06*house$ncrime + -5.267278e-06*house$prdiff, 0.5914082) ) 
+
+# Make appropriate graph using CoxSnell function
+CoxSnell( CS_e , house$status )
+CoxSnell( CS_w , house$status )
+CoxSnell( CS_ln , house$status )
+```
+
+### 2b. LRT
+
+There is enough evidence to reject the Exponential in favor of the Weibull. That is, the extra parameter in the Weibull is providing enough improvement in order to be worthwhile. 
+
+```{r}
+me$loglik
+mw$loglik
+
+2*(-1610.590 - -1691.369) # me vs. mw
+1 - pchisq( 161.558 , df=1 ) 
+```
+
+
+### 2c. AIC
+
+Log normal is the best with a marginal difference with weibull. 
+
+```{r}
+mln$loglik
+
+2*(9--1691.369) # me
+2*(10--1610.590) # mw
+2*(10--1610.297) # mln
+```
+
+
+
+
+
+## 3. Covariate Comparisons 
+
+### 3a. (prdiff) vs (`prdiff` + `schdist`)
+
+For below: Using weibull, conclude that mw2 is better. LRT and AIC agree.
+
+```{r}
+# Weibull - `schdist`
+mw1 = survreg( Surv(tom) ~ prdiff , dist = "weibull" , data = house )
+summary(mw1)
+mw2 = survreg( Surv(tom) ~ prdiff + schdist , dist = "weibull" , data = house )
+summary(mw2)
+
+mw1$loglik
+mw2$loglik
+
+
+## LRT
+2*(-1611.575 - -1615.016)
+1-pchisq(6.882, df = 1) # 0.008706808
+
+
+## AIC
+2*(3 - -1615.016) # 3236.032
+2*(4 - -1611.575) # 3231.15
+```
+
+For below: Using lognormal, conclude that mln1 is better. LRT and AIC agree.
+
+```{r}
+# Lognormal - `schdist`
+mln1 = survreg( Surv(tom) ~ prdiff , dist = "lognormal" , data = house )
+summary(mln1)
+mln2 = survreg( Surv(tom) ~ prdiff + schdist , dist = "lognormal" , data = house )
+summary(mln2)
+
+mln1$loglik
+mln2$loglik
+
+
+## LRT
+2*(-1611.680 - -1611.878)
+1-pchisq(0.396, df = 1) # 0.5291623 --> insignificant
+
+
+## AIC
+2*(3 - -1611.878) # 3236.032 (weibull output) vs. 3229.756 (lognormal output)
+2*(4 - -1611.680) # 3231.15 (weibull output) vs. 3231.36 (lognormal output)
+```
+
+
+### 3b. (`prdiff` + `schdist`) vs. (`prdiff` + `schdist` + `sqft`)
+
+For below: Using weibull, conclude that mw2 is better. LRT and AIC agree.
+
+```{r}
+# Weibull - `schdist`
+mw2 = survreg( Surv(tom) ~ prdiff + schdist , dist = "weibull" , data = house )
+summary(mw2)
+mw3 = survreg( Surv(tom) ~ prdiff + schdist + sqft, dist = "weibull" , data = house )
+summary(mw3)
+
+mw2$loglik
+mw3$loglik
+
+
+## LRT
+2*(-1611.3 - -1611.575)
+1-pchisq(0.55, df = 1) # 0.4583177
+
+
+## AIC
+2*(4 - -1611.575) # 3231.15
+2*(5 - -1611.575) # 3233.15
+```
+
+For below: Using lognormal, conclude that mln2 is better. 
+
+```{r}
+# Lognormal - `schdist`
+mln2 = survreg( Surv(tom) ~ prdiff + schdist , dist = "lognormal" , data = house )
+summary(mln2)
+mln3 = survreg( Surv(tom) ~ prdiff + schdist + sqft , dist = "lognormal" , data = house )
+summary(mln3)
+
+mln2$loglik
+mln3$loglik
+
+
+## LRT
+2*(-1611.673 - -1611.680)
+1-pchisq(0.014, df = 1) # 0.9058128 --> really insignificant
+
+
+## AIC
+### not even worth
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Below is from Previous Version copied here for reference
+
+```{r}
+# Density
+house %>% ggplot(aes(x=tom)) + 
+  stat_function( fun=dexp, args= 1/exp(4.454011)) + 
+  labs(title = "Exponential PDF for Time on Market", x="Time on Market", y="Density",
+       caption = "Data collected from Coldwell Banker")
+
+# CDF
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=pexp, args= 1/exp(4.454011)) + 
+  labs(title = "Exponential CDF for Time on Market", x="Time on Market", y="Cumulative Proportion",
+       caption = "Data collected from Coldwell Banker")
+
+# Survival
+surv <- function(x) {1-pexp(x, 1/exp(4.454011)) }
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=surv) + 
+  labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
+       caption = "Data collected from Coldwell Banker")
+```
+
+```{r}
+min(house$soldatdate)
+max(house$soldatdate)
+```
+
+
+
+## With some variables
+### Graphs: Exponential - density, CDF, and survival curve
+```{r}
+# (sreg <- survreg( Surv(tom) ~ zip + beds + bathf + bathp + carg + sqft + listedatpr + soldatpr + listedatdate + soldatdate + neighb + schdist + ncrime + prdiff + prdiff_perc + prdiff_np , dist = "exponential" , data = house ))
+
+(sreg <- survreg( Surv(tom) ~ prdiff_np + prdiff_perc + sqft + schdist, dist = "exponential" , data = house ))
+```
+
+
+### Graphs: Weibull - density, CDF, and survival curve
+```{r}
+survreg( Surv(tom) ~ 1 , dist = "weibull" , data = house )
+```
+
+```{r}
+# Density
+house %>% ggplot(aes(x=tom)) + 
+  stat_function( fun=dweibull, args=list(shape=1/0.5511901, scale=exp(4.575712))) + 
+  labs(title = "Weibull PDF for Time on Market", x="Time on Market", y="Density",
+       caption = "Data collected from Coldwell Banker")
+
+# CDF
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=pweibull, args=list(shape=1/0.5511901, scale=exp(4.575712))) + 
+  labs(title = "Weibull CDF for Time on Market", x="Time on Market", y="Cumulative Proportion",
+       caption = "Data collected from Coldwell Banker")
+
+# Survival
+house %>% ggplot(aes(x=tom)) + 
+  stat_function(fun=pweibull, args=list(shape=1/0.5511901, scale=exp(4.575712)), lower.tail=FALSE) + 
+  labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
+       caption = "Data collected from Coldwell Banker")
+```
+
+
+### Chance that the house will be on the market for more than 50 days
+```{r}
+# Exponential
+1-pexp(50, 1/exp(4.454011))
+
+# Weibull
+1-pweibull(50, shape=1/0.5511901, scale=exp(4.575712))
+```
+
+
+### Mean time to sell
+```{r}
+# Exponential
+S = function(x) 1-pexp(x, 1/exp(4.454011))
+integrate(S,0,Inf)
+
+# Weibull
+S = function(x) 1-pweibull(x, shape=1/0.5511901, scale=exp(4.575712))
+integrate(S,0,Inf)
+```
+
+
+### Median time to sell
+```{r}
+qexp(0.5, 1/exp(4.454011))
+qweibull(0.5, shape=1/0.5511901, scale=exp(4.575712))
+```
+
+
+## Kaplan-Meier curves
+
+### Kaplan-Meier curves with CI - all groups
+```{r}
+KM = survfit( Surv(tom) ~ 1 , conf.type="plain" , data=house ) 
+ggsurvplot(KM, data=house) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market",
+       caption = "Data collected from Coldwell Banker")
+```
+
+
+### Kaplan-Meier curves with CI - by price difference groups
+```{r}
+# Note: Price Difference = sold - listed
+KMECDF = survfit(Surv(tom) ~ prdiff_np, conf.type="plain" , data=house )
+ggsurvplot(KMECDF, data=house, conf.int = TRUE, legend.title="Type", 
+           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
+    labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market",
+       caption = "Data collected from Coldwell Banker")
+# without conf inf
+ggsurvplot(KMECDF, data=house, legend.title="Type", 
+           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
+    labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market",
+       caption = "Data collected from Coldwell Banker")
+```
+
+<br>
+
+<br>
+
+
+### Inspect Confidence Interval for Each Group
+
+#### 30-day survival probability
+
+
+** Price difference positive ** 
+
+Note: positive = sold at > listed at, indicating high demand (hot market)
+
+* Point Estimate of one-month (30 days) survival probability: 0.9012
+* Interval Estimate of one-month (30 days) survival probability: [0.83855, 0.9686]
+
+It's a hot market, and thus, the houses sell fast.
+
+** Price difference negative **
+
+Note: negative = sold at < listed at, indicating low demand (cold market)
+
+* Point Estimate of one-month (30 days) survival probability: 0.97409 
+* Interval Estimate of one-month (30 days) survival probability: [0.951937, 0.9968]
+
+More likely to be on the market longer than price difference positive condition, which makes sense since the market is cold. Narrower confidence interval as well compared to the hot market.
+
+
+** Price difference none **
+
+* Point Estimate of one-month (30 days) survival probability: 0.8919  
+* Interval Estimate of one-month (30 days) survival probability: [0.79725, 0.998]
+
+Much larger confidence interval but this may be because there aren't many houses that did not change in price in the market. The point estimate is definitely slightly lower as well compared top the hot market, meaning that it sells quite faster than the cold market but not as fast as the hot market. However, as mentioned previously, the large CI makes it unreliable.
+
+<br>
+
+#### Point estimate and the 95% CI for the time when the survival curve drops to 0.80.
+
+** Price difference positive ** 
+
+* The point estimate for when S(k) = 0.50 is 37, and the CI is: [32, 41]
+
+HERE!!!
+** Price difference negative ** 
+
+
+#### Median survival and C.I.
+
+**The point estimate for when S(k) = 0.50 is 48, and the CI is: [42, 53].**
+
+
+```{r}
+summary(KMECDF)
+```
+
+
+### KM Median 
+```{r}
+# median for all groups
+KM
+
+# median by price difference groups
+KMECDF
+```
+
+### KM Mean Survival
+```{r}
+# Finds area under Kaplan-Meier curve (if largest observation is censored, this assumes that the K-M drops to 0 at that value).
+
+# AUCKM stands for "Area Under Curve Kaplan Meier":
+AUCKM = function(survobj,duration)
+{
+base=c(0,summary(survobj)$time,max(duration))
+heights=c(1,summary(survobj)$surv)
+new=c()
+for(i in 1:length(heights)) { new=c(new,(base[i+1]-base[i])*heights[i]) }
+c(sum(new))
+}
+
+# mean survival for all groups
+AUCKM(KM, house$tom)
+
+# mean survival by price difference groups
+AUCKM(KMECDF, house$tom)
+```
+
+
+## Actuarial Method Estimate
+
+### Life Table Function 
+```{r}
+LifeTable = function( time, status, breaks, finite ) {
+  failed = c(0,hist(time[status==1],breaks=breaks,plot=F)$counts)
+  censored = c(0,hist(time[status==0],breaks=breaks,plot=F)$counts)
+  alivestart = length(time)-cumsum(failed[-length(failed)])-cumsum(censored[-length(censored)])
+  atrisk = alivestart-c(censored[-1]/2)
+  failrate = failed[-1]/atrisk
+  survrate = 1-failrate
+  survest = c(1,cumprod(1-failrate)[1:(length(failrate))])
+  if (finite == 0) 
+    return(as.data.frame(cbind(Failed = failed[-1], Censored=censored[-1], AliveStart=alivestart,
+                             AtRisk = atrisk[-length(atrisk)], FailRate = failrate[-length(failrate)],
+                SurvRate = survrate[-length(survrate)], SurvEst = survest[-length(survest)])))
+  if (finite == 1) 
+    return(as.data.frame(cbind(Failed = failed[-1], Censored = censored[-1], AliveStart = alivestart, 
+                               AtRisk = atrisk, FailRate = failrate, SurvRate = survrate, SurvEst = survest))) }
+```
+
+### Plot Survival Estimates from Life Table
+```{r}
+status <- rep(1, 311)
+b = c( 0 , 25 , 50 , 75 , 100 , 125 , 150 , 175 , 200 , 225 , 250 , 300 , 325 , 350, 375)
+(l = LifeTable(house$tom, status, breaks=b, finite=1))
+# !!! number of rows of result is not a multiple of vector length (arg 1)
+
+step = stepfun( c(25,50,75,100,125,150,175,200,225 , 250 , 300 , 325 , 350, 375) , l$SurvEst )
+plot( step , do.points=FALSE , ylab="Survival" , xlab="Months" , main="")
+```
+
+#### Plot KM & Actuarial method estimate for Comparison
+```{r}
+# ggplot!!! both plots
+# KM = survfit( Surv(tom) ~ 1 , conf.type="plain" , data=house ) 
+# ggsurvplot(KM, data=house) +
+#   labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market",
+#        caption = "Data collected from Coldwell Banker")
+
+plot(KM, ylab="Survival" , xlab="Days" , main="House Survival")
+plot( step , do.points=FALSE, add=TRUE, col = "red")
+```
+
+### Actuarial estimate of the hazard function
+```{r}
+HazardEst = l$FailRate/25
+hazstep = stepfun( c(0,25,50,75,100,125,150,175,200,225,250,300,325,350,375,400) , c(0,HazardEst,0) )
+plot( hazstep, do.points=FALSE, ylab="h(k)", xlab="k", main="", xlim=c(0,225) )
+```
+
+
+
+### Plot Weibull: Compare estimated hazard and survival functions to those obtained via the actuarial method
+```{r}
+(weib <- survreg( Surv(tom) ~ 1 , dist='weibull' , data=house))
+```
+
+#### We can add the estimated Weibull hazard to the graph of the piecewise constant actuarial hazard estimate:
+
+```{r}
+plot(hazstep,do.points=FALSE,ylab='h(k)',xlab='k',main="",xlim=c(0,225))
+curve(dweibull(x, shape=1/0.5511901, scale=exp(4.575712)) / (1-pweibull(x, shape=1/0.5511901, scale=exp(4.575712))), add=T, col='red')
+```
+
+```{r}
+g = ggplot(data=data.frame(x=c(-1, 0,25,50,75,100,125,150,175,200,225,250,300,325,350,375,400),
+                       y=c(0,HazardEst,0)) , aes(x=x,y=y)) +
+  geom_step() +
+  labs(x='k',y='h(k)')
+
+hweibull = function(x,shape,scale) { dweibull(x,shape=shape,scale=scale)/(1-pweibull(x,shape=shape,scale=scale)) }
+
+g + stat_function(fun=hweibull,args=list(shape=1/0.5511901, scale=exp(4.575712)) , col='red') 
+```
+
+
+## Hazard Functions
+
+### Exponential
+```{r}
+hexp = function(x,lambda) { dexp(x,lambda) / ( 1-pexp(x,lambda) ) }
+```
+
+```{r}
+curve( hexp( x , 1/exp(4.454011) ) , from=0 , to=max(house$tom) , ylim = c(0,0.02), col = "red")
+```
+
+
+### Weibull
+```{r}
+hweibull = function(x, a, b) { dweibull(x, a, b) / ( 1-pweibull(x, a, b) ) }
+```
+
+```{r}
+curve( hweibull( x , 1/0.5511901, exp(4.575712)) , from=0 , to=max(house$tom) , ylim = c(0,0.06), col = "red")
+```
+
+
+
+## Hazard Functions
+
+
+## Log-Rank Tests
+
+#### List and Sale Price Difference
+
+In order to determine if the differences in the estimated survival curves for this category are statistically significant, we conduct a log-rank test. The results are as follows:
+
+$H_0: S_1(t) = S_2(t) = S_3(t) \ \forall \ t$
+
+$H_A: S_1(t) \neq S_2(t) \neq S_3(t) \ \text{for some} \ t$
+
+
+```{r echo=FALSE, include=FALSE}
+
+survdiff(Surv(tom) ~ prdiff_np, data=house)
+
+```
+
+A log-rank test reveals a Mantel-Cox test statistic of $53.87$. This produces a p-value of nearly 0:
+
+```{r echo=FALSE}
+
+1 - pchisq(53.87, df=2)
+
+```
+
+Thus, we confidently reject the null hypothesis and conclude that the three survival curves for price difference (negative, zero, positive) differ for some `tom`.
+
+
+
+
+## AFT
+
+* `pdiff_np` = Factored variable of `1` = positive `pdiff` (soldat - listedat), `2` = negative `pdiff`, `3` = 0 `pdiff`
+
+```{r}
+m = survreg( Surv( tom ) ~ as.factor(prdiff_np), dist = 'weibull' , data=house )
+summary(m)
+```
+
+The results show that all price difference categories are significant except for category 3, which contain houses where list and sold prices are the same (most likely due to the significantly smaller sample size). In terms of direction, unpopular houses (houses that have higher listed price than the sold at price) stay longer on market compared to popular houses (houses that sold at a higher price than the list price).   
+
+```{r}
+names(house)
+m2 = survreg( Surv( tom ) ~ sqft + strata(as.factor(prdiff_np)), dist = 'weibull' , data=house )
+summary(m2)
+```
+
+Now, we look at the effect of square feet size of the house controlling for the different price difference categories (hot and cold market). Interestingly, it seems that a one square foot increase in house size does not have an effect on the time on market at the 4% level, controlling for the price difference categories. Another interesting aspect is that holding square feet constant, popular houses is more likely to stay in market longer than unpopular houses. 
+
+```{r}
+exp(8.951e-05) # sqft
+exp(-4.260e-01) # hot mkt
+exp(-7.314e-01) # cold mkt
+exp(-3.736e-01) # indifferent mkt
+```
+
+
+```{r}
+house2 <- house %>% mutate(bedcat = ifelse(beds >=3, 1, 0))
+# m3 <- survreg(Surv( tom ) ~ as.factor(prdiff_np) + bedcat, dist = 'weibull' , data=house2)
+# summary(m3)
+```
+
+
+## By price difference np
+
+```{r}
+m = survreg( Surv( tom ) ~ as.factor(prdiff_np), dist = 'weibull' , data=house )
+summary(m)
+```
+
+
+The mean survival is lowest (time on market is the shortest) for the hot market, consistent with the results we saw before with significance. 
+
+```{r}
+# Hot
+hot = function(x) 1-pweibull(x, 1/0.534, exp(4.2485))
+integrate(hot, 0,Inf)
+
+# Cold
+cold = function(x) 1-pweibull(x, 1/0.534, exp(4.2485+0.4589))
+integrate(cold, 0,Inf)
+
+# Indifferent
+indiff =function(x) 1-pweibull(x, 1/0.534, exp(4.2485+0.1177))
+integrate(indiff,0,Inf)
+
+
+### the Hazard Ratio
+(HR = 98.336315 / 62.146431)
+```
+
+```{r}
+survdiff( Surv( tom ) ~ as.factor(prdiff_np) + bedcat, data=house2)
+```
+
+
+
+AFT
+HR
+Analysis of coefficients and p-values
+Interpretation of multivariate 
+Exponential and weibull with stratification 
+
+
+```{r echo=FALSE}
+# mean(house$tom[house$prdiff_np==1])
+# mean(house$tom[house$prdiff_np==2])
+# mean(house$tom[house$prdiff_np==3])
+
+# Note: Price Difference = sold - listed
+(KMECDF = survfit(Surv(tom) ~ as.factor(prdiff_np), data=house ))
+ggsurvplot(KMECDF, data=house, conf.int=T, risk.table = TRUE, break.time.by = 30, legend.title="Type", ggtheme = theme_minimal(),
+           risk.table.y.text.col = T,  risk.table.y.text = FALSE,
+           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified")
+
+```
+
