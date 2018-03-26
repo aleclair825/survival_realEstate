@@ -358,9 +358,33 @@ mln2$loglik
 
 
 
+###3d. `null` vs. crime 
+
+Weibull
+
+```{r}
+
+crimeW1 <- survreg(Surv(tom) ~ ncrime, dist="weibull", data=house)
+
+crimeW1
+
+```
+
+With a p-value $p=.72$, we conclude that adding `ncrime` to a Weibull model of TOM does not provide significant improvement.
 
 
+Log-normal
 
+```{r}
+
+crimeW2 <- survreg(Surv(tom) ~ ncrime, dist="lognormal", data=house)
+
+crimeW2
+
+```
+
+
+Similarly, adding `ncrime` to the null log-normal model for TOM does not provide significant improvement. 
 
 
 
