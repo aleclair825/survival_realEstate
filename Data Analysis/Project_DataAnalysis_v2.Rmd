@@ -320,16 +320,13 @@ summary(mw2)
 mw1$loglik
 mw2$loglik
 
+## LRT
+ts = 2*(mw2$loglik[2] - mw1$loglik[2])
+1-pchisq(ts, df = 1) # 0.0037767448
 
-# NOT CHANGED
-# ## LRT
-# 2*(-1611.575 - -1615.016)
-# 1-pchisq(6.882, df = 1) # 0.008706808
-# 
-# 
-# ## AIC
-# 2*(3 - -1615.016) # 3236.032
-# 2*(4 - -1611.575) # 3231.15
+## AIC
+2*(2 - mw1$loglik[2]) # 3249.2669
+2*(3 - mw2$loglik[2]) # 3242.8787
 ```
 
 For below: Using lognormal, conclude that mln1 is better. LRT and AIC agree.
@@ -341,22 +338,158 @@ summary(mln1)
 mln2 = survreg( Surv(tom) ~ schdist , dist = "lognormal" , data = house )
 summary(mln2)
 
-mln1$loglik
-mln2$loglik
+
+## LRT
+ts = 2*(mln2$loglik[2] - mln1$loglik[2])
+1-pchisq(ts, df = 1) # 0.7695246 --> insignificant
 
 
-# NOT CHANGED
-# ## LRT
-# 2*(-1611.680 - -1611.878)
-# 1-pchisq(0.396, df = 1) # 0.5291623 --> insignificant
-# 
-# 
-# ## AIC
-# 2*(3 - -1611.878) # 3236.032 (weibull output) vs. 3229.756 (lognormal output)
-# 2*(4 - -1611.680) # 3231.15 (weibull output) vs. 3231.36 (lognormal output)
+## AIC
+2*(2 - mln1$loglik[2]) # 3249.2669 (weibull output) vs. 3256.6498 (lognormal output)
+2*(3 - mln2$loglik[2]) # 3242.8787 (weibull output) vs. 3258.564 (lognormal output)
 ```
 
+*Thus, we conclude that weibull with schdist variable is the most significant. *
 
+###3c (i). 
+
+```{r}
+# mw2.5 = survreg( Surv(tom) ~ listedatpr , dist = "weibull" , data = house )
+# summary(mw2.5) # not significant
+mw3 = survreg( Surv(tom) ~ schdist + listedatpr , dist = "weibull" , data = house )
+summary(mw3)
+mw4 = survreg( Surv(tom) ~ schdist + listedatdate , dist = "weibull" , data = house )
+summary(mw4)
+mw5 = survreg( Surv(tom) ~ schdist + listedatpr  + listedatdate, dist = "weibull" , data = house )
+summary(mw5)
+
+
+
+## LRT
+
+### `schdist` vs. `schdist + listedatpr` 
+ts = 2*(mw3$loglik[2] - mw2$loglik[2])
+1-pchisq(ts, df = 1) # 1; not significant
+
+### `schdist` vs. `schdist + listedatdate` 
+ts = 2*(mw4$loglik[2] - mw2$loglik[2])
+1-pchisq(ts, df = 1) # 0; significant
+
+### `schdist` vs. `schdist + listedatdate + listedatpr` 
+ts = 2*(mw5$loglik[2] - mw2$loglik[2])
+1-pchisq(ts, df = 2) # 1; not significant
+
+
+
+## AIC
+
+### `schdist` vs. `schdist + listedatpr` 
+2*(2 - mw3$loglik[2]) # 126698.21
+2*(3 - mw2$loglik[2]) # 3242.8787
+
+### `schdist` vs. `schdist + listedatdate` --> sig
+2*(2 - mw4$loglik[2]) # 2555.226
+2*(3 - mw2$loglik[2]) # 3242.8787
+
+### `schdist` vs. `schdist + listedatdate + listedatpr` 
+2*(2 - mw5$loglik[2]) # 126698.21
+2*(4 - mw2$loglik[2]) # 3244.8787
+
+### All agree with LRT
+```
+
+###3c (ii). 
+
+```{r}
+house$crimeCat = cut(house$ncrime, breaks = c(0,2000,4000,6000,8000,10000))
+house$crimeCat2 = cut(house$ncrime, breaks = c(0,250,2000,5000,10000))
+mw6 = survreg( Surv(tom) ~ schdist + listedatdate + crimeCat2, dist = "weibull" , data = house )
+summary(mw6)
+mw7 = survreg( Surv(tom) ~ schdist + listedatdate + crimeCat, dist = "weibull" , data = house )
+summary(mw7)
+mw8 = survreg( Surv(tom) ~ schdist + crimeCat, dist = "weibull" , data = house )
+summary(mw8)
+mw9 = survreg( Surv(tom) ~ schdist + crimeCat2, dist = "weibull" , data = house )
+summary(mw9)
+
+## `schdist` vs. `schdist + listedatdate + crimeCat2` 
+
+## LRT
+(ts = 2*(mw6$loglik[2] - mw2$loglik[2]))
+1-pchisq(ts, df = 4) # 0; significant
+
+## AIC
+2*(3 - mw2$loglik[2]) # 3242.8787
+2*(7 - mw6$loglik[2]) # 2563.7297
+
+
+## `schdist + listedatdate` vs. `schdist + listedatdate + crimeCat2` 
+
+## LRT
+(ts = 2*(mw6$loglik[2] - mw4$loglik[2]))
+1-pchisq(ts, df = 3) # 0.68312144; insignificant
+
+## AIC
+2*(4 - mw4$loglik[2]) # 2559.226
+2*(7 - mw6$loglik[2]) # 2563.7297
+
+
+## `schdist + listedatdate` vs. `schdist + listedatdate + crimeCat` 
+
+## LRT
+(ts = 2*(mw7$loglik[2] - mw2$loglik[2]))
+1-pchisq(ts, df = 5) # 0; significant
+
+## AIC
+2*(3 - mw2$loglik[2]) # 3242.8787
+2*(8 - mw7$loglik[2]) # 2610.9711
+
+
+## `schdist + listedatdate` vs. `schdist + listedatdate + crimeCat` 
+
+## LRT
+(ts = 2*(mw7$loglik[2] - mw4$loglik[2]))
+1-pchisq(ts, df = 4) # 1; insignificant
+
+## AIC
+2*(4 - mw4$loglik[2]) # 2559.226
+2*(8 - mw7$loglik[2]) # 2610.9711
+
+
+
+## `schdist + crimeCat` vs. `schdist + listedatdate + crimeCat` 
+
+## LRT
+(ts = 2*(mw7$loglik[2] - mw8$loglik[2]))
+1-pchisq(ts, df = 3) # 0; insignificant
+
+## AIC
+2*(7 - mw8$loglik[2]) # 3242.0398
+2*(8 - mw7$loglik[2]) # 2610.9711
+
+
+
+## `schdist + crimeCat2` vs. `schdist + listedatdate + crimeCat2` 
+
+## LRT
+(ts = 2*(mw6$loglik[2] - mw9$loglik[2]))
+1-pchisq(ts, df = 1) # 0; insignificant
+
+## AIC
+2*(6 - mw9$loglik[2]) # 3239.8698
+2*(7 - mw6$loglik[2]) # 2563.7297
+
+
+
+
+table(house$crimeCat2)
+```
+
+*Conclude that (schdist + listedatdate) is better than (schdist + listedatdate + crimeCat)*
+
+*Conclude that (schdist + crimeCat + listedatdate) is better than (schdist + crimeCat)*
+
+*Conclude that (schdist + crimeCat2 + listedatdate) is better than (schdist + crimeCat2)*
 
 ###3d. `null` vs. crime 
 
@@ -383,9 +516,14 @@ crimeW2
 
 ```
 
-
 Similarly, adding `ncrime` to the null log-normal model for TOM does not provide significant improvement. 
 
+#### Crime
+```{r}
+plot(density(house$ncrime))
+library(ggplot2)
+qplot(house$ncrime)
+```
 
 
 
