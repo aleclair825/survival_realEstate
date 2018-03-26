@@ -377,9 +377,9 @@ Log-normal
 
 ```{r}
 
-crimeW2 <- survreg(Surv(tom) ~ ncrime, dist="lognormal", data=house)
+crimeLN1 <- survreg(Surv(tom) ~ ncrime, dist="lognormal", data=house)
 
-crimeW2
+crimeLN1
 
 ```
 
@@ -387,7 +387,197 @@ crimeW2
 Similarly, adding `ncrime` to the null log-normal model for TOM does not provide significant improvement. 
 
 
+Divide crime into categories:
 
+```{r}
+
+house$ncrimeCat <- cut(house$ncrime, breaks=c(0, 2000, 4000, 6000, 8000, 10000))
+
+```
+
+Model with ncrimeCat
+
+```{r}
+
+crimeCatW <- survreg(Surv(tom) ~ ncrimeCat, dist="weibull", data=house)
+
+summary(crimeCatW)
+
+```
+
+
+We now see that overall, this model provides more information than the null model. However, the coeffients on the model don't make sense - why would time on market be less for neighborhoods with more crime? This is likely because of a smaller sample in each of the crime categories outside of the 2000-4000 category. 
+
+Comparing AICs for these models:
+
+Null:
+
+```{r}
+
+2*2 - 2*-1622.6
+
+```
+
+ncrimeCat:
+
+```{r}
+
+2*6 - 2*-1616.6
+
+```
+
+We see that the model with ncrimeCat is better. 
+
+What about lognormal?
+
+```{r}
+
+crimeCatLN <- survreg(Surv(tom) ~ ncrimeCat, dist="lognormal", data=house)
+
+summary(crimeCatLN)
+
+```
+
+
+Comparing AIC:
+
+Null:
+
+```{r}
+
+2*2 - 2*-1626.3
+
+```
+
+ncrimeCat:
+
+```{r}
+
+2*6 - 2*-1624.7
+
+```
+
+Log-normal is not improved by ncrimeCat.
+
+
+Combining ncrimeCat and schdist:
+
+```{r}
+
+mod1W <- survreg(Surv(tom) ~ ncrimeCat + schdist, dist="weibull", data=house)
+
+summary(mod1W)
+
+```
+
+
+Does the addition of schdist improve the model?
+
+LRT:
+
+2(L2 - L1)
+
+```{r}
+
+1-pchisq(2*(mod1W$loglik[2] - crimeCatW$loglik[2]), df=1)
+
+```
+
+
+But would the addition of ncrimeCat to a model with just schdist significantly improve the model?
+
+```{r}
+
+schdistW <- survreg(Surv(tom) ~ schdist, dist="weibull", data=house)
+
+summary(schdistW)
+
+schdistCrimeCatW <- survreg(Surv(tom) ~ schdist + ncrimeCat, dist="weibull", data=house)
+
+summary(schdistCrimeCatW)
+
+```
+
+
+LRT:
+
+```{r}
+
+1-pchisq(2*(schdistCrimeCatW$loglik[2] - schdistW$loglik[2]), df=4)
+
+```
+
+
+This addition is marginally significant.
+
+
+Maybe a different crimeCat variable with different splits would improve the model:
+
+```{r}
+
+house$ncrimeCat2 <- cut(house$ncrime, breaks=c(0, 2000, 5000, 10000))
+
+```
+
+
+Try some models with this:
+
+```{r}
+
+crimeCatW2 <- survreg(Surv(tom) ~ ncrimeCat2, dist="weibull", data=house)
+
+summary(crimeCatW2)
+
+```
+
+
+When compared to the null model, the ncrimeCat2 variable significantly improved the model $p=.0054$
+
+AIC:
+
+Null:
+
+```{r}
+
+2*2 - 2*-1622.6
+
+```
+
+ncrimeCat2:
+
+```{r}
+
+2*4 - 2*-1617.4
+
+```
+
+
+We still see improvement by adding ncrimeCat2
+
+
+
+
+Does the addition of ncrimeCat2 to the model with schdist improve the model?
+
+```{r}
+
+mod1weib <- survreg(Surv(tom) ~ schdist + ncrimeCat2, dist="weibull", data=house)
+
+summary(mod1weib)
+
+```
+
+
+Now, conduct LRT:
+
+```{r}
+
+1-pchisq(2*(mod1weib$loglik[2] - schdistW$loglik[2]), df=2)
+
+```
+
+
+This new split in ncrimeCat2 shows a significant improvement to the model with just schdist. Compared to the previous LRT comparing schdist and schdist + ncrimeCat2, this is statistically significant at $p=.0422$ while the other was marginally significant at $p=.06$.
 
 
 
