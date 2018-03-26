@@ -306,6 +306,55 @@ mln3$loglik
 ### not even worth
 ```
 
+### 3c. (null) vs (`schdist`) - Victor Suggested
+
+For below: Using weibull, conclude that mw2 is better. LRT and AIC agree.
+
+```{r}
+# Weibull - `schdist`
+mw1 = survreg( Surv(tom) ~ 1 , dist = "weibull" , data = house )
+summary(mw1)
+mw2 = survreg( Surv(tom) ~ schdist , dist = "weibull" , data = house )
+summary(mw2)
+
+mw1$loglik
+mw2$loglik
+
+
+# NOT CHANGED
+# ## LRT
+# 2*(-1611.575 - -1615.016)
+# 1-pchisq(6.882, df = 1) # 0.008706808
+# 
+# 
+# ## AIC
+# 2*(3 - -1615.016) # 3236.032
+# 2*(4 - -1611.575) # 3231.15
+```
+
+For below: Using lognormal, conclude that mln1 is better. LRT and AIC agree.
+
+```{r}
+# Lognormal - `schdist`
+mln1 = survreg( Surv(tom) ~ 1 , dist = "lognormal" , data = house )
+summary(mln1)
+mln2 = survreg( Surv(tom) ~ schdist , dist = "lognormal" , data = house )
+summary(mln2)
+
+mln1$loglik
+mln2$loglik
+
+
+# NOT CHANGED
+# ## LRT
+# 2*(-1611.680 - -1611.878)
+# 1-pchisq(0.396, df = 1) # 0.5291623 --> insignificant
+# 
+# 
+# ## AIC
+# 2*(3 - -1611.878) # 3236.032 (weibull output) vs. 3229.756 (lognormal output)
+# 2*(4 - -1611.680) # 3231.15 (weibull output) vs. 3231.36 (lognormal output)
+```
 
 
 
