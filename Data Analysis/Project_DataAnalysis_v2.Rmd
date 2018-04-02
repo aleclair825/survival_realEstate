@@ -1085,3 +1085,67 @@ Log-rank test for addition of ncrimeCat2:
 
 ncrimeCat2 does significantly improve on the model with listedatprCat.
 
+
+
+How do houses in individual neighborhoods sell?
+
+```{r}
+
+summary(survreg(Surv(tom) ~ neighb, dist="weibull", data=house))
+
+```
+
+
+
+
+
+Neighborhoods with significant results:
+
+- Bancroft, Bryant, Highland, West Seventh, Windom
+
+
+They all sell faster than the general house. 
+
+
+
+
+How about adding schdist?
+
+```{r}
+
+summary(survreg(Surv(tom) ~ neighb + schdist, dist="weibull", data=house))
+
+
+```
+
+
+Neighborhoods with significant results:
+
+- Bancroft, Highland, Marshall Terrace, Northrop, Ventura Village, West Seventh, Windom
+
+All neighborhoods listed above sell faster than the average house in the presence of schdist.
+
+School distance appears to increase tom by a multiplicative factor of $e^{.2408}$ in the presence of neighborhood. This result is statistically significant. 
+
+
+But does schdist significantly improve the overall performance of the model?
+
+LRT:
+
+```{r}
+
+1 - pchisq(2*(-1567.9 - -1569.9), df=1)
+
+```
+
+Yes, schdist significantly improves the performance of our model for tom using neighborhood. This might be a useful combination of covariates.
+
+
+
+
+
+
+
+
+
+
