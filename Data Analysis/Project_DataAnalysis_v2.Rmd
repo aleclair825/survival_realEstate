@@ -146,6 +146,63 @@ summary(mw) # schdist sign
 summary(mln) # schdist insign (Victor!!!)
 ```
 
+
+
+### WITH VICTOR 4/5/2018 ###
+```{r}
+me = survreg( Surv(tom) ~ schdist , dist = "exponential" , data = house )
+mw = survreg( Surv(tom) ~ schdist , dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ schdist , dist = "lognormal" , data = house )
+
+coxph( Surv(tom) ~ schdist , data = house )
+
+summary(me)
+summary(mw) # schdist sign
+summary(mln) # schdist insign (Victor!!!)
+```
+
+```{r}
+#max(house$prdiff)
+#mean(house$prdiff)
+mw = survreg( Surv(tom) ~ ncrime, dist = "weibull" , data = house )
+summary(mw)
+
+
+mw = survreg( Surv(tom) ~ crimeCat2, dist = "weibull" , data = house )
+summary(mw)
+
+classhouse$listedatpr
+mw = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "weibull" , data = house )
+summary(mw)
+
+mw = coxph( Surv(tom) ~ crimeCat2, data = house )
+summary(mw)
+
+mw = survreg( Surv(tom) ~ listedatdate, dist = "weibull" , data = house )
+summary(mw)
+table(house$listedatdate)
+
+#library(lubridate)
+#house$month = month(house$listedatdate)
+#table(house$month)
+#house$winter = house$month==11|house$month==12|house$month==1|house$month==2
+#mw = survreg( Surv(tom) ~ winter, dist = "weibull" , data = house )
+#summary(mw)
+
+#table(house$crimeCat2)
+
+#house$big = house$sqft>2500
+#table(house$big)
+#mw = survreg( Surv(tom) ~ big, dist = "weibull" , data = house )
+#summary(mw)
+
+# Crime and schdist
+```
+### END: WITH VICTOR 4/5/2018 ###
+
+
+
+
 *Hypotheses*
 
 1.
