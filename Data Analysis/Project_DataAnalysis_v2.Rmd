@@ -1435,10 +1435,100 @@ Yes, schdist significantly improves the performance of our model for tom using n
 
 
 
+##Cox PH model by city
+
+
+```{r}
+
+coxph1 <- coxph(Surv(tom) ~ city, data=house)
+
+summary(coxph1)
+
+
+newdata <- data.frame(city=c("Minneapolis", "Saint Paul"))
+
+plot(survfit(coxph1, newdata=newdata), col=1:2)
+```
+
+
+Is proportional hazards a good assumption here? Let's plot the c-log-log and find out.
+
+```{r}
+
+km1 <- survfit(Surv(tom) ~ city, data=house)
+
+plot(km1, col=1:2, fun="cloglog")
+
+```
+
+
+Observing the gap between the c-log-log curves for Kaplan-Meier, we notice that the gap is not constant. This indicates that the coefficient $b$, which determines hazard ratio, is not constant as time changes between the two cities. Thus, the proportional hazards assumption is not reasonable when comparing time on market for Minneapolis and St. Paul. 
+
+We can check the proportional hazards assumption another way, using Schoenfeld residuals.
+
+```{r}
+
+plot(cox.zph(coxph1))
+
+cox.zph(coxph1)
+
+```
+
+
+While we observe that the slope is generally 0 for the smoother, which would indicate that a proportional hazards assumption is good, we notice that the Schoenfeld residuals estimating $b$ for city are not randomly scattered about the plot, they show a distinct separation. This type of pattern would still indicate that proportional hazards is a poor assumption in this case. 
+
+
+Given this information, we conclude that there is not a difference in the hazard of sale between houses located in Minneapolis and houses located in St. Paul. 
 
 
 
+Maybe houses that are larger stay on the market longer? 
+
+```{r}
+
+house$big = house$sqft>2500
+mw = survreg( Surv(tom) ~ big, dist = "weibull" , data = house )
+summary(mw)
+
+```
 
 
+It does not appear to be significant. 
 
 
+Let's try a Cox PH model and see if that impacts things:
+
+```{r}
+
+coxph2 <- coxph(Surv(tom) ~ big, data=house)
+
+summary(coxph2)
+
+```
+
+Not significant. Is a proportional hazards assumption even approproate in this case?
+
+```{r}
+
+km2 <- survfit(Surv(tom) ~ big, data=house)
+
+plot(km2, fun="cloglog", col=1:2)
+
+```
+
+No. Proportional hazards is not an appropriate assumption at all when considering the c-log-log plot.
+
+
+How about Schoenfeld residuals?
+
+```{r}
+
+plot(cox.zph(coxph2))
+
+
+cox.zph(coxph2)
+
+```
+
+
+The small p-value and the pattern of low residuals indicates that proportional hazards is not a reasonable assumption for larger houses either. 
