@@ -1482,3 +1482,9 @@ cox.zph(coxph2)
 
 
 The small p-value and the pattern of low residuals indicates that proportional hazards is not a reasonable assumption for larger houses either. 
+
+
+
+
+
+
