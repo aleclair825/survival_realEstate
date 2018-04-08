@@ -1,7 +1,7 @@
 ---
 title: "| Survival Analysis    \n| Data Analysis Version 2\n"
 author: "April Leclair"
-date: "2018-03-24"
+date: "2018-04-08"
 knit: (function(inputFile, encoding) {
   rmarkdown::render(inputFile, encoding = encoding, output_dir = "Data Analysis - HTML Output") })
 output:
@@ -131,77 +131,129 @@ Weibull is the best with the lowest AIC among the three models: exponential, wei
 ```
 
 
+## 2. Univariate Models
 
+### 2a. School Distance 
 
-
-
-## 2. Full Model 
 ```{r}
-me = survreg( Surv(tom) ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff , dist = "exponential" , data = house )
-mw = survreg( Surv(tom) ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff , dist = "weibull" , data = house )
-mln = survreg( Surv(tom) ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff , dist = "lognormal" , data = house )
-
-summary(me)
-summary(mw) # schdist sign
-summary(mln) # schdist insign (Victor!!!)
-```
-
-
-
-### WITH VICTOR 4/5/2018 ###
-```{r}
-me = survreg( Surv(tom) ~ schdist , dist = "exponential" , data = house )
 mw = survreg( Surv(tom) ~ schdist , dist = "weibull" , data = house )
 mln = survreg( Surv(tom) ~ schdist , dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ schdist , data = house )
 
-coxph( Surv(tom) ~ schdist , data = house )
+summary(mw) # the sign of schdist makes sense (positive) and it is significant
+summary(mln) # the sign of schdist is negative and it is NOT significant
+mcox # sign agrees with weibull and it is significant
+```
+
+* Weibull: the sign of schdist makes sense (positive) and it is significant
+* Log Normal: the sign of schdist is negative and it is NOT significant; the time on market is longer the greater the school distance from the property
+* Cox PH: sign agrees with weibull and it is significant; The hazard decreases by 0.701 times for each increase in mile.
+
+
+### 2b. Crime Continuous
+
+```{r}
+mw = survreg( Surv(tom) ~ ncrime, dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ ncrime, dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ ncrime , data = house )
+
+summary(mw)
+summary(mln)
+mcox
+```
+
+* Not significant for any of the model
+
+
+### 2c. Crime Categorical
+
+```{r}
+house$crimeCat2 = cut(house$ncrime, breaks = c(0,250,2000,5000,10000))
+
+mw = survreg( Surv(tom) ~ crimeCat2, dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ crimeCat2, dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ crimeCat2, data = house )
+
+summary(mw)
+summary(mln)
+mcox
+```
+
+* Weibull
+
+The second group, (250, 2000], has boarderline significance at 10% level, and the third group, (2000, 5000], is significant at 0.05%. Compared to the first group, (0,250], the (250, 2000] group is more likely to stay on market by exp(0.14) (!!!) times, and the next group, (2000, 5000] is likely to stay on market by approximately double the duration of the (250, 2000] group at exp(0.28). The fact that the houses in the neighborhoods with less crime ((250, 2000]) would sell faster (time on market is shorter) than those in the neighborhoods with more crime ((2000, 5000]) makes sense since people generally prefer neighborhoods with less crime. However, the highest crime category ((5000, 10000]) has almost no difference compared to the lowest crime category, possibly due to more affordability. In other words, neighborhoods with the highest crime rate may also tend to be more affordable. 
+
+* Log Normal
+
+Not significant again.
+
+* Cox PH
+
+Cox PH agrees with Weibull. The hazard ratio for the (250, 2000] group is 0.81 times that of the (0,250] group. The hazard ratio for the (2000, 5000] group is 0.64 times that of the (0,250] group. Finally, the hazard ratio for the (5000, 10000] group is 0.94 times that of the (0,250] group. 
+
+
+### 2d. Listed At Date
+
+```{r}
+mw = survreg( Surv(tom) ~ listedatdate, dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ listedatdate, dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ listedatdate, data = house )
+
+summary(mw)
+summary(mln)
+mcox
+```
+
+* Weibull and Log Normal
+
+Both Weibull and Log normal has a negative coefficient with extreme significance, which means that time on market decreases by each increase in the listed date. We may be led to say that as time progresses, the real estate market is getting hot (houses are selling faster; it's a seller's market), but we should be careful as our data contains only those houses that are sold (!!!). Thus, the properties with listed date that are more recent must have shorter time on market.
+
+* Cox PH 
+
+The HR gets multiplied by 1.14 each time the listed at date increases by 1. In other words, the risk of being sold gets larger the later the listed date. The p-value is significant.
+
+
+## 3. Full Model
+
+### 3a. Crime Category 2 + Listed at Price + School Distance
+
+```{r}
+mw = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist , data = house )
+
+summary(mw)
+summary(mln)
+mcox
+```
+
+* General
+
+The model now has an interaction of the listed price variable which we hypothesized, should be a control for the crime variable. In the earlier analysis, we saw that the highest crime group did not show a difference in time on market compared to the lowest crime group, and we reasoned that one of the possible sources may be price. Holding all other variables equal, the highest crime variable is now more positive in coefficient despite the still insignificant p-value. Also, we see that all other variables are too significant and have expected signs. 
+
+* Weibull
+
+Similar to previous univariate analysis with crime category variable, the second group is more likely to stay on market longer compared to the first group, although the third group does not quite double in its market duration compared to the second group as it did in the univariate analysis. However, the second and third group both are now significant at the 5% level, and the highest crime group is still insignificant although the p-value decreased by a factor of 3. The listed price interaction variable is significant with positive coefficient; in other words, homes with the higher listed price tend to stay on market longer. The school distance is also positive with a significant p-value, meaning that the homes farther away from schools tend to stay on market longer.
+
+* Log Normal 
+
+Most are similar to Weibull except more variables are insignificant. The school distance variable is still largely insignificant. 
+
+* Cox PH
+
+Outputs agree with Weibull. All are significant except for the highest crime category.
+
+
+### 3b. Full Model without Interaction Term (Original)
+```{r}
+me = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + listedatpr , dist = "exponential" , data = house )
+mw = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + listedatpr , dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + listedatpr , dist = "lognormal" , data = house )
 
 summary(me)
 summary(mw) # schdist sign
 summary(mln) # schdist insign (Victor!!!)
 ```
-
-```{r}
-#max(house$prdiff)
-#mean(house$prdiff)
-mw = survreg( Surv(tom) ~ ncrime, dist = "weibull" , data = house )
-summary(mw)
-
-
-mw = survreg( Surv(tom) ~ crimeCat2, dist = "weibull" , data = house )
-summary(mw)
-
-classhouse$listedatpr
-mw = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "weibull" , data = house )
-summary(mw)
-
-mw = coxph( Surv(tom) ~ crimeCat2, data = house )
-summary(mw)
-
-mw = survreg( Surv(tom) ~ listedatdate, dist = "weibull" , data = house )
-summary(mw)
-table(house$listedatdate)
-
-#library(lubridate)
-#house$month = month(house$listedatdate)
-#table(house$month)
-#house$winter = house$month==11|house$month==12|house$month==1|house$month==2
-#mw = survreg( Surv(tom) ~ winter, dist = "weibull" , data = house )
-#summary(mw)
-
-#table(house$crimeCat2)
-
-#house$big = house$sqft>2500
-#table(house$big)
-#mw = survreg( Surv(tom) ~ big, dist = "weibull" , data = house )
-#summary(mw)
-
-# Crime and schdist
-```
-### END: WITH VICTOR 4/5/2018 ###
-
-
-
 
 *Hypotheses*
 
@@ -216,7 +268,7 @@ table(house$listedatdate)
 * Ha: lognorm: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
 
 
-### 2a. Cox-Snell Residuals
+### 3b(i). Cox-Snell Residuals
 
 Log-normal looks the best!
 
@@ -236,7 +288,7 @@ CoxSnell( CS_w , house$status )
 CoxSnell( CS_ln , house$status )
 ```
 
-### 2b. LRT
+### 3b(ii). LRT
 
 There is enough evidence to reject the Exponential in favor of the Weibull. That is, the extra parameter in the Weibull is providing enough improvement in order to be worthwhile. 
 
@@ -249,7 +301,7 @@ mw$loglik
 ```
 
 
-### 2c. AIC
+### 3b(iii). AIC
 
 Log normal is the best with a marginal difference with weibull. 
 
@@ -265,9 +317,9 @@ mln$loglik
 
 
 
-## 3. Covariate Comparisons 
+## 4. Covariate Comparisons 
 
-### 3a. (prdiff) vs (`prdiff` + `schdist`)
+### 4a. (prdiff) vs (`prdiff` + `schdist`)
 
 For below: Using weibull, conclude that mw2 is better. LRT and AIC agree.
 
@@ -316,7 +368,7 @@ mln2$loglik
 ```
 
 
-### 3b. (`prdiff` + `schdist`) vs. (`prdiff` + `schdist` + `sqft`)
+### 4b. (`prdiff` + `schdist`) vs. (`prdiff` + `schdist` + `sqft`)
 
 For below: Using weibull, conclude that mw2 is better. LRT and AIC agree.
 
@@ -363,7 +415,7 @@ mln3$loglik
 ### not even worth
 ```
 
-### 3c. (null) vs (`schdist`) - Victor Suggested
+### 4c. (null) vs (`schdist`) - Victor Suggested
 
 For below: Using weibull, conclude that mw2 is better. LRT and AIC agree.
 
@@ -408,7 +460,7 @@ ts = 2*(mln2$loglik[2] - mln1$loglik[2])
 
 *Thus, we conclude that weibull with schdist variable is the most significant. *
 
-###3c (i). 
+### 4c(i). 
 
 ```{r}
 # mw2.5 = survreg( Surv(tom) ~ listedatpr , dist = "weibull" , data = house )
@@ -455,7 +507,7 @@ ts = 2*(mw5$loglik[2] - mw2$loglik[2])
 ### All agree with LRT
 ```
 
-###3c (ii). 
+### 4c(ii). 
 
 ```{r}
 house$crimeCat = cut(house$ncrime, breaks = c(0,2000,4000,6000,8000,10000))
@@ -564,9 +616,7 @@ table(house$crimeCat2)
 *Conclude that (schdist + crimeCat2 + listedatdate) is better than (schdist + crimeCat2)*
 
 
-
-
-###3d. `null` vs. crime 
+### 4d. `null` vs. crime 
 
 Weibull
 
