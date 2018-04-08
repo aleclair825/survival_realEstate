@@ -1432,5 +1432,53 @@ Given this information, we conclude that there is not a difference in the hazard
 
 
 
+Maybe houses that are larger stay on the market longer? 
+
+```{r}
+
+house$big = house$sqft>2500
+mw = survreg( Surv(tom) ~ big, dist = "weibull" , data = house )
+summary(mw)
+
+```
 
 
+It does not appear to be significant. 
+
+
+Let's try a Cox PH model and see if that impacts things:
+
+```{r}
+
+coxph2 <- coxph(Surv(tom) ~ big, data=house)
+
+summary(coxph2)
+
+```
+
+Not significant. Is a proportional hazards assumption even approproate in this case?
+
+```{r}
+
+km2 <- survfit(Surv(tom) ~ big, data=house)
+
+plot(km2, fun="cloglog", col=1:2)
+
+```
+
+No. Proportional hazards is not an appropriate assumption at all when considering the c-log-log plot.
+
+
+How about Schoenfeld residuals?
+
+```{r}
+
+plot(cox.zph(coxph2))
+
+
+cox.zph(coxph2)
+
+```
+
+
+The small p-value and the pattern of low residuals indicates that proportional hazards is not a reasonable assumption for larger houses either. 
