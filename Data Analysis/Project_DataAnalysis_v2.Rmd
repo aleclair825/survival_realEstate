@@ -1256,3 +1256,139 @@ ggsurvplot(KMECDF, data=house, conf.int=T, risk.table = TRUE, break.time.by = 30
 
 ```
 
+
+##Looking at categorical variable for listedatpr
+
+```{r}
+
+ggplot(house, aes(x=listedatpr)) + 
+  geom_density()
+
+
+```
+
+
+Divide into 3 bins of equal size:
+
+
+```{r}
+
+quantile(house$listedatpr, probs=c(0, .33, .67, 1))
+
+
+house$listedatprCat <- cut(house$listedatpr, breaks=c(0, 179900, 274970, 1300000))
+
+```
+
+
+Is listedatpr significant in TOM?
+
+```{r}
+
+summary(survreg(Surv(tom) ~ listedatpr, dist="weibull", data=house))
+
+```
+
+Listedatpr does not improve the null model AT ALL.
+
+Let's try the categorical listedatprCat:
+
+```{r}
+
+summary(survreg(Surv(tom) ~ listedatprCat, dist="weibull", data=house))
+
+
+```
+
+
+This model is clearly significant and clearly different from the Exponential model according to the Wald test. 
+
+Why are categorical variables significant but not continuous?
+
+
+Let's try listedatprCat with other significant variables:
+
+```{r}
+
+
+summary(survreg(Surv(tom) ~ listedatprCat + ncrimeCat2, dist="weibull", data=house))
+
+```
+
+This mode is significantly different than the null.
+
+Log-rank test for addition of ncrimeCat2:
+
+```{r}
+
+1-pchisq(2*(-1611.9 - -1616.1), df = 2)
+
+```
+
+
+ncrimeCat2 does significantly improve on the model with listedatprCat.
+
+
+
+How do houses in individual neighborhoods sell?
+
+```{r}
+
+summary(survreg(Surv(tom) ~ neighb, dist="weibull", data=house))
+
+```
+
+
+
+
+
+Neighborhoods with significant results:
+
+- Bancroft, Bryant, Highland, West Seventh, Windom
+
+
+They all sell faster than the general house. 
+
+
+
+
+How about adding schdist?
+
+```{r}
+
+summary(survreg(Surv(tom) ~ neighb + schdist, dist="weibull", data=house))
+
+
+```
+
+
+Neighborhoods with significant results:
+
+- Bancroft, Highland, Marshall Terrace, Northrop, Ventura Village, West Seventh, Windom
+
+All neighborhoods listed above sell faster than the average house in the presence of schdist.
+
+School distance appears to increase tom by a multiplicative factor of $e^{.2408}$ in the presence of neighborhood. This result is statistically significant. 
+
+
+But does schdist significantly improve the overall performance of the model?
+
+LRT:
+
+```{r}
+
+1 - pchisq(2*(-1567.9 - -1569.9), df=1)
+
+```
+
+Yes, schdist significantly improves the performance of our model for tom using neighborhood. This might be a useful combination of covariates.
+
+
+
+
+
+
+
+
+
+
