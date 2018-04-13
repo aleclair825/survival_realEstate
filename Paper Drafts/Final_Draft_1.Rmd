@@ -35,7 +35,7 @@ The real estate market in the Twin Cities (Minneapolis and St. Paul, MN, USA), a
 
 \textbf{Price}
 
-One of the most obvious factors that may influence TOM for any house is price. A high price may scare potential buyers away, while a low price might invite skepticism or a long bidding war. The "right" pricing decision is a difficult one to make for sellers and agents, but reaching an equilibrium between buyer and seller satisfaction may be the best way to minimize TOM. Cheng, Lin, and Liu (2008) developed a closed-form formula to uncover the theoretical relationship between price and TOM. They aim to describe the marginal benefit of keeping a house on the market longer.
+One of the most obvious factors that may influence TOM for any house is price. A high price may scare potential buyers away, while a low price might invite skepticism or a long bidding war. Moreover, a high price limits the number of potential buyers even if the price appropriately reflects the quality of the property. The "right" pricing decision is a difficult one to make for sellers and agents, but reaching an equilibrium between buyer and seller satisfaction may be the best way to minimize TOM. Cheng, Lin, and Liu (2008) developed a closed-form formula to uncover the theoretical relationship between price and TOM. They aim to describe the marginal benefit of keeping a house on the market longer.
 
 The authors used house sales data from Fannie Mae and Freddie Mac, U.S. federal mortgage agencies, and identified a nonlinear positive relationship between price and TOM. They approached this analysis by assuming that a buyer and seller arrive at an agreed upon price following the Poisson processes at rate $\lambda$. While utilizing methods from Bond et al. (2007), they investiaged some assumptions about the shape of TOM data, including normal, chi-square, Weibull, and exponential distributions. Like Bond et al. (2007), Cheng, Lin, and Liu (2008) found that the exponential distribution best fit the TOM data. 
 
@@ -118,24 +118,35 @@ summary(mln) # the sign of schdist is negative and it is NOT significant
 mcox # sign agrees with weibull and it is significant
 ```
 
-* Weibull: the sign of schdist makes sense (positive) and it is significant
-* Log Normal: the sign of schdist is negative and it is NOT significant; the time on market is longer the greater the school distance from the property
-* Cox PH: sign agrees with weibull and it is significant; The hazard decreases by 0.701 times for each increase in mile.
+The Weibull model indicates that the properties that are farther from schools have longer TOM than those closer to schools, with a significant p-value. However, the Log Normal model yields the opposite result with an insignificant p-value. This result may be due to the inherent differences in the two models, rather than the school distance variable being insignificant. In fact, the Cox PH model agrees with the Weibull model in the variable's direction and p-value. According to the Cox PH model, the hazard ratio of school distance is 0.701, which means that the risk of being sold decreases by 70% for every one-mile increase in school distance. In other words, properties farther away from schools take longer to sell.
 
+```{r include = FALSE}
+# !!! Why does log normal look better?
+# Create Cox-Snell residuals
+CS_w = -log( 1 - pweibull(house$tom, 1/0.537, exp(4.443 + 0.246*house$schdist) ) )
+CS_ln = -log( 1 - plnorm(house$tom, 4.3010 + -0.0313*house$schdist, 0.623) ) 
 
-#### Crime Continuous
+# Make appropriate graph using CoxSnell function
+# Creates Cox-Snell Plot:
+CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
+  kmcs=survfit(Surv(jitter(cs,amount=(max(cs)-min(cs))/1000),status)~1)$surv
+  plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim)
+  abline(0,1,col='red') }
 
-```{r}
-mw = survreg( Surv(tom) ~ ncrime, dist = "weibull" , data = house )
-mln = survreg( Surv(tom) ~ ncrime, dist = "lognormal" , data = house )
-mcox = coxph( Surv(tom) ~ ncrime , data = house )
-
-summary(mw)
-summary(mln)
-mcox
+house$status = rep(1, nrow(house))
+CoxSnell( CS_w , house$status )
+CoxSnell( CS_ln , house$status )
 ```
 
-* Not significant for any of the model
+```{r include = FALSE}
+2*(3-mw$loglik[2]) # mw
+2*(3-mln$loglik[2]) # mln
+
+# The AIC for the Weibull model is 3242.878, and that for the Log Normal model is 3258.564. Thus, we conclude that the Weibull model fits better than the Log Normal model. 
+```
+
+The Log Normal model seems to fit better than the Weibull model according to the Cox Snell residual plots, but AIC indicates that the Weibull model is a better fit.
+
 
 
 #### Crime Categorical
@@ -152,20 +163,42 @@ summary(mln)
 mcox
 ```
 
-* Weibull
+Crime as a continuous variable was insignificant for all three models. Thus, we analyze the effect of crime as a categorical variable. Our categorical crime variable has four groups: crime count ranging from 0 to 250, 250 to 2000, 2000 to 5000, and 5000 to 10000.  
 
-The second group, (250, 2000], has boarderline significance at 10% level, and the third group, (2000, 5000], is significant at 0.05%. Compared to the first group, (0,250], the (250, 2000] group is more likely to stay on market by exp(0.14) (!!!) times, and the next group, (2000, 5000] is likely to stay on market by approximately double the duration of the (250, 2000] group at exp(0.28). The fact that the houses in the neighborhoods with less crime ((250, 2000]) would sell faster (time on market is shorter) than those in the neighborhoods with more crime ((2000, 5000]) makes sense since people generally prefer neighborhoods with less crime. However, the highest crime category ((5000, 10000]) has almost no difference compared to the lowest crime category, possibly due to more affordability. In other words, neighborhoods with the highest crime rate may also tend to be more affordable. 
+In the Weibull model, the 250-2000 crime group has TOM that is 14% longer than the 0-250 crime group, and the next group, the 2000-5000 crime group, has more than double the TOM of the previous group at 33%. While the p-value for 250-2000 crime group is at boarderline significance, that for the 2000-5000 crime group is significant at the 5% level. The fact that the houses in the neighborhoods with less crime (250-2000) would sell faster than those in the neighborhoods with more crime (2000-5000) makes sense since people generally prefer neighborhoods with less crime. 
 
-* Log Normal
+On the other hand, the highest crime group (5000-10000) shows almost no difference in TOM compared to the lowest crime group, and its p-value is insignificant. This result is possibly due to the fact that properties located in high-crime neighborhoods tend to be more affordable. 
 
-Not significant again.
-
-* Cox PH
-
-Cox PH agrees with Weibull. The hazard ratio for the (250, 2000] group is 0.81 times that of the (0,250] group. The hazard ratio for the (2000, 5000] group is 0.64 times that of the (0,250] group. Finally, the hazard ratio for the (5000, 10000] group is 0.94 times that of the (0,250] group. 
+The Cox PH model agrees with the Weibull model. The hazard ratio for the 250-2000 crime group is approximately 19% less than that of the 0-250 crime group, and that for the (2000, 5000] group is approximately 36% less than that of the 0-250 crime group. Finally, the hazard ratio for the 5000-10000 crime group is only about 6% lower than the 0-250 crime group, again with insignificant p-value. The Log Normal model too is insignificant. 
 
 
-#### Listed At Date
+```{r include = FALSE}
+# !!! how do I include the crime variables?
+# Create Cox-Snell residuals
+# CS_w = -log( 1 - pweibull(house$tom, 1/0.533, exp(4.4549 + 0.246*house$"crimeCat2(250,2e+03]" + 0.1379*) ) )
+CS_ln = -log( 1 - plnorm(house$tom, 4.3010 + -0.0313*house$schdist, 0.623) ) 
+
+# Make appropriate graph using CoxSnell function
+# Creates Cox-Snell Plot:
+CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
+  kmcs=survfit(Surv(jitter(cs,amount=(max(cs)-min(cs))/1000),status)~1)$surv
+  plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim)
+  abline(0,1,col='red') }
+
+house$status = rep(1, nrow(house))
+CoxSnell( CS_w , house$status )
+CoxSnell( CS_ln , house$status )
+```
+
+```{r include = FALSE}
+2*(3-mw$loglik[2]) # mw
+2*(3-mln$loglik[2]) # mln
+```
+
+Again, the AIC indicates that the Weibull model is a better fit than the Log Normal model.
+!!! Is AIC also a formal test?
+
+#### Listed Date
 
 ```{r}
 mw = survreg( Surv(tom) ~ listedatdate, dist = "weibull" , data = house )
@@ -177,13 +210,40 @@ summary(mln)
 mcox
 ```
 
-* Weibull and Log Normal
+Both Weibull and Log normal has a negative coefficient with extreme significance, which means that TOM decreases for every increase in the listed date. We may be led to say that as time progresses, houses are selling faster (ie. it's a seller's market), but we should be careful as our data contains only those houses that are sold (!!!). Thus, the properties with listed date that are more recent must have shorter time on market. The Cox PH model agrees, and the AIC outputs indicates that the Weibull model is a better fit.
 
-Both Weibull and Log normal has a negative coefficient with extreme significance, which means that time on market decreases by each increase in the listed date. We may be led to say that as time progresses, the real estate market is getting hot (houses are selling faster; it's a seller's market), but we should be careful as our data contains only those houses that are sold (!!!). Thus, the properties with listed date that are more recent must have shorter time on market.
+```{r include = FALSE}
+2*(3-mw$loglik[2]) # mw
+2*(3-mln$loglik[2]) # mln
 
-* Cox PH 
+# Again, the AIC indicates that the Weibull model is a better fit than the Log Normal model.
+```
 
-The HR gets multiplied by 1.14 each time the listed at date increases by 1. In other words, the risk of being sold gets larger the later the listed date. The p-value is significant.
+#### Listed Price
+
+```{r}
+mw = survreg( Surv(tom) ~ log(listedatpr), dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ log(listedatpr), dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ log(listedatpr), data = house )
+
+summary(mw)
+summary(mln)
+mcox
+```
+```{r include = FALSE}
+exp(0.120) #w
+exp(0.189) #ln
+```
+
+Properties with higher listed price has a longer TOM at the 5% level significance for both Weibull and Log Normal models. The effect is stronger with the Log Normal model at 20% longer TOM with a much higher significance (4.20e-03) compared to 12% longer TOM for the Weibull model with a slightly lower significance (3.48e-02). The results are consistent with the logic that a more expensive homes will take longer to sell. Despite the greater significance with a stronger effect, the AIC still yields a stronger evidence in support of the Weibull model over the Log Normal model by a slight margin. (!!! too detailed?)
+
+```{r include = FALSE}
+2*(3-mw$loglik[2]) # mw
+2*(3-mln$loglik[2]) # mln
+
+# Again, the AIC indicates that the Weibull model is a better fit than the Log Normal model.
+```
+
 
 ### 3.3 Multivariate Models
 
