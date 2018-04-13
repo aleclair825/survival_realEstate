@@ -108,7 +108,7 @@ ggsurvplot(KM, data=house) +
 
 #### School Distance 
 
-```{r echo=FALSE, include=FALSE}
+```{r include=FALSE}
 mw = survreg( Surv(tom) ~ schdist , dist = "weibull" , data = house )
 mln = survreg( Surv(tom) ~ schdist , dist = "lognormal" , data = house )
 mcox = coxph( Surv(tom) ~ schdist , data = house )
@@ -133,17 +133,10 @@ CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
   plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim)
   abline(0,1,col='red') }
 
-<<<<<<< HEAD
 house$status = rep(1, nrow(house))
 CoxSnell( CS_w , house$status )
-CoxSnell( CS_ln , house$status )
+CoxSnell( CS_ln , house$status ,xlim=c(-7,5))
 ```
-=======
-```{r echo=FALSE, include=FALSE}
-mw = survreg( Surv(tom) ~ ncrime, dist = "weibull" , data = house )
-mln = survreg( Surv(tom) ~ ncrime, dist = "lognormal" , data = house )
-mcox = coxph( Surv(tom) ~ ncrime , data = house )
->>>>>>> 45e9d735ff24ef5d9554b4f73258931158cefd41
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
@@ -158,7 +151,7 @@ The Log Normal model seems to fit better than the Weibull model according to the
 
 #### Crime Categorical
 
-```{r echo=FALSE, include=FALSE}
+```{r include=FALSE}
 house$crimeCat2 = cut(house$ncrime, breaks = c(0,250,2000,5000,10000))
 
 mw = survreg( Surv(tom) ~ crimeCat2, dist = "weibull" , data = house )
@@ -178,11 +171,12 @@ On the other hand, the highest crime group (5000-10000) shows almost no differen
 
 The Cox PH model agrees with the Weibull model. The hazard ratio for the 250-2000 crime group is approximately 19% less than that of the 0-250 crime group, and that for the (2000, 5000] group is approximately 36% less than that of the 0-250 crime group. Finally, the hazard ratio for the 5000-10000 crime group is only about 6% lower than the 0-250 crime group, again with insignificant p-value. The Log Normal model too is insignificant. 
 
-
 ```{r include = FALSE}
+mw$coefficients
+
 # !!! how do I include the crime variables?
 # Create Cox-Snell residuals
-# CS_w = -log( 1 - pweibull(house$tom, 1/0.533, exp(4.4549 + 0.246*house$"crimeCat2(250,2e+03]" + 0.1379*) ) )
+CS_w = -log( 1 - pweibull(house$tom, 1/0.533, exp(4.45486375 +  0.13794492*(house$crimeCat2=="(250,2e+03]") + .28846076*(house$crimeCat2=="(2e+03,5e+03]") +   0.03853525*(house$crimeCat2=="(5e+03,1e+04]")     ) ) )
 CS_ln = -log( 1 - plnorm(house$tom, 4.3010 + -0.0313*house$schdist, 0.623) ) 
 
 # Make appropriate graph using CoxSnell function
@@ -206,8 +200,8 @@ Again, the AIC indicates that the Weibull model is a better fit than the Log Nor
 !!! Is AIC also a formal test?
 
 #### Listed Date
-
-```{r echo=FALSE, include=FALSE}
+# get rid of it !!!
+```{r include=FALSE}
 mw = survreg( Surv(tom) ~ listedatdate, dist = "weibull" , data = house )
 mln = survreg( Surv(tom) ~ listedatdate, dist = "lognormal" , data = house )
 mcox = coxph( Surv(tom) ~ listedatdate, data = house )
@@ -220,6 +214,7 @@ mcox
 Both Weibull and Log normal has a negative coefficient with extreme significance, which means that TOM decreases for every increase in the listed date. We may be led to say that as time progresses, houses are selling faster (ie. it's a seller's market), but we should be careful as our data contains only those houses that are sold (!!!). Thus, the properties with listed date that are more recent must have shorter time on market. The Cox PH model agrees, and the AIC outputs indicates that the Weibull model is a better fit.
 
 ```{r include = FALSE}
+# should we print these out!!!
 2*(3-mw$loglik[2]) # mw
 2*(3-mln$loglik[2]) # mln
 
@@ -237,6 +232,7 @@ summary(mw)
 summary(mln)
 mcox
 ```
+
 ```{r include = FALSE}
 exp(0.120) #w
 exp(0.189) #ln
@@ -258,13 +254,20 @@ Properties with higher listed price has a longer TOM at the 5% level significanc
 #### Without Interaction Term (Original)
 
 ```{r echo=FALSE, include=FALSE}
-mw = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + log(listedatpr) , dist = "weibull" , data = house )
-mln = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + log(listedatpr) , dist = "lognormal" , data = house )
+mw = survreg( Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , dist = "lognormal" , data = house )
+mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , data = house )
+
 
 summary(mw) # schdist sign
 summary(mln) # schdist insign (Victor!!!)
+mcox
 ```
 
+if log(listedatpr) = x, and !!!
+exp(1)
+
+If the price triples (mult by 2.81 or exp(1)), the the chance of it selling gets multiplied by 0.742. (Victor)
 
 Model Interpretations:
 
@@ -341,14 +344,18 @@ mln$loglik
 #### With Interaction Term
 
 ```{r echo=FALSE, include=FALSE}
-mw = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "weibull" , data = house )
-mln = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "lognormal" , data = house )
-mcox = coxph( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist , data = house )
+mw1 = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "weibull" , data = house )
+mln2 = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "lognormal" , data = house )
+mcox3 = coxph( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist , data = house )
 
-summary(mw)
-summary(mln)
-mcox
+
+summary(mw1)
+summary(mln2)
+mcox3
 ```
+
+!!! how do we interpret the I(log)  ?
+
 
 * General
 
