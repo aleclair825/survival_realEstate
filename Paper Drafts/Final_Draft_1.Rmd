@@ -104,154 +104,194 @@ ggsurvplot(KM, data=house) +
 
 ```
 
-### 3.2 Parametric Survival Curve Estimates for Aggregate Data
+### 3.2 Univariate Models
 
-#### Exponential 
+#### School Distance 
 
-A survival curve for all houses in the data estimated parametrically by the exponential distribution has a mean of approximately 85.97 days and a median of 59.59 days.
+```{r}
+mw = survreg( Surv(tom) ~ schdist , dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ schdist , dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ schdist , data = house )
 
-```{r echo=FALSE, include=FALSE, message=FALSE}
-
-survreg(Surv(tom) ~ 1, dist = "exponential", data=house)
-
+summary(mw) # the sign of schdist makes sense (positive) and it is significant
+summary(mln) # the sign of schdist is negative and it is NOT significant
+mcox # sign agrees with weibull and it is significant
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+* Weibull: the sign of schdist makes sense (positive) and it is significant
+* Log Normal: the sign of schdist is negative and it is NOT significant; the time on market is longer the greater the school distance from the property
+* Cox PH: sign agrees with weibull and it is significant; The hazard decreases by 0.701 times for each increase in mile.
 
-surv_exp <- function(x) {1-pexp(x, 1/exp(4.454011)) }
-# integrate(surv_exp, 0, Inf)
-# qexp(0.5, 1/exp(4.454011))
-(surv_exp.plot <- house %>% ggplot(aes(x=tom), conf.int = TRUE) +  
-  stat_function(fun=surv_exp, lower.tail=FALSE) + 
-  labs(title = "Exponential Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
-       caption = "Data collected from Coldwell Banker"))
-  
+
+#### Crime Continuous
+
+```{r}
+mw = survreg( Surv(tom) ~ ncrime, dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ ncrime, dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ ncrime , data = house )
+
+summary(mw)
+summary(mln)
+mcox
 ```
 
-#### Weibull
+* Not significant for any of the model
 
-A survival curve for all houses in the data estimated parametrically by the Weibull distribution has a mean of 86.31 days and a median of 79.34 days.
 
-```{r echo=FALSE, include=FALSE, message=FALSE}
+#### Crime Categorical
 
-survreg(Surv(tom) ~ 1, dist = "weibull", data=house)
+```{r}
+house$crimeCat2 = cut(house$ncrime, breaks = c(0,250,2000,5000,10000))
 
+mw = survreg( Surv(tom) ~ crimeCat2, dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ crimeCat2, dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ crimeCat2, data = house )
+
+summary(mw)
+summary(mln)
+mcox
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+* Weibull
 
-surv_weibull <- function(x) {1-pweibull(x, 1/0.5511901, exp(4.575712)) }
-# integrate(surv_weibull, 0, Inf)
-# qweibull(0.5, 1/0.5511901, exp(4.575712))
-(surv_weibull.plot <- (house %>% ggplot(aes(x=tom), conf.int = TRUE) +  
-  stat_function(fun=surv_weibull, lower.tail=FALSE) + 
-  labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
-     caption = "Data collected from Coldwell Banker")))
+The second group, (250, 2000], has boarderline significance at 10% level, and the third group, (2000, 5000], is significant at 0.05%. Compared to the first group, (0,250], the (250, 2000] group is more likely to stay on market by exp(0.14) (!!!) times, and the next group, (2000, 5000] is likely to stay on market by approximately double the duration of the (250, 2000] group at exp(0.28). The fact that the houses in the neighborhoods with less crime ((250, 2000]) would sell faster (time on market is shorter) than those in the neighborhoods with more crime ((2000, 5000]) makes sense since people generally prefer neighborhoods with less crime. However, the highest crime category ((5000, 10000]) has almost no difference compared to the lowest crime category, possibly due to more affordability. In other words, neighborhoods with the highest crime rate may also tend to be more affordable. 
 
+* Log Normal
+
+Not significant again.
+
+* Cox PH
+
+Cox PH agrees with Weibull. The hazard ratio for the (250, 2000] group is 0.81 times that of the (0,250] group. The hazard ratio for the (2000, 5000] group is 0.64 times that of the (0,250] group. Finally, the hazard ratio for the (5000, 10000] group is 0.94 times that of the (0,250] group. 
+
+
+#### Listed At Date
+
+```{r}
+mw = survreg( Surv(tom) ~ listedatdate, dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ listedatdate, dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ listedatdate, data = house )
+
+summary(mw)
+summary(mln)
+mcox
 ```
 
-Comparing just the point estimates, we see that the means of all three estimators lie at about the same point (86 days), while the median for Weibull (79.34 days) is much closer to that in KM (73 days) than the median for exponential (59.59 days). To better compare the distributions, we plot all three together on the same graph.
+* Weibull and Log Normal
 
-#### KM, Exponential, & Weibull
+Both Weibull and Log normal has a negative coefficient with extreme significance, which means that time on market decreases by each increase in the listed date. We may be led to say that as time progresses, the real estate market is getting hot (houses are selling faster; it's a seller's market), but we should be careful as our data contains only those houses that are sold (!!!). Thus, the properties with listed date that are more recent must have shorter time on market.
 
-From the combined plot, we can see that Weibull survival model approximates the raw data (KM) much better than does exponential survival model, consistent with the closer median values.
+* Cox PH 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+The HR gets multiplied by 1.14 each time the listed at date increases by 1. In other words, the risk of being sold gets larger the later the listed date. The p-value is significant.
 
-plot(KM, col="red", conf.int=F, main="KM, Exponential, and Weibull Model")
-curve(1-pexp(x, 1/exp(4.454011)), add=T, col="blue")
-curve(1-pweibull(x, 1/0.5511901, exp(4.575712)), add=T, col="purple")
-legend(300,1,c("KM","Exponential", "Weibull"), col=c("red","blue","purple") , text.col=c("red","blue","purple") , lty=1 , cex=0.8 )
+### 3.3 Multivariate Models
 
+#### Crime Category 2 + Listed at Price + School Distance
+#### Without Interaction Term (Original)
+
+```{r}
+me = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + listedatpr , dist = "exponential" , data = house )
+mw = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + listedatpr , dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + listedatpr , dist = "lognormal" , data = house )
+
+summary(me)
+summary(mw) # schdist sign
+summary(mln) # schdist insign (Victor!!!)
 ```
 
-We have visualized non-parametric and parametric estimates of the true survival curve and concluded that the Weibull model is a much better fit to KM (the raw data) than exponential. 
+*Hypotheses*
+
+1.
+
+* Ho: exponential: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
+* Ha: weibull: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
+
+2. 
+
+* Ho: weibull: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
+* Ha: lognorm: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
 
 
-### 3.3 Parametric Survival Curve Estimates with Categorical Price Differences
+*Cox-Snell Residuals*
 
-#### Kaplan-Meier - Categorical Price Differences
+Log-normal looks the best!
 
-First, we visualize a Kaplan-Meier curve stratified by the three groupings of sold houses--houses that sold above list value, at list value, and below list value. We will refer to these houses as high-demand, low-demand, and neutral-demand houses, respectively, for brevity. 
+```{r}
+me
+mw
+mln
 
-We see that houses in our data that sold for under the listed price tended to take the longest to sell, while houses that sold for above the listed price tended to sell more quickly. This result is intuitive, as houses that are priced competitively tend to sell faster while houses that see price reductions are likely to have been on the market longer.  
+# Create Cox-Snell residuals
+CS_e = -log( 1 - pexp(house$tom, 1/exp(4.153050e+00 + 5.260030e-02*house$beds + 4.625418e-02*house$bathf + 3.530967e-02*house$bathp + -4.039299e-02*house$carg -2.186615e-05*house$sqft + 1.252779e-01*house$schdist + 5.489057e-06*house$ncrime + -5.267278e-06*house$prdiff) ) )
+CS_w = -log( 1 - pweibull(house$tom, 1/0.532846, exp(4.153050e+00 + 5.260030e-02*house$beds + 4.625418e-02*house$bathf + 3.530967e-02*house$bathp + -4.039299e-02*house$carg -2.186615e-05*house$sqft + 1.252779e-01*house$schdist + 5.489057e-06*house$ncrime + -5.267278e-06*house$prdiff ) ) )
+CS_ln = -log( 1 - plnorm(house$tom, 4.153050e+00 + 5.260030e-02*house$beds + 4.625418e-02*house$bathf + 3.530967e-02*house$bathp + -4.039299e-02*house$carg -2.186615e-05*house$sqft + 1.252779e-01*house$schdist + 5.489057e-06*house$ncrime + -5.267278e-06*house$prdiff, 0.5914082) ) 
 
-The means for high-demand, low-demand, and neutral-demand homes are 58.40,  101.45, and 65.62 days, and the medians are 48, 94, and 53 days, respectively. The confidence interval is relatively short for both high-demand and low-demand homes, but neutral-demand homes have confidence interval that is almost as twice as much as the other two. This large confidence interval may be driven by low power, indicated by a small sample size (n = 37) in neutral-demand homes. 
-
-```{r echo=FALSE, message=FALSE, include=FALSE}
-
-# mean(house$tom[house$prdiff_np==1])
-# mean(house$tom[house$prdiff_np==2])
-# mean(house$tom[house$prdiff_np==3])
-
-# Note: Price Difference = sold - listed
-(KMECDF = survfit(Surv(tom) ~ as.factor(prdiff_np), data=house ))
-
+# Make appropriate graph using CoxSnell function
+CoxSnell( CS_e , house$status )
+CoxSnell( CS_w , house$status )
+CoxSnell( CS_ln , house$status )
 ```
 
-```{r echo=FALSE}
+*LRT*
 
-ggsurvplot(KMECDF, data=house, conf.int=T, legend.title="Type", ggtheme = theme_minimal(),
-           legend.labs=c("Positive Price Difference","Negative Price Difference", "No Price Difference")) +
-  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market - Stratified")
+There is enough evidence to reject the Exponential in favor of the Weibull. That is, the extra parameter in the Weibull is providing enough improvement in order to be worthwhile. 
 
+```{r}
+me$loglik
+mw$loglik
+
+2*(-1610.590 - -1691.369) # me vs. mw
+1 - pchisq( 161.558 , df=1 ) 
 ```
 
-#### Exponential - Categorical Price Differences
 
-```{r echo=FALSE, include=FALSE, message=FALSE}
+*AIC*
 
-survreg(Surv(tom) ~ as.factor(prdiff_np), dist = "weibull", data=house)
+Log normal is the best with a marginal difference with weibull. 
 
+```{r}
+mln$loglik
+
+2*(9--1691.369) # me
+2*(10--1610.590) # mw
+2*(10--1610.297) # mln
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+#### With Interaction Term
 
-surv <- function(x){1-pexp(x, 1/exp(4.0672313))}
-surv1 <- function(x){1-pexp(x, 1/exp(4.0672313 + 0.5522913))}
-surv2 <- function(x){1-pexp(x, 1/exp(4.0672313 + 0.1166739))}
+```{r}
+mw = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist , data = house )
 
-
-house %>% ggplot(aes(x=tom)) + 
-  stat_function(fun=surv, lower.tail=FALSE, col="black") + 
-  stat_function(fun=surv1, lower.tail=FALSE, col="red") + 
-  stat_function(fun=surv2, lower.tail=FALSE, col="blue") +
-  labs(title = "Exponential Survival Curve for Time on Market Stratified for Price Difference", x="Time on Market", y="Survival Proportion",
-       caption = "Data collected from Coldwell Banker")
-
-
+summary(mw)
+summary(mln)
+mcox
 ```
 
-#### Weibull - Categorical Price Differences
+* General
 
-```{r echo=FALSE, include=FALSE, message=FALSE}
+The model now has an interaction of the listed price variable which we hypothesized, should be a control for the crime variable. In the earlier analysis, we saw that the highest crime group did not show a difference in time on market compared to the lowest crime group, and we reasoned that one of the possible sources may be price. Holding all other variables equal, the highest crime variable is now more positive in coefficient despite the still insignificant p-value. Also, we see that all other variables are too significant and have expected signs. 
 
-survreg(Surv(tom) ~ prdiff_np, dist = "weibull", data=house)
+* Weibull
 
-```
+Similar to previous univariate analysis with crime category variable, the second group is more likely to stay on market longer compared to the first group, although the third group does not quite double in its market duration compared to the second group as it did in the univariate analysis. However, the second and third group both are now significant at the 5% level, and the highest crime group is still insignificant although the p-value decreased by a factor of 3. The listed price interaction variable is significant with positive coefficient; in other words, homes with the higher listed price tend to stay on market longer. The school distance is also positive with a significant p-value, meaning that the homes farther away from schools tend to stay on market longer.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+* Log Normal 
 
-surv3 <- function(x){1-pweibull(x, shape=1/0.5340263, scale=exp(4.2485166))}
-surv4 <- function(x){1-pweibull(x, shape=1/0.5340263, scale=exp(4.2485166 + 0.4589256))}
-surv5 <- function(x){1-pweibull(x, shape=1/0.5340263, scale=exp(4.2485166 + 0.1177328))}
+Most are similar to Weibull except more variables are insignificant. The school distance variable is still largely insignificant. 
+
+* Cox PH
+
+Outputs agree with Weibull. All are significant except for the highest crime category.
 
 
-house %>% ggplot(aes(x=tom, color = )) + 
-  stat_function(fun=surv3, lower.tail=FALSE, col="black") + 
-  stat_function(fun=surv4, lower.tail=FALSE, col="red") +
-  stat_function(fun=surv5, lower.tail=FALSE, col="blue") +  
-  scale_colour_manual("", 
-                      breaks = c("TempMax", "TempMedia", "TempMin"),
-                      values = c("red", "green", "blue")) +
-  labs(title = "Weibull Survival Curve for Time on Market", x="Time on Market", y="Survival Proportion",
-       caption = "Data collected from Coldwell Banker") 
 
-```
 
-We observe again from this parameterization that houses that sold for more than the original list price tend to sell the fastest, while houses that underwent price reductions tend to remain on the market the longest. 
 
-We have visualized non-parametric and parametric estimates of the true survival curve but is there truly a difference between groupings of houses with different categorical characteristics? 
+
+
 
 
 ### 3.3 Non-Parametric Statistiscal Tests
