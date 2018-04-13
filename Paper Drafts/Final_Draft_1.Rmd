@@ -108,7 +108,7 @@ ggsurvplot(KM, data=house) +
 
 #### School Distance 
 
-```{r}
+```{r echo=FALSE, include=FALSE}
 mw = survreg( Surv(tom) ~ schdist , dist = "weibull" , data = house )
 mln = survreg( Surv(tom) ~ schdist , dist = "lognormal" , data = house )
 mcox = coxph( Surv(tom) ~ schdist , data = house )
@@ -133,10 +133,17 @@ CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
   plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim)
   abline(0,1,col='red') }
 
+<<<<<<< HEAD
 house$status = rep(1, nrow(house))
 CoxSnell( CS_w , house$status )
 CoxSnell( CS_ln , house$status )
 ```
+=======
+```{r echo=FALSE, include=FALSE}
+mw = survreg( Surv(tom) ~ ncrime, dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ ncrime, dist = "lognormal" , data = house )
+mcox = coxph( Surv(tom) ~ ncrime , data = house )
+>>>>>>> 45e9d735ff24ef5d9554b4f73258931158cefd41
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
@@ -151,7 +158,7 @@ The Log Normal model seems to fit better than the Weibull model according to the
 
 #### Crime Categorical
 
-```{r}
+```{r echo=FALSE, include=FALSE}
 house$crimeCat2 = cut(house$ncrime, breaks = c(0,250,2000,5000,10000))
 
 mw = survreg( Surv(tom) ~ crimeCat2, dist = "weibull" , data = house )
@@ -200,7 +207,7 @@ Again, the AIC indicates that the Weibull model is a better fit than the Log Nor
 
 #### Listed Date
 
-```{r}
+```{r echo=FALSE, include=FALSE}
 mw = survreg( Surv(tom) ~ listedatdate, dist = "weibull" , data = house )
 mln = survreg( Surv(tom) ~ listedatdate, dist = "lognormal" , data = house )
 mcox = coxph( Surv(tom) ~ listedatdate, data = house )
@@ -250,24 +257,42 @@ Properties with higher listed price has a longer TOM at the 5% level significanc
 #### Crime Category 2 + Listed at Price + School Distance
 #### Without Interaction Term (Original)
 
-```{r}
-me = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + listedatpr , dist = "exponential" , data = house )
-mw = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + listedatpr , dist = "weibull" , data = house )
-mln = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + listedatpr , dist = "lognormal" , data = house )
+```{r echo=FALSE, include=FALSE}
+mw = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + log(listedatpr) , dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ schdist + ncrime + listedatdate + log(listedatpr) , dist = "lognormal" , data = house )
 
-summary(me)
 summary(mw) # schdist sign
 summary(mln) # schdist insign (Victor!!!)
 ```
 
+
+Model Interpretations:
+
+Weibull:
+
+- School distance has a negative multiplicative effect on time on market by $e^{-.026}$ with a p-value of $.375$. This is not a significant result.
+
+- Number of crimes in the neighborhood has a positive multiplicative effect on time on market of $e^{.00000649}$ with a p-value by $.0959$. This is also not a significant result.
+
+- The date at which the house was listed has a negative multiplicative impact on the time on market by $e^{-.0105}$ with a p-value of $0$. This makes sense because as we progress one date forward, we are getting closer to the time at which a house was sold since we only included sold houses in our data. CHECK -- Is this necessary to include?
+
+- The log of the price at which a house was listed has a positive multiplicative impact on the time on market by $e^{.0646}$ with a p-value of $.00191$. This is a significant result. This model shows that for every dollar a house's log list price increases, the time on market for that house is expected to increase by about $6.6732$%. 
+
+
+Lognormal:
+
+- School distance has a negative multiplicative effect on time on market by $e^{-.177}$ with a p-value of $.00087$. This is a significant result. This model shows that for every mile farther a house is away from the nearest school, the time on market is expected to decrease by about $16.332$%.
+
+- Number of crimes in the neighborhood has a positive multiplicative effect on time on market of $e^{.0000124}$ with a p-value by $.0927$. This is not a significant result.
+
+- The date at which the house was listed has a negative multiplicative impact on the time on market by $e^{-.0102}$ with a p-value of $0$. This makes sense because as we progress one date forward, we are getting closer to the time at which a house was sold since we only included sold houses in our data. CHECK -- Is this necessary to include?
+
+- The log of the price at which a house was listed has a positive multiplicative impact on the time on market by $e^{.0702}$ with a p-value of $.05$. This is a significant result at the 5% level. This model shows that for every dollar a house's log list price increases, the time on market for that house is expected to increase by about $7.2723$%. 
+
+
 *Hypotheses*
 
-1.
-
-* Ho: exponential: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
-* Ha: weibull: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
-
-2. 
+Now we must decide which model is better. To do this, we will first plot the Cox-Snell residuals for the Weibull and Lognormal models and then compare the AIC calculations for each model.
 
 * Ho: weibull: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
 * Ha: lognorm: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
@@ -277,10 +302,18 @@ summary(mln) # schdist insign (Victor!!!)
 
 Log-normal looks the best!
 
-```{r}
-me
-mw
-mln
+```{r echo=FALSE, include=FALSE}
+# Creates Cox-Snell Plot:
+CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
+  kmcs=survfit(Surv(jitter(cs,amount=(max(cs)-min(cs))/1000),status)~1)$surv
+  plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim)
+  abline(0,1,col='red') }
+```
+
+
+```{r include=FALSE}
+
+house$status <- rep(1, 311)
 
 # Create Cox-Snell residuals
 CS_e = -log( 1 - pexp(house$tom, 1/exp(4.153050e+00 + 5.260030e-02*house$beds + 4.625418e-02*house$bathf + 3.530967e-02*house$bathp + -4.039299e-02*house$carg -2.186615e-05*house$sqft + 1.252779e-01*house$schdist + 5.489057e-06*house$ncrime + -5.267278e-06*house$prdiff) ) )
@@ -288,39 +321,26 @@ CS_w = -log( 1 - pweibull(house$tom, 1/0.532846, exp(4.153050e+00 + 5.260030e-02
 CS_ln = -log( 1 - plnorm(house$tom, 4.153050e+00 + 5.260030e-02*house$beds + 4.625418e-02*house$bathf + 3.530967e-02*house$bathp + -4.039299e-02*house$carg -2.186615e-05*house$sqft + 1.252779e-01*house$schdist + 5.489057e-06*house$ncrime + -5.267278e-06*house$prdiff, 0.5914082) ) 
 
 # Make appropriate graph using CoxSnell function
-CoxSnell( CS_e , house$status )
 CoxSnell( CS_w , house$status )
 CoxSnell( CS_ln , house$status )
 ```
 
-*LRT*
-
-There is enough evidence to reject the Exponential in favor of the Weibull. That is, the extra parameter in the Weibull is providing enough improvement in order to be worthwhile. 
-
-```{r}
-me$loglik
-mw$loglik
-
-2*(-1610.590 - -1691.369) # me vs. mw
-1 - pchisq( 161.558 , df=1 ) 
-```
-
+The lognormal model appears to perform better when evaluating performance graphically.
 
 *AIC*
 
-Log normal is the best with a marginal difference with weibull. 
+Lognormal (3240.594) performs better in the AIC calculation than Weibull (3241.18). 
 
-```{r}
+```{r echo=FALSE, include=FALSE}
 mln$loglik
 
-2*(9--1691.369) # me
 2*(10--1610.590) # mw
 2*(10--1610.297) # mln
 ```
 
 #### With Interaction Term
 
-```{r}
+```{r echo=FALSE, include=FALSE}
 mw = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "weibull" , data = house )
 mln = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "lognormal" , data = house )
 mcox = coxph( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist , data = house )
@@ -336,7 +356,7 @@ The model now has an interaction of the listed price variable which we hypothesi
 
 * Weibull
 
-Similar to previous univariate analysis with crime category variable, the second group is more likely to stay on market longer compared to the first group, although the third group does not quite double in its market duration compared to the second group as it did in the univariate analysis. However, the second and third group both are now significant at the 5% level, and the highest crime group is still insignificant although the p-value decreased by a factor of 3. The listed price interaction variable is significant with positive coefficient; in other words, homes with the higher listed price tend to stay on market longer. The school distance is also positive with a significant p-value, meaning that the homes farther away from schools tend to stay on market longer.
+Similar to previous univariate analysis with crime category variable, the second group is more likely to stay on market longer compared to the first group, although the third group does not quite double in its market duration compared to the second group as it did in the univariate analysis. However, the second and third group both are now significant at the 5% level, and the highest crime group is still insignificant although the p-value decreased by a factor of 3. The listed price interaction variable is significant with positive coefficient; in other words, homes with the higher listed price tend to stay on market longer. The school distance is also positive with a significant p-value, meaning that the homes farther away from schools tend to stay on the market longer. Compared to the previous Weibull model with no interaction term, this makes sense. Houses closer to schools tend to be in more populated, desirable areas to live, so it should follow that houses closer to a school would sell faster. 
 
 * Log Normal 
 
