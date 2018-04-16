@@ -96,13 +96,51 @@ First, we fit a Kaplan-Meier curve with confidence intervals for survival (time 
 
 ```{r echo=FALSE}
 
+house$crimeCat2 = cut(house$ncrime, breaks = c(0,250,2000,5000,10000))
+
+
 # mean(house$tom)
 # median(house$tom)
-KM = survfit( Surv(tom) ~ 1 , conf.type="plain" , data=house ) 
+KM = survfit( Surv(tom) ~ crimeCat2, conf.type="plain" , data=house ) 
 ggsurvplot(KM, data=house) +
-  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market")
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market By Number of Crime Category")
+
+
 
 ```
+
+From a brief glance at this Kaplan-Meier curve, we see that homes that fit into the second highest number of crimes category take the longest to sell. 
+
+
+```{r echo=FALSE}
+
+house$listedatprCat = cut(house$listedatpr, breaks = quantile(house$listedatpr, probs=c(0, .33, .67, 1)))
+
+# mean(house$tom)
+# median(house$tom)
+KM1 = survfit( Surv(tom) ~ listedatprCat , conf.type="plain" , data=house ) 
+ggsurvplot(KM1, data=house) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market By List Price Category")
+
+```
+
+It is apparent from this Kaplan-Meier curve that houses that fall into the highest price category take the longest to sell. 
+
+```{r echo=FALSE}
+
+# mean(house$tom)
+# median(house$tom)
+KM2 = survfit( Surv(tom) ~ city , conf.type="plain" , data=house ) 
+ggsurvplot(KM2, data=house) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market By City Location")
+
+```
+
+
+There doesn't apprear to be a huge difference in time to sale between homes in St. Paul and Minneapolis, but we see that in our data, St. Paul homes take slightly longer to sell based on this Kaplan-Meier curve. 
+
+Now that we have taken a brief look at Kaplan-Meier curves for these variables, we will create some models with parametric assumptions to see which is better and assess for significant differences.
+
 
 ### 3.2 Univariate Models
 
@@ -462,3 +500,12 @@ cat("[", HR*exp(-1.96*sqrt(1/41.5+1/25.3)), ", ", HR*exp(+1.96*sqrt(1/41.5+1/25.
 Despite the hazard ratio of 1.33, the interval estimate suggests that the this difference of 1.33 is insignificant. This result is inconsistent with the significant p-value we obtained from the log-rank test.
 
 Examining the confidence intervals of the three groups from the Kaplan-Meier curves, we see that high-demand and equilibrium houses lay on top of each other almost completely until around 40 days, and the confidence intervals overlap until approximately 175 days, which explain the insignificance in the hazard ratio estimate. On the other hand, low-demand and high-demand homes are quite distinctive and separate from each other with only a few spots where the confidence intervals intersect. This distinct separation is also reflective of the large hazard ratio (2.47) with confidence interval way greater than 1 ([1.777065, 3.431999]). 
+
+
+
+
+
+
+
+
+```
