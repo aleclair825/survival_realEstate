@@ -17,6 +17,7 @@ library(readr)
 library(ggplot2)
 library(survival)
 library(survminer)
+library(stargazer)
 
 house <- read_csv("../Source/house_TC.csv")
 house <- house %>% mutate(tom = ifelse(tom == 0, 1, tom),
@@ -136,10 +137,15 @@ ggsurvplot(KM2, data=house) +
 
 ```
 
+<<<<<<< HEAD
 
 There doesn't apprear to be a huge difference in time to sale between homes in St. Paul and Minneapolis, but we see that in our data, St. Paul homes take slightly longer to sell based on this Kaplan-Meier curve. 
 
 Now that we have taken a brief look at Kaplan-Meier curves for these variables, we will create some models with parametric assumptions to see which is better and assess for significant differences.
+=======
+HERE!!! (3KM models)
+
+>>>>>>> e7cfd2e42d9b23c27f6afe75216a537955a2e6ab
 
 
 ### 3.2 Univariate Models
@@ -159,7 +165,6 @@ mcox # sign agrees with weibull and it is significant
 The Weibull model indicates that the properties that are farther from schools have longer TOM than those closer to schools, with a significant p-value. However, the Log Normal model yields the opposite result with an insignificant p-value. This result may be due to the inherent differences in the two models, rather than the school distance variable being insignificant. In fact, the Cox PH model agrees with the Weibull model in the variable's direction and p-value. According to the Cox PH model, the hazard ratio of school distance is 0.701, which means that the risk of being sold decreases by 70% for every one-mile increase in school distance. In other words, properties farther away from schools take longer to sell.
 
 ```{r include = FALSE}
-# !!! Why does log normal look better?
 # Create Cox-Snell residuals
 CS_w = -log( 1 - pweibull(house$tom, 1/0.537, exp(4.443 + 0.246*house$schdist) ) )
 CS_ln = -log( 1 - plnorm(house$tom, 4.3010 + -0.0313*house$schdist, 0.623) ) 
@@ -212,7 +217,6 @@ The Cox PH model agrees with the Weibull model. The hazard ratio for the 250-200
 ```{r include = FALSE}
 mw$coefficients
 
-# !!! how do I include the crime variables?
 # Create Cox-Snell residuals
 CS_w = -log( 1 - pweibull(house$tom, 1/0.533, exp(4.45486375 +  0.13794492*(house$crimeCat2=="(250,2e+03]") + .28846076*(house$crimeCat2=="(2e+03,5e+03]") +   0.03853525*(house$crimeCat2=="(5e+03,1e+04]")     ) ) )
 CS_ln = -log( 1 - plnorm(house$tom, 4.3010 + -0.0313*house$schdist, 0.623) ) 
@@ -235,29 +239,6 @@ CoxSnell( CS_ln , house$status )
 ```
 
 Again, the AIC indicates that the Weibull model is a better fit than the Log Normal model.
-!!! Is AIC also a formal test?
-
-#### Listed Date
-# get rid of it !!!
-```{r include=FALSE}
-mw = survreg( Surv(tom) ~ listedatdate, dist = "weibull" , data = house )
-mln = survreg( Surv(tom) ~ listedatdate, dist = "lognormal" , data = house )
-mcox = coxph( Surv(tom) ~ listedatdate, data = house )
-
-summary(mw)
-summary(mln)
-mcox
-```
-
-Both Weibull and Log normal has a negative coefficient with extreme significance, which means that TOM decreases for every increase in the listed date. We may be led to say that as time progresses, houses are selling faster (ie. it's a seller's market), but we should be careful as our data contains only those houses that are sold (!!!). Thus, the properties with listed date that are more recent must have shorter time on market. The Cox PH model agrees, and the AIC outputs indicates that the Weibull model is a better fit.
-
-```{r include = FALSE}
-# should we print these out!!!
-2*(3-mw$loglik[2]) # mw
-2*(3-mln$loglik[2]) # mln
-
-# Again, the AIC indicates that the Weibull model is a better fit than the Log Normal model.
-```
 
 #### Listed Price
 
@@ -297,13 +278,10 @@ mln = survreg( Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , dist = "logno
 mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , data = house )
 
 
-summary(mw) # schdist sign
-summary(mln) # schdist insign (Victor!!!)
+summary(mw) 
+summary(mln) 
 mcox
 ```
-
-if log(listedatpr) = x, and !!!
-exp(1)
 
 If the price triples (mult by 2.81 or exp(1)), the the chance of it selling gets multiplied by 0.742. (Victor)
 
@@ -379,45 +357,171 @@ mln$loglik
 2*(10--1610.297) # mln
 ```
 
-#### With Interaction Term
 
-```{r echo=FALSE, include=FALSE}
-mw1 = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "weibull" , data = house )
-mln2 = survreg( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist, dist = "lognormal" , data = house )
-mcox3 = coxph( Surv(tom) ~ crimeCat2 + I(log(listedatpr)) + schdist , data = house )
+*Summary of Cox Model*
+!!!
 
-
-summary(mw1)
-summary(mln2)
-mcox3
+```{r}
+library(survminer)
+fit = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , data = house )
+fit
+ggforest(fit, data = house)
 ```
 
-!!! how do we interpret the I(log)  ?
+
+```{r include = FALSE}
+stargazer(house[c(9,14,22),])
+stargazer(house[c(9,14,22),], summary=FALSE, rownames=FALSE)
+stargazer(mw, mln, title="Results", align=TRUE)
+stargazer(mcox, title="Results", align=TRUE)
+```
 
 
-* General
+### Full Summary Table
 
-The model now has an interaction of the listed price variable which we hypothesized, should be a control for the crime variable. In the earlier analysis, we saw that the highest crime group did not show a difference in time on market compared to the lowest crime group, and we reasoned that one of the possible sources may be price. Holding all other variables equal, the highest crime variable is now more positive in coefficient despite the still insignificant p-value. Also, we see that all other variables are too significant and have expected signs. 
-
-* Weibull
-
-Similar to previous univariate analysis with crime category variable, the second group is more likely to stay on market longer compared to the first group, although the third group does not quite double in its market duration compared to the second group as it did in the univariate analysis. However, the second and third group both are now significant at the 5% level, and the highest crime group is still insignificant although the p-value decreased by a factor of 3. The listed price interaction variable is significant with positive coefficient; in other words, homes with the higher listed price tend to stay on market longer. The school distance is also positive with a significant p-value, meaning that the homes farther away from schools tend to stay on the market longer. Compared to the previous Weibull model with no interaction term, this makes sense. Houses closer to schools tend to be in more populated, desirable areas to live, so it should follow that houses closer to a school would sell faster. 
-
-* Log Normal 
-
-Most are similar to Weibull except more variables are insignificant. The school distance variable is still largely insignificant. 
-
-* Cox PH
-
-Outputs agree with Weibull. All are significant except for the highest crime category.
+\begin{table}[!htbp] \centering 
+  \caption{} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\ 
+\hline \\[-1.8ex] 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table} 
 
 
 
 
+### Simple Summary Table
+
+\begin{table}[!htbp] \centering 
+  \caption{} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}} cccccccccccccccccccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+address & city & zip & beds & bathf & bathp & carg & sqft & listedatpr & soldatpr & listedatdate & soldatdate & neighb & schdist & ncrime & pid & tom & prdiff & prdiff\_perc & prdiff\_np & status & crimeCat2 \\ 
+\hline \\[-1.8ex] 
+704 White Bear Avenue N & Saint Paul & 55106 & 2 & 1 & 1 & 1 & 1089 & 139000 & 138000 & 17447 & 17562 & Conway/Battlecreek/Highwood & 0.4 & 4453 & pid\_20224294/ & 115 & -1000 & -0.00719424460431655 & 2 & 1 & 3 \\ 
+967 Fuller Avenue & Saint Paul & 55104 & 2 & 1 & 0 & 1 & 1560 & 199900 & 2e+05 & 17511 & 17562 & Summit/University & 0.3 & 4545 & pid\_21292535/ & 51 & 100 & 0.000500250125062531 & 1 & 1 & 3 \\ 
+3830 Aldrich Avenue N & Minneapolis & 55412 & 3 & 1 & 1 & 1 & 1254 & 159900 & 159900 & 17503 & 17561 & Webber - Camden & 1 & 460 & pid\_21194229/ & 58 & 0 & 0 & 3 & 1 & 2 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table} 
 
 
 
 
+## Output: Weibull and Log Normal
+
+\begin{table}[!htbp] \centering 
+  \caption{Results} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-3} 
+\\[-1.8ex] & \multicolumn{2}{c}{tom} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{\textit{Weibull}} & \multicolumn{1}{c}{\textit{survreg: lognormal}} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{(1)} & \multicolumn{1}{c}{(2)}\\ 
+\hline \\[-1.8ex] 
+ schdist & 0.184^{**} & -0.045 \\ 
+  & (0.090) & (0.105) \\ 
+  & & \\ 
+ crimeCat2(250,2e+03] & 0.188^{**} & 0.094 \\ 
+  & (0.084) & (0.096) \\ 
+  & & \\ 
+ crimeCat2(2e+03,5e+03] & 0.252^{***} & 0.226^{**} \\ 
+  & (0.087) & (0.097) \\ 
+  & & \\ 
+ crimeCat2(5e+03,1e+04] & 0.109 & 0.170 \\ 
+  & (0.098) & (0.114) \\ 
+  & & \\ 
+ log(listedatpr) & 0.131^{**} & 0.228^{***} \\ 
+  & (0.059) & (0.073) \\ 
+  & & \\ 
+ Constant & 2.712^{***} & 1.374 \\ 
+  & (0.751) & (0.925) \\ 
+  & & \\ 
+\hline \\[-1.8ex] 
+Observations & \multicolumn{1}{c}{311} & \multicolumn{1}{c}{311} \\ 
+Log Likelihood & \multicolumn{1}{c}{-1,611.420} & \multicolumn{1}{c}{-1,619.327} \\ 
+$\chi^{2}$ (df = 5) & \multicolumn{1}{c}{22.426$^{***}$} & \multicolumn{1}{c}{13.995$^{**}$} \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
+
+
+
+
+### Output: Cox PH
+
+\begin{table}[!htbp] \centering 
+  \caption{Results} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-2} 
+\\[-1.8ex] & \multicolumn{1}{c}{tom} \\ 
+\hline \\[-1.8ex] 
+ schdist & -0.258 \\ 
+  & (0.176) \\ 
+  & \\ 
+ crimeCat2(250,2e+03] & -0.327^{**} \\ 
+  & (0.160) \\ 
+  & \\ 
+ crimeCat2(2e+03,5e+03] & -0.425^{**} \\ 
+  & (0.166) \\ 
+  & \\ 
+ crimeCat2(5e+03,1e+04] & -0.237 \\ 
+  & (0.186) \\ 
+  & \\ 
+ log(listedatpr) & -0.298^{***} \\ 
+  & (0.114) \\ 
+  & \\ 
+\hline \\[-1.8ex] 
+Observations & \multicolumn{1}{c}{311} \\ 
+R$^{2}$ & \multicolumn{1}{c}{0.057} \\ 
+Max. Possible R$^{2}$ & \multicolumn{1}{c}{1.000} \\ 
+Log Likelihood & \multicolumn{1}{c}{-1,468.756} \\ 
+Wald Test & \multicolumn{1}{c}{17.950$^{***}$ (df = 5)} \\ 
+LR Test & \multicolumn{1}{c}{18.218$^{***}$ (df = 5)} \\ 
+Score (Logrank) Test & \multicolumn{1}{c}{18.002$^{***}$ (df = 5)} \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
+
+
+
+
+
+
+### 3.4 Testing the Cox PH Assumption
+
+Not Worked on Yet
+
+
+
+
+
+
+
+
+
+
+
+
+
+###### BELOW IS FIRST DRAFT WORK FOR REFERENCE ########
 
 ### 3.3 Non-Parametric Statistiscal Tests
 
