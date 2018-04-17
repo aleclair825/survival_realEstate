@@ -6,6 +6,7 @@ output:
   pdf_document:
     pandoc_args: [
       "-V", "classoption=twocolumn" ]
+      
   html_document: default
 ---
 
@@ -103,8 +104,9 @@ house$crimeCat2 = cut(house$ncrime, breaks = c(0,250,2000,5000,10000))
 # mean(house$tom)
 # median(house$tom)
 KM = survfit( Surv(tom) ~ crimeCat2, conf.type="plain" , data=house ) 
-ggsurvplot(KM, data=house) +
-  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market By Number of Crime Category")
+ggsurvplot(KM, data=house, legend.labs=c("0 to 250 crimes", "250 to 2000", "2000 to 5000", "5000 to 10000")) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Days on Market By Crime Since 2015 Category") 
+
 
 
 
@@ -120,8 +122,8 @@ house$listedatprCat = cut(house$listedatpr, breaks = quantile(house$listedatpr, 
 # mean(house$tom)
 # median(house$tom)
 KM1 = survfit( Surv(tom) ~ listedatprCat , conf.type="plain" , data=house ) 
-ggsurvplot(KM1, data=house) +
-  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market By List Price Category")
+ggsurvplot(KM1, data=house, legend.labs=c("price = 63,000 to 180,000", "180,000 to 275,000", "275,000 to 1,300,000")) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Days on Market By List Price Category")
 
 ```
 
@@ -132,23 +134,18 @@ It is apparent from this Kaplan-Meier curve that houses that fall into the highe
 # mean(house$tom)
 # median(house$tom)
 KM2 = survfit( Surv(tom) ~ city , conf.type="plain" , data=house ) 
-ggsurvplot(KM2, data=house) +
-  labs(x = "Days on Market", y = "Survival Probability", title = "Kaplan-Meier Curve of Days on Market By City Location")
+ggsurvplot(KM2, data=house, legend.labs=c("Minneapolis", "St. Paul")) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Days on Market By City")
 
 ```
 
-<<<<<<< HEAD
 
 There doesn't apprear to be a huge difference in time to sale between homes in St. Paul and Minneapolis, but we see that in our data, St. Paul homes take slightly longer to sell based on this Kaplan-Meier curve. 
 
 Now that we have taken a brief look at Kaplan-Meier curves for these variables, we will create some models with parametric assumptions to see which is better and assess for significant differences.
-=======
-HERE!!! (3KM models)
-
->>>>>>> e7cfd2e42d9b23c27f6afe75216a537955a2e6ab
 
 
-### 3.2 Univariate Models
+### 3.2 Univariate Parametric Models
 
 #### School Distance 
 
@@ -177,6 +174,10 @@ CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
   abline(0,1,col='red') }
 
 house$status = rep(1, nrow(house))
+
+```
+
+```{r echo=FALSE}
 CoxSnell( CS_w , house$status )
 CoxSnell( CS_ln , house$status ,xlim=c(-7,5))
 ```
@@ -229,6 +230,10 @@ CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
   abline(0,1,col='red') }
 
 house$status = rep(1, nrow(house))
+
+```
+
+```{r echo=FALSE}
 CoxSnell( CS_w , house$status )
 CoxSnell( CS_ln , house$status )
 ```
@@ -242,7 +247,7 @@ Again, the AIC indicates that the Weibull model is a better fit than the Log Nor
 
 #### Listed Price
 
-```{r}
+```{r include=FALSE}
 mw = survreg( Surv(tom) ~ log(listedatpr), dist = "weibull" , data = house )
 mln = survreg( Surv(tom) ~ log(listedatpr), dist = "lognormal" , data = house )
 mcox = coxph( Surv(tom) ~ log(listedatpr), data = house )
@@ -267,12 +272,12 @@ Properties with higher listed price has a longer TOM at the 5% level significanc
 ```
 
 
-### 3.3 Multivariate Models
+### 3.3 Multivariate Parametric Models
 
 #### Crime Category 2 + Listed at Price + School Distance
 #### Without Interaction Term (Original)
 
-```{r echo=FALSE, include=FALSE}
+```{r include=FALSE}
 mw = survreg( Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , dist = "weibull" , data = house )
 mln = survreg( Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , dist = "lognormal" , data = house )
 mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , data = house )
@@ -287,35 +292,27 @@ If the price triples (mult by 2.81 or exp(1)), the the chance of it selling gets
 
 Model Interpretations:
 
-Weibull:
+\textbf{Weibull:}
 
 - School distance has a negative multiplicative effect on time on market by $e^{-.026}$ with a p-value of $.375$. This is not a significant result.
 
 - Number of crimes in the neighborhood has a positive multiplicative effect on time on market of $e^{.00000649}$ with a p-value by $.0959$. This is also not a significant result.
 
-- The date at which the house was listed has a negative multiplicative impact on the time on market by $e^{-.0105}$ with a p-value of $0$. This makes sense because as we progress one date forward, we are getting closer to the time at which a house was sold since we only included sold houses in our data. CHECK -- Is this necessary to include?
-
 - The log of the price at which a house was listed has a positive multiplicative impact on the time on market by $e^{.0646}$ with a p-value of $.00191$. This is a significant result. This model shows that for every dollar a house's log list price increases, the time on market for that house is expected to increase by about $6.6732$%. 
 
 
-Lognormal:
+\textbf{Lognormal:}
 
 - School distance has a negative multiplicative effect on time on market by $e^{-.177}$ with a p-value of $.00087$. This is a significant result. This model shows that for every mile farther a house is away from the nearest school, the time on market is expected to decrease by about $16.332$%.
 
 - Number of crimes in the neighborhood has a positive multiplicative effect on time on market of $e^{.0000124}$ with a p-value by $.0927$. This is not a significant result.
-
-- The date at which the house was listed has a negative multiplicative impact on the time on market by $e^{-.0102}$ with a p-value of $0$. This makes sense because as we progress one date forward, we are getting closer to the time at which a house was sold since we only included sold houses in our data. CHECK -- Is this necessary to include?
 
 - The log of the price at which a house was listed has a positive multiplicative impact on the time on market by $e^{.0702}$ with a p-value of $.05$. This is a significant result at the 5% level. This model shows that for every dollar a house's log list price increases, the time on market for that house is expected to increase by about $7.2723$%. 
 
 
 *Hypotheses*
 
-Now we must decide which model is better. To do this, we will first plot the Cox-Snell residuals for the Weibull and Lognormal models and then compare the AIC calculations for each model.
-
-* Ho: weibull: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
-* Ha: lognorm: tom ~ beds + bathf + bathp + carg + sqft + schdist + ncrime + prdiff
-
+Now we must decide which model is better. To do this, we will first plot the Cox-Snell residuals for the Weibull and Lognormal models and assess which residual plot fits a line with intercept 0 and slope 1 better. We will then compare the AIC calculations for each model. Utilizing both a graphical and analytical approach to assessing model fit will help ensure thorough vetting of models. 
 
 *Cox-Snell Residuals*
 
@@ -330,7 +327,7 @@ CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
 ```
 
 
-```{r include=FALSE}
+```{r echo=FALSE}
 
 house$status <- rep(1, 311)
 
@@ -361,10 +358,14 @@ mln$loglik
 *Summary of Cox Model*
 !!!
 
-```{r}
+```{r echo=FALSE, include=FALSE}
 library(survminer)
 fit = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , data = house )
 fit
+
+```
+
+```{r echo=FALSE, warning=FALSE}
 ggforest(fit, data = house)
 ```
 
@@ -376,130 +377,7 @@ stargazer(mw, mln, title="Results", align=TRUE)
 stargazer(mcox, title="Results", align=TRUE)
 ```
 
-
-### Full Summary Table
-
-\begin{table}[!htbp] \centering 
-  \caption{} 
-  \label{} 
-\begin{tabular}{@{\extracolsep{5pt}}lccccc} 
-\\[-1.8ex]\hline 
-\hline \\[-1.8ex] 
-Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\ 
-\hline \\[-1.8ex] 
-\hline \\[-1.8ex] 
-\end{tabular} 
-\end{table} 
-
-
-
-
-### Simple Summary Table
-
-\begin{table}[!htbp] \centering 
-  \caption{} 
-  \label{} 
-\begin{tabular}{@{\extracolsep{5pt}} cccccccccccccccccccccc} 
-\\[-1.8ex]\hline 
-\hline \\[-1.8ex] 
-address & city & zip & beds & bathf & bathp & carg & sqft & listedatpr & soldatpr & listedatdate & soldatdate & neighb & schdist & ncrime & pid & tom & prdiff & prdiff\_perc & prdiff\_np & status & crimeCat2 \\ 
-\hline \\[-1.8ex] 
-704 White Bear Avenue N & Saint Paul & 55106 & 2 & 1 & 1 & 1 & 1089 & 139000 & 138000 & 17447 & 17562 & Conway/Battlecreek/Highwood & 0.4 & 4453 & pid\_20224294/ & 115 & -1000 & -0.00719424460431655 & 2 & 1 & 3 \\ 
-967 Fuller Avenue & Saint Paul & 55104 & 2 & 1 & 0 & 1 & 1560 & 199900 & 2e+05 & 17511 & 17562 & Summit/University & 0.3 & 4545 & pid\_21292535/ & 51 & 100 & 0.000500250125062531 & 1 & 1 & 3 \\ 
-3830 Aldrich Avenue N & Minneapolis & 55412 & 3 & 1 & 1 & 1 & 1254 & 159900 & 159900 & 17503 & 17561 & Webber - Camden & 1 & 460 & pid\_21194229/ & 58 & 0 & 0 & 3 & 1 & 2 \\ 
-\hline \\[-1.8ex] 
-\end{tabular} 
-\end{table} 
-
-
-
-
-## Output: Weibull and Log Normal
-
-\begin{table}[!htbp] \centering 
-  \caption{Results} 
-  \label{} 
-\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} } 
-\\[-1.8ex]\hline 
-\hline \\[-1.8ex] 
- & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
-\cline{2-3} 
-\\[-1.8ex] & \multicolumn{2}{c}{tom} \\ 
-\\[-1.8ex] & \multicolumn{1}{c}{\textit{Weibull}} & \multicolumn{1}{c}{\textit{survreg: lognormal}} \\ 
-\\[-1.8ex] & \multicolumn{1}{c}{(1)} & \multicolumn{1}{c}{(2)}\\ 
-\hline \\[-1.8ex] 
- schdist & 0.184^{**} & -0.045 \\ 
-  & (0.090) & (0.105) \\ 
-  & & \\ 
- crimeCat2(250,2e+03] & 0.188^{**} & 0.094 \\ 
-  & (0.084) & (0.096) \\ 
-  & & \\ 
- crimeCat2(2e+03,5e+03] & 0.252^{***} & 0.226^{**} \\ 
-  & (0.087) & (0.097) \\ 
-  & & \\ 
- crimeCat2(5e+03,1e+04] & 0.109 & 0.170 \\ 
-  & (0.098) & (0.114) \\ 
-  & & \\ 
- log(listedatpr) & 0.131^{**} & 0.228^{***} \\ 
-  & (0.059) & (0.073) \\ 
-  & & \\ 
- Constant & 2.712^{***} & 1.374 \\ 
-  & (0.751) & (0.925) \\ 
-  & & \\ 
-\hline \\[-1.8ex] 
-Observations & \multicolumn{1}{c}{311} & \multicolumn{1}{c}{311} \\ 
-Log Likelihood & \multicolumn{1}{c}{-1,611.420} & \multicolumn{1}{c}{-1,619.327} \\ 
-$\chi^{2}$ (df = 5) & \multicolumn{1}{c}{22.426$^{***}$} & \multicolumn{1}{c}{13.995$^{**}$} \\ 
-\hline 
-\hline \\[-1.8ex] 
-\textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
-\end{tabular} 
-\end{table} 
-
-
-
-
-### Output: Cox PH
-
-\begin{table}[!htbp] \centering 
-  \caption{Results} 
-  \label{} 
-\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} } 
-\\[-1.8ex]\hline 
-\hline \\[-1.8ex] 
- & \multicolumn{1}{c}{\textit{Dependent variable:}} \\ 
-\cline{2-2} 
-\\[-1.8ex] & \multicolumn{1}{c}{tom} \\ 
-\hline \\[-1.8ex] 
- schdist & -0.258 \\ 
-  & (0.176) \\ 
-  & \\ 
- crimeCat2(250,2e+03] & -0.327^{**} \\ 
-  & (0.160) \\ 
-  & \\ 
- crimeCat2(2e+03,5e+03] & -0.425^{**} \\ 
-  & (0.166) \\ 
-  & \\ 
- crimeCat2(5e+03,1e+04] & -0.237 \\ 
-  & (0.186) \\ 
-  & \\ 
- log(listedatpr) & -0.298^{***} \\ 
-  & (0.114) \\ 
-  & \\ 
-\hline \\[-1.8ex] 
-Observations & \multicolumn{1}{c}{311} \\ 
-R$^{2}$ & \multicolumn{1}{c}{0.057} \\ 
-Max. Possible R$^{2}$ & \multicolumn{1}{c}{1.000} \\ 
-Log Likelihood & \multicolumn{1}{c}{-1,468.756} \\ 
-Wald Test & \multicolumn{1}{c}{17.950$^{***}$ (df = 5)} \\ 
-LR Test & \multicolumn{1}{c}{18.218$^{***}$ (df = 5)} \\ 
-Score (Logrank) Test & \multicolumn{1}{c}{18.002$^{***}$ (df = 5)} \\ 
-\hline 
-\hline \\[-1.8ex] 
-\textit{Note:}  & \multicolumn{1}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
-\end{tabular} 
-\end{table} 
-
+###Weibull and Log Normal Output
 
 
 
