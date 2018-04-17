@@ -331,7 +331,6 @@ CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
 
 
 ```{r include=FALSE}
-
 house$status <- rep(1, 311)
 
 # Create Cox-Snell residuals
@@ -356,6 +355,30 @@ mln$loglik
 2*(10--1610.590) # mw
 2*(10--1610.297) # mln
 ```
+
+
+
+
+#### Crime Category 2 + Listed at Price + School Distance
+#### With Interaction Term (if we need this vs. strata !!!)
+
+```{r echo=FALSE, include=FALSE}
+mw = survreg( Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) + crimeCat2:log(listedatpr), dist = "weibull" , data = house )
+mln = survreg( Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) + crimeCat2:log(listedatpr), dist = "lognormal" , data = house )
+mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) + crimeCat2:log(listedatpr), data = house )
+
+
+summary(mw) 
+summary(mln) 
+mcox
+```
+
+
+
+
+
+
+
 
 
 *Summary of Cox Model*
@@ -507,10 +530,61 @@ Score (Logrank) Test & \multicolumn{1}{c}{18.002$^{***}$ (df = 5)} \\
 
 ### 3.4 Testing the Cox PH Assumption
 
-Not Worked on Yet
+To test the PH assumption, we instead turn to examining the Kaplan-Meier c-log-log plot and the Schoenfeld residuals.
 
 
+We first look at the PH assumption for the two cities: Saint Paul and Minneapolis. The very narrow gap in the two groups from the Kaplan-Meier c-log-log plot indicates essentially no difference between the two groups, providing a stronger evidence for the PH assumption.
 
+```{r}
+KM = survfit(Surv(tom) ~ city, data=house)
+plot(KM,fun='cloglog',mark.time=FALSE,col=1:2, xlim = c(15,220))
+```
+
+Similary, the constant residuals with essentially 0 rho and highly insignificant p-value in the Schoenfeld residual output indicates that the PH assumption is valid. In other words, it is safe to assume that the risk of being sold for a Saint Paul property over a Minneapolis property is constant over time, with the Saint Paul properties remaining in the market longer (HR = 0.86).  
+
+```{r echo = FALSE}
+mcox = coxph(Surv(tom) ~ city, data=house)
+plot( cox.zph(mcox) )
+cox.zph( mcox )
+```
+
+
+We now look at the categorical listed price variable. 
+
+Kaplan-Meier c-log-log plot also has very narrow gap between the first and second listed price groups, but a clearly unproportional gap in the lowest and the highest listed price groups. The latter trend point to a strong evidence for the violoation of the PH assumption.
+
+```{r}
+KM = survfit(Surv(tom) ~ listedatprCat, data=house)
+plot(KM,fun='cloglog',mark.time=FALSE,col=1:3, xlim = c(15,220))
+```
+
+As seen in the Kaplain-Meier c-log-log plot, the Schoenfeld residual plots illustrate that the PH assumption holds in the first two listed price groups, while the opposite is true for the first and last listed price groups. More specifically, the second group compared to the first group largely maintains the PH assumption throughout except at the very tip of the time frame. On the other hand, the highest listed price group has visibly increasing (from large negative to positive) residuals, indicating a clear violation of the PH assumption. The residual output agrees in that the highest listed price group has a non-constant positive HR with rho = 0.18 and a highly significant p-value. In other words, the hazard ratio is being underestimated as the residuals are increasing. The second group, on the other hand has rho close to 0 with insignificant p-value, indicating the validity of the PH assumption. 
+
+```{r echo = FALSE}
+(mcox = coxph(Surv(tom) ~ listedatprCat, data=house))
+plot( cox.zph(mcox) )
+cox.zph( mcox )
+```
+
+Finally, we look at the crime category variables. For this variable, we do not include the c-log-log for Kaplan-Meier because there are four groups with too small sample size for each group. 
+
+```{r echo = FALSE}
+mcox = coxph(Surv(tom) ~ crimeCat2, data=house)
+plot( cox.zph(mcox) )
+cox.zph( mcox )
+```
+
+The slightly decresing residuals from the plots for the second crime group may make the PH assumption invalid. However, Schoenfeld residuals from both the third and the last crime group are constant throughout time, which indicate that the PH assumption is valid. In the residual fit output, all rhos are close to zero with insignificant p-values. This output demonstrates that the PH assumption is valid with all levels in the categorical crime variable. 
+
+
+!!! can we do this same procedure (mcox and plot of Schoenfeld) with multiple variables where some of these covariates are quantitative?
+
+!!! are three PH assumption tests enough? (city, crimeCat, and priceCat)
+
+
+!!! how does strata work for controlling instead of adding in new variables? doesn't adding in variables automatically control?
+
+!!! when do we use strata over interaction? (crime cat and price)
 
 
 
