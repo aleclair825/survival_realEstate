@@ -320,19 +320,16 @@ Log-normal looks the best!
 
 ```{r echo=FALSE, include=FALSE}
 # Creates Cox-Snell Plot:
-CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
+CoxSnell = function(cs, status, xlim=NULL, ylim=NULL,main=NULL) {
   kmcs=survfit(Surv(jitter(cs,amount=(max(cs)-min(cs))/1000),status)~1)$surv
-  plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim)
+  plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim,main=main)
   abline(0,1,col='red') }
 ```
 
 
-<<<<<<< HEAD
 ```{r echo=FALSE}
 
-=======
-```{r include=FALSE}
->>>>>>> 54c2d2a6650218c02ee1d13e158501fa7d9f8453
+
 house$status <- rep(1, 311)
 
 # Create Cox-Snell residuals
@@ -341,7 +338,7 @@ CS_w = -log( 1 - pweibull(house$tom, 1/0.532846, exp(4.153050e+00 + 5.260030e-02
 CS_ln = -log( 1 - plnorm(house$tom, 4.153050e+00 + 5.260030e-02*house$beds + 4.625418e-02*house$bathf + 3.530967e-02*house$bathp + -4.039299e-02*house$carg -2.186615e-05*house$sqft + 1.252779e-01*house$schdist + 5.489057e-06*house$ncrime + -5.267278e-06*house$prdiff, 0.5914082) ) 
 
 # Make appropriate graph using CoxSnell function
-CoxSnell( CS_w , house$status )
+CoxSnell( CS_w , house$status ,  main="Hello" )
 CoxSnell( CS_ln , house$status )
 ```
 
@@ -399,11 +396,12 @@ ggforest(fit, data = house)
 
 
 ```{r include = FALSE}
-stargazer(house[c(9,14,22),])
-stargazer(house[c(9,14,22),], summary=FALSE, rownames=FALSE)
+#stargazer(house[c(9,14,22),])
+#stargazer(house[c(9,14,22),], summary=FALSE, rownames=FALSE)
 stargazer(mw, mln, title="Results", align=TRUE)
-stargazer(mcox, title="Results", align=TRUE)
+#stargazer(mcox, title="Results", align=TRUE)
 ```
+
 
 ###Weibull and Log Normal Output
 
