@@ -396,6 +396,24 @@ mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) + crimeCat2:log(l
 summary(mw) 
 summary(mln) 
 mcox
+
+mean(log(house$listedatpr))
+```
+
+
+
+```{r}
+# 25th, 50th, 75th percentile 
+exp(12)
+mean(house$listedatpr)
+
+exp(1.666-0.121*12)
+exp(-1.984+.179*12)
+exp(-2.118+.186*12)
+
+exp(1.666-0.121*14)
+exp(-1.984+.179*14)
+exp(-2.118+.186*14)
 ```
 
 
@@ -487,6 +505,9 @@ cox.zph( mcox )
 PH doesn't seem to hold. (Victor)
 Before 84 days, list price has a strong impact.
 After 84 days, list price is not impactful.
+Mostly, it's negative but thiseffect is comining in the first two months. 
+If the houses are not selling by the two month peirod, there should be a reason why they are not selling. 
+We're more interested in the effects in the first two months than we are later.
 
 
 
@@ -494,7 +515,7 @@ It seems that the PH assumption is valid for both school distance and list price
 
 
 
-
+strata = if can't assume the PH, then use strata. (Victor)
 
 
 
