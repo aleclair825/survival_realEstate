@@ -2,6 +2,8 @@
 title: "Survival Analysis of Factors Affecting Time on Market for Twin Cities Homes"
 author: "Nick McMullen, April Choi"
 date: "April 20, 2018"
+header-includes:
+   - \usepackage{dcolumn}
 output:
   pdf_document:
     pandoc_args:
@@ -96,7 +98,7 @@ An essential assumption to our research is based on censoring. We intentionally 
 
 We utilize visualizations of parametric and non-parametric estimates of the true survival curve for `Time on Market (tom)` and test for significant differences in `tom` among houses with different characteristics, such as the price difference between list and sold price. 
 
-##3 | Preliminary Results
+##3 | Results
 
 We begin our preliminary analysis by investigating the length of time that houses in the Twin Cities remain on the market after their preliminary listing date.
 
@@ -439,11 +441,6 @@ stargazer(mw, mln, title="Results", align=TRUE)
 
 
 
-
-
-
-
-
 ### 3.4 Testing the Cox PH Assumption
 
 To test the PH assumption, we instead turn to examining the Kaplan-Meier c-log-log plot and the Schoenfeld residuals.
@@ -528,3 +525,77 @@ strata = if can't assume the PH, then use strata. (Victor)
 !!! how does strata work for controlling instead of adding in new variables? doesn't adding in variables automatically control?
 
 !!! when do we use strata over interaction? (crime cat and price)
+
+
+
+
+##4 Conclusions and Discussion
+
+In summary, we observed some fascinating trends in the time a Twin Cities home spends on the market when controlling for variables such as distance to nearest school, list price, crime in neighborhood since 2015, and municipal location. 
+
+First, our data indicate that houses closer to the nearest school tend to sell faster, likely due to the more convenient and/or central location. We also observed that houses priced higher tend to take longer to sell, likely because higher prices are self-selective of buyers. We also believe that houses with higher prices are more likely to be overpriced relative to their appraised value. We also observed that houses in neighborhoods with a higher number of crimes since the start of 2015 take longer to sell, with the exception of houses in the highest crime neighborhoods. This could be explained by houses in higher crime neighborhoods generally having lower prices. Finally, in a  broader look at time on market compared to municipal location, we did not observe a significant relationship between how long a home took to sell and whether a house is located in Minneapolis or St. Paul. 
+
+Talk about coxph for univariate here. 
+
+We considered that some of these variables might also behave differently in the presence of each other, so we created a multivariate model.
+
+Talk about coxph for multivariate here. 
+
+Overall coxph assumptions for each variable here. 
+
+
+
+
+##5 Appendix
+
+Weibull and log-normal output results:
+
+\begin{table}[!htbp] \centering 
+  \caption{Results} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-3} 
+\\[-1.8ex] & \multicolumn{2}{c}{tom} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{\textit{Weibull}} & \multicolumn{1}{c}{\textit{survreg: lognormal}} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{(1)} & \multicolumn{1}{c}{(2)}\\ 
+\hline \\[-1.8ex] 
+ schdist & 0.192^{**} & -0.057 \\ 
+  & (0.089) & (0.104) \\ 
+  & & \\ 
+ crimeCat2(250,2e+03] & 1.666 & 5.359^{**} \\ 
+  & (1.682) & (2.221) \\ 
+  & & \\ 
+ crimeCat2(2e+03,5e+03] & -1.984 & -0.942 \\ 
+  & (2.024) & (2.408) \\ 
+  & & \\ 
+ crimeCat2(5e+03,1e+04] & -2.118 & 0.454 \\ 
+  & (3.025) & (3.511) \\ 
+  & & \\ 
+ log(listedatpr) & 0.126 & 0.356^{***} \\ 
+  & (0.098) & (0.131) \\ 
+  & & \\ 
+ crimeCat2(250,2e+03]:log(listedatpr) & -0.121 & -0.424^{**} \\ 
+  & (0.135) & (0.178) \\ 
+  & & \\ 
+ crimeCat2(2e+03,5e+03]:log(listedatpr) & 0.179 & 0.096 \\ 
+  & (0.161) & (0.192) \\ 
+  & & \\ 
+ crimeCat2(5e+03,1e+04]:log(listedatpr) & 0.186 & -0.016 \\ 
+  & (0.250) & (0.290) \\ 
+  & & \\ 
+ Constant & 2.774^{**} & -0.238 \\ 
+  & (1.239) & (1.661) \\ 
+  & & \\ 
+\hline \\[-1.8ex] 
+Observations & \multicolumn{1}{c}{311} & \multicolumn{1}{c}{311} \\ 
+Log Likelihood & \multicolumn{1}{c}{-1,609.288} & \multicolumn{1}{c}{-1,614.500} \\ 
+$\chi^{2}$ (df = 8) & \multicolumn{1}{c}{26.691$^{***}$} & \multicolumn{1}{c}{23.649$^{***}$} \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
+
