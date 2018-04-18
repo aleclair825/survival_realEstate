@@ -23,6 +23,14 @@ library(stargazer)
 house <- read_csv("../Source/house_TC.csv")
 house <- house %>% mutate(tom = ifelse(tom == 0, 1, tom),
                           prdiff_np = as.factor(prdiff_np))
+
+
+# Creates Cox-Snell Plot:
+CoxSnell = function(cs, status, xlim=NULL, ylim=NULL, main=NULL, sub=NULL) {
+  kmcs=survfit(Surv(jitter(cs,amount=(max(cs)-min(cs))/1000),status)~1)$surv
+  plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim, main=main, sub=sub)
+  abline(0,1,col='red') }
+
 ```
 
 ## 1 | Introduction
@@ -76,7 +84,7 @@ We also obtained crime data beginning on January 1, 2015 from the government web
 
 ### 2.2 Variables
 
-For all 311 observations, we collected unique addresses `address`, city of residence `city`, zip code `zip`, number of bedrooms `beds`, number of full bathrooms `bathf`, number of partial bathrooms `bathp`, number car garage `carg`, house squarefeet `sqft`, price the home was listed at `listedatpr`, price the home was sold for `soldatpr`, date the home was listed `listedatdate`, date the home was sold `soldatdate`, neighborhood the house is located `neighb`, distance to nearest school (mi.) `schdist`, and number of crimes that were recorded in that neighborhood beginning on January 1, 2015 `ncrime`. We also calculated the time on market `tom` for each house from list date to sale date, included the property ID `pid` from the Coldwell Banker website, calculated a price difference from list price to sale price `prdiff`, computed a percent change price `prdiff_perc`, and created a categorical variable `prdiff_np` to reflect whether a house had a positive (1), negative (2), or neutral (3) price difference. 
+For all 311 observations, we collected unique addresses `address`, city of residence `city`, zip code `zip`, number of bedrooms `beds`, number of full bathrooms `bathf`, number of partial bathrooms `bathp`, number car garage `carg`, house squarefeet `sqft`, price the home was listed at `listedatpr`, price the home was sold for `soldatpr`, date the home was listed `listedatdate`, date the home was sold `soldatdate`, neighborhood the house is located `neighb`, distance to nearest school (mi.) `schdist`, and number of crimes that were recorded in that neighborhood beginning on January 1, 2015 `ncrime`. We also calculated the time on market `tom` for each house from list date to sale date amd included the property ID `pid` from the Coldwell Banker website. 
 
 ### 2.3 Assumptions
 
@@ -90,11 +98,31 @@ We utilize visualizations of parametric and non-parametric estimates of the true
 
 We begin our preliminary analysis by investigating the length of time that houses in the Twin Cities remain on the market after their preliminary listing date.
 
-### 3.1 Non-Parametric Survival Curve Estimates for Aggregate Data
+### 3.1 Non-Parametric (Kaplan-Meier) Survival Curve Estimates 
 
-#### Kaplan-Meier
+#### Proximity to Nearest School
 
-First, we fit a Kaplan-Meier curve with confidence intervals for survival (time on market) across all groups. Since the data contains no censoring, Kaplan-Meier is equivalent to `1-ecdf` representative of the raw data itself. From the data, the mean is approximately 85.97 days, the median is 73 days, and the 95% CI is [66, 82]. The curve is right-skewed, indicating that there are more houses that sell faster than average. 
+Kaplan-Meier curves allow us to observe the general trends in the data, with time on market being the most important variable in the analysis. Our parametric analysis that follows will be informed by basic insights obtained from these Kaplan-Meier curves. 
+
+First, we fit a Kaplan-Meier curve for time on market by distance from the nearest school. In order to do this, we identify the closest 50% of homes as "close" and the farthest 50% of homes as "far."
+
+```{r echo=FALSE}
+
+house$schdistCat <- cut(house$schdist, breaks = quantile(house$schdist, probs=c(0, .5, 1)))
+
+KM0 <- survfit(Surv(tom) ~ schdistCat, conf.type="plain", data=house)
+
+ggsurvplot(KM0, data=house, legend.labs=c("Near", "Far"), xlim=c(0,250)) + 
+  labs(x = "Days on Market", y = "Survival Probability", title="Days on Market by Proximity to Nearest School")
+
+
+```
+
+There appears to be no difference based on distance to school. However, this may be due to the over-generalization (near vs. far) of school distance. This variable warrants further investigation. 
+
+#### Crime 
+
+Next, we fit a Kaplan-Meier curve for time on market based on number of crimes committed in that house's neighborhood since the beginning of 2015. 
 
 ```{r echo=FALSE}
 
@@ -104,16 +132,17 @@ house$crimeCat2 = cut(house$ncrime, breaks = c(0,250,2000,5000,10000))
 # mean(house$tom)
 # median(house$tom)
 KM = survfit( Surv(tom) ~ crimeCat2, conf.type="plain" , data=house ) 
-ggsurvplot(KM, data=house, legend.labs=c("0 to 250 crimes", "250 to 2000", "2000 to 5000", "5000 to 10000")) +
-  labs(x = "Days on Market", y = "Survival Probability", title = "Days on Market By Crime Since 2015 Category") 
-
-
+ggsurvplot(KM, data=house, legend.labs=c("0 to 250 crimes", "250 to 2000", "2000 to 5000", "5000 to 10000"), xlim=c(0,250)) +
+  labs(x = "Days on Market", y = "Survival Probability", title = "Days on Market by Crime Since 2015 Category")
 
 
 ```
 
-From a brief glance at this Kaplan-Meier curve, we see that homes that fit into the second highest number of crimes category take the longest to sell. 
+We see that homes that fit into the second highest number of crimes category take the longest to sell, while homes in the lowest crime neighborhoods sell fastest. This progression seems logical, except for homes in the highest crime neighborhoods, which appear to sell generally the second fastest. This is likely because there are fewer houses (59) that fall into the highest crime category and thus the sample is not representative of the actual market. 
 
+#### List Price
+
+This Kaplan-Meier curve shows the time on market based on their list price. 
 
 ```{r echo=FALSE}
 
@@ -122,32 +151,36 @@ house$listedatprCat = cut(house$listedatpr, breaks = quantile(house$listedatpr, 
 # mean(house$tom)
 # median(house$tom)
 KM1 = survfit( Surv(tom) ~ listedatprCat , conf.type="plain" , data=house ) 
-ggsurvplot(KM1, data=house, legend.labs=c("price = 63,000 to 180,000", "180,000 to 275,000", "275,000 to 1,300,000")) +
+ggsurvplot(KM1, data=house, legend.labs=c("price = 63,000 to 180,000", "180,000 to 275,000", "275,000 to 1,300,000"), xlim=c(0,250)) +
   labs(x = "Days on Market", y = "Survival Probability", title = "Days on Market By List Price Category")
 
 ```
 
-It is apparent from this Kaplan-Meier curve that houses that fall into the highest price category take the longest to sell. 
+Houses that fall into the highest price category appear to take the longest to sell, while houses in the middle price category appear to sell the fastest. 
+
+#### Municipal Location
 
 ```{r echo=FALSE}
 
 # mean(house$tom)
 # median(house$tom)
 KM2 = survfit( Surv(tom) ~ city , conf.type="plain" , data=house ) 
-ggsurvplot(KM2, data=house, legend.labs=c("Minneapolis", "St. Paul")) +
+ggsurvplot(KM2, data=house, legend.labs=c("Minneapolis", "St. Paul"), xlim=c(0,250)) +
   labs(x = "Days on Market", y = "Survival Probability", title = "Days on Market By City")
 
 ```
 
 
-There doesn't apprear to be a huge difference in time to sale between homes in St. Paul and Minneapolis, but we see that in our data, St. Paul homes take slightly longer to sell based on this Kaplan-Meier curve. 
+There doesn't apprear to be a huge difference in time to sale between homes in St. Paul and Minneapolis, but we see that in our data, St. Paul homes take slightly longer to sell based on this Kaplan-Meier curve. While this relationship may seem negligible, this small difference warrants further investigation in parametric models. 
 
-Now that we have taken a brief look at Kaplan-Meier curves for these variables, we will create some models with parametric assumptions to see which is better and assess for significant differences.
+Now that we have taken a brief look at Kaplan-Meier curves for these variables, we will create some models with parametric assumptions to verify or refute previously observed trends by assessing for significant relationships. 
 
 
 ### 3.2 Univariate Parametric Models
 
-#### School Distance 
+#### Proximity to Nearest School
+
+The Kaplan-Meier curve shown in the previous section revealed what appears to be no difference in how long a house takes to sell based on its municipal designation. In order to verify the previous graphical findings, we create three parametric models to further assess the impact of school distance on time to sale. 
 
 ```{r include=FALSE}
 mw = survreg( Surv(tom) ~ schdist , dist = "weibull" , data = house )
@@ -159,7 +192,7 @@ summary(mln) # the sign of schdist is negative and it is NOT significant
 mcox # sign agrees with weibull and it is significant
 ```
 
-The Weibull model indicates that the properties that are farther from schools have longer TOM than those closer to schools, with a significant p-value. However, the Log Normal model yields the opposite result with an insignificant p-value. This result may be due to the inherent differences in the two models, rather than the school distance variable being insignificant. In fact, the Cox PH model agrees with the Weibull model in the variable's direction and p-value. According to the Cox PH model, the hazard ratio of school distance is 0.701, which means that the risk of being sold decreases by 70% for every one-mile increase in school distance. In other words, properties farther away from schools take longer to sell.
+The Weibull model indicates that the properties that are farther from schools have longer TOM than those closer to schools, with a significant p-value. However, the Log Normal model yields the opposite result with an insignificant p-value. This result may be due to the inherent differences in the two models, rather than the school distance variable being insignificant. In fact, the Cox PH model agrees with the Weibull model in the variable's direction and p-value. According to the Cox PH model, the hazard ratio of school distance is 0.701, which means that the risk of being sold decreases by 70% for every one-mile increase in school distance. In other words, properties farther away from schools take longer to sell. Despite the relatively unassuming Kaplan-Meier curve for school distance
 
 ```{r include = FALSE}
 # Create Cox-Snell residuals
@@ -167,20 +200,17 @@ CS_w = -log( 1 - pweibull(house$tom, 1/0.537, exp(4.443 + 0.246*house$schdist) )
 CS_ln = -log( 1 - plnorm(house$tom, 4.3010 + -0.0313*house$schdist, 0.623) ) 
 
 # Make appropriate graph using CoxSnell function
-# Creates Cox-Snell Plot:
-CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
-  kmcs=survfit(Surv(jitter(cs,amount=(max(cs)-min(cs))/1000),status)~1)$surv
-  plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim)
-  abline(0,1,col='red') }
 
 house$status = rep(1, nrow(house))
 
 ```
 
-```{r echo=FALSE}
-CoxSnell( CS_w , house$status )
-CoxSnell( CS_ln , house$status ,xlim=c(-7,5))
+```{r echo=FALSE} 
+CoxSnell( CS_w , house$status, main="Weibull School Distance C-S Resids" )
+CoxSnell( CS_ln , house$status ,xlim=c(-7,5), main="log-normal School Distance C-S Resids")
 ```
+
+The log-normal Cox-Snell residuals appear to fit the model better since they fit the line with intercept 0 and slope 1 better.
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
@@ -189,11 +219,13 @@ CoxSnell( CS_ln , house$status ,xlim=c(-7,5))
 # The AIC for the Weibull model is 3242.878, and that for the Log Normal model is 3258.564. Thus, we conclude that the Weibull model fits better than the Log Normal model. 
 ```
 
-The Log Normal model seems to fit better than the Weibull model according to the Cox Snell residual plots, but AIC indicates that the Weibull model is a better fit.
+AIC indicates that the Weibull model is a better fit. This contradiction between Cox-Snell residual plots and AIC could be attributed to... !!! (what could this be attributed to??)
+
+This trend for Cox-Snell plots indicating that log-normal models are a better fit for the data continues throughout the univariate models below. Thus, we do not include the actual Cox-Snell residual plots going forward for univariate models. 
 
 
 
-#### Crime Categorical
+#### Crime 
 
 ```{r include=FALSE}
 house$crimeCat2 = cut(house$ncrime, breaks = c(0,250,2000,5000,10000))
@@ -224,18 +256,14 @@ CS_ln = -log( 1 - plnorm(house$tom, 4.3010 + -0.0313*house$schdist, 0.623) )
 
 # Make appropriate graph using CoxSnell function
 # Creates Cox-Snell Plot:
-CoxSnell = function(cs, status, xlim=NULL, ylim=NULL) {
-  kmcs=survfit(Surv(jitter(cs,amount=(max(cs)-min(cs))/1000),status)~1)$surv
-  plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim)
-  abline(0,1,col='red') }
 
 house$status = rep(1, nrow(house))
 
 ```
 
-```{r echo=FALSE}
-CoxSnell( CS_w , house$status )
-CoxSnell( CS_ln , house$status )
+```{r echo=FALSE, include=FALSE}
+CoxSnell( CS_w , house$status, main="Weibull Crime Category C-S Resids")
+CoxSnell( CS_ln , house$status, main="log-normal Crime Category C-S Resids")
 ```
 
 ```{r include = FALSE}
@@ -243,9 +271,9 @@ CoxSnell( CS_ln , house$status )
 2*(3-mln$loglik[2]) # mln
 ```
 
-Again, the AIC indicates that the Weibull model is a better fit than the Log Normal model.
+Again, the AIC indicates that the Weibull model is a better fit than the Log Normal model. This is the same contradiction observed previously and can be attributed to... !!! (what can this be attributed to???)
 
-#### Listed Price
+#### List Price
 
 ```{r include=FALSE}
 mw = survreg( Surv(tom) ~ log(listedatpr), dist = "weibull" , data = house )
@@ -270,6 +298,7 @@ Properties with higher listed price has a longer TOM at the 5% level significanc
 
 # Again, the AIC indicates that the Weibull model is a better fit than the Log Normal model.
 ```
+
 
 
 ### 3.3 Multivariate Parametric Models
@@ -301,7 +330,7 @@ Model Interpretations:
 - The log of the price at which a house was listed has a positive multiplicative impact on the time on market by $e^{.0646}$ with a p-value of $.00191$. This is a significant result. This model shows that for every dollar a house's log list price increases, the time on market for that house is expected to increase by about $6.6732$%. 
 
 
-\textbf{Lognormal:}
+\textbf{log-normal:}
 
 - School distance has a negative multiplicative effect on time on market by $e^{-.177}$ with a p-value of $.00087$. This is a significant result. This model shows that for every mile farther a house is away from the nearest school, the time on market is expected to decrease by about $16.332$%.
 
@@ -312,19 +341,11 @@ Model Interpretations:
 
 *Hypotheses*
 
-Now we must decide which model is better. To do this, we will first plot the Cox-Snell residuals for the Weibull and Lognormal models and assess which residual plot fits a line with intercept 0 and slope 1 better. We will then compare the AIC calculations for each model. Utilizing both a graphical and analytical approach to assessing model fit will help ensure thorough vetting of models. 
+Now we must decide which model is better. To do this, we will first plot the Cox-Snell residuals for the Weibull and log-normal models and assess which residual plot fits a line with intercept 0 and slope 1 better. We will then compare the AIC calculations for each model. Utilizing both a graphical and analytical approach to assessing model fit will help ensure thorough vetting of models. 
 
 *Cox-Snell Residuals*
 
-Log-normal looks the best!
-
-```{r echo=FALSE, include=FALSE}
-# Creates Cox-Snell Plot:
-CoxSnell = function(cs, status, xlim=NULL, ylim=NULL,main=NULL) {
-  kmcs=survfit(Surv(jitter(cs,amount=(max(cs)-min(cs))/1000),status)~1)$surv
-  plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim,main=main)
-  abline(0,1,col='red') }
-```
+log-normal looks the best!
 
 
 ```{r echo=FALSE}
@@ -339,14 +360,14 @@ CS_ln = -log( 1 - plnorm(house$tom, 4.153050e+00 + 5.260030e-02*house$beds + 4.6
 
 # Make appropriate graph using CoxSnell function
 CoxSnell( CS_w , house$status ,  main="Hello" )
-CoxSnell( CS_ln , house$status )
+CoxSnell( CS_ln , house$status, main = "" )
 ```
 
-The lognormal model appears to perform better when evaluating performance graphically.
+The log-normal model appears to perform better when evaluating performance graphically.
 
 *AIC*
 
-Lognormal (3240.594) performs better in the AIC calculation than Weibull (3241.18). 
+log-normal (3240.594) performs better in the AIC calculation than Weibull (3241.18). 
 
 ```{r echo=FALSE, include=FALSE}
 mln$loglik
@@ -416,7 +437,7 @@ To test the PH assumption, we instead turn to examining the Kaplan-Meier c-log-l
 
 We first look at the PH assumption for the two cities: Saint Paul and Minneapolis. The very narrow gap in the two groups from the Kaplan-Meier c-log-log plot indicates essentially no difference between the two groups, providing a stronger evidence for the PH assumption.
 
-```{r}
+```{r echo = FALSE}
 KM = survfit(Surv(tom) ~ city, data=house)
 plot(KM,fun='cloglog',mark.time=FALSE,col=1:2, xlim = c(15,220))
 ```
