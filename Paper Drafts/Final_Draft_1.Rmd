@@ -3,11 +3,11 @@ title: "Survival Analysis of Factors Affecting Time on Market for Twin Cities Ho
 author: "Nick McMullen, April Choi"
 date: "April 20, 2018"
 output:
-  html_document: default
   pdf_document:
     pandoc_args:
     - -V
     - classoption=twocolumn
+  html_document: default
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -30,6 +30,8 @@ CoxSnell = function(cs, status, xlim=NULL, ylim=NULL, main=NULL, sub=NULL) {
   kmcs=survfit(Surv(jitter(cs,amount=(max(cs)-min(cs))/1000),status)~1)$surv
   plot(log(-log(kmcs))~sort(log(cs)),xlab="log(Cox-Snell)",ylab="log(-log(S(Cox-Snell)))",xlim=xlim,ylim=ylim, main=main, sub=sub)
   abline(0,1,col='red') }
+
+house$status <- rep(1, 311)
 
 ```
 
@@ -279,7 +281,7 @@ Properties with higher list price has a longer TOM at the 5% level significance 
 
 #### City
 
-```{r include=FALSE, r include=FALSE}
+```{r include=FALSE}
 mw = survreg( Surv(tom) ~ city, dist = "weibull" , data = house )
 mln = survreg( Surv(tom) ~ city, dist = "lognormal" , data = house )
 mcox = coxph( Surv(tom) ~ city, data = house )
