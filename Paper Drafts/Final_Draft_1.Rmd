@@ -408,6 +408,24 @@ mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) + crimeCat2:log(l
 summary(mw) 
 summary(mln) 
 mcox
+
+mean(log(house$listedatpr))
+```
+
+
+
+```{r}
+# 25th, 50th, 75th percentile 
+exp(12)
+mean(house$listedatpr)
+
+exp(1.666-0.121*12)
+exp(-1.984+.179*12)
+exp(-2.118+.186*12)
+
+exp(1.666-0.121*14)
+exp(-1.984+.179*14)
+exp(-2.118+.186*14)
 ```
 
 
@@ -482,13 +500,37 @@ The slightly decresing residuals from the plots for the second crime group may m
 
 
 
+#### Multivariate Assessment of the PH Assumption
+
+```{r echo = FALSE}
+mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr), data=house)
+# mcox = coxph(Surv(tom) ~ schdistCat + crimeCat2 + listedatprCat, data=house)
+plot( cox.zph(mcox) )
+cox.zph( mcox )
+```
+
+PH doesn't seem to hold. (Victor)
+Before 84 days, list price has a strong impact.
+After 84 days, list price is not impactful.
+Mostly, it's negative but thiseffect is comining in the first two months. 
+If the houses are not selling by the two month peirod, there should be a reason why they are not selling. 
+We're more interested in the effects in the first two months than we are later.
+
+
+
+It seems that the PH assumption is valid for both school distance and list price, but not for crime categories. For school distance, the Schoenfeld residuals show a decreasing trends, while the list price Schoenfeld residuals increase with respect to time. The coefficients for school distance is consistent with the decreasing beta in the Schoenfeld residual plot, but that for list price is not consistent. !!!
+
+
+
+strata = if can't assume the PH, then use strata. (Victor)
+
+
 
 # More Questions for Victor outside of rmd
 
 !!! can we do this same procedure (mcox and plot of Schoenfeld) with multiple variables where some of these covariates are quantitative?
 
 !!! are three PH assumption tests enough? (city, crimeCat, and priceCat)
-
 
 !!! how does strata work for controlling instead of adding in new variables? doesn't adding in variables automatically control?
 
