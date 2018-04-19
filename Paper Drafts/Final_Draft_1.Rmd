@@ -345,14 +345,12 @@ mcox
 
 According to the Weibull model, all variables are significant with expected signs except for the highest crime category. As have seen in univariate models, school distance and list price variables predict positive correlation with TOM. In other words, homes with the higher list price or and those farther away from schools tend to stay on market longer. The directions with these two variables makes sense. Expensive houses are harder to sell because not many people are able to afford the house, and these houses may often be overpriced (higher than its appraisal value). On the other hand, houses closer to schools tend to be in more populated and desirable areas, so it should follow that houses closer to a school would sell faster. 
 
-<<<<<<< HEAD
 All crime categories predict longer TOM compared to the lowest crime category, which is mostly consistent with the univariate crime category analysis previously conducted. Specifically, the second crime group is more likely to stay on market longer compared to the lowest crime group in line with the univariate model. However, the TOM for the third crime group is less than double that for the second crime group, which is a weaker effect than what we saw in the univariate analysis. With respect to p-values, both the second and third group are now significant at the 5% level, and the p-value for the highest crime group improved by a factor of 3. For example, houses that belong to the second and third crime category on average have 21% and 29% longer TOM, respectively, compared to those in the lowest crime category. On the other hand, the highest crime category indicates only 11% longer TOM compared to the lowest crime group and an insignificant p-value.
 
 Log-normal model had most of the coefficients in the right direction with worse significance, and the Cox PH model agrees with the Weibull model. 
 
 
-=======
->>>>>>> df8f21ef19f88e1db7817d0216af364aff6416e5
+
 ```{r include=FALSE}
 summary(mw)
 mw$coefficients
@@ -410,7 +408,6 @@ curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134
 # crime gp 3
 curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*0 + 0.2515044*1 + 0.1093053*0 + 0.1309947*mean(log(house$listedatpr)))),add=TRUE,col='blue',lty=1)
 
-<<<<<<< HEAD
 # crime gp 4
 curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*0 + 0.2515044*0 + 0.1093053*1 + 0.1309947*mean(log(house$listedatpr)))),add=TRUE,col='red',lty=1)
 
@@ -418,8 +415,6 @@ curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134
 ```
 =======
 The Weibull model has similar results to the univariate crime category analysis previously conducted. The second crime group is more likely to stay on market longer compared to the lowest crime group in line with the univariate model. However, the TOM for the third crime group is less than double that for the second crime group, which is a weaker effect than what we saw in the univariate analysis. With respect to p-values, both the second and third group are now significant at the 5% level, and the p-value for the highest crime group improved by a factor of 3. 
->>>>>>> df8f21ef19f88e1db7817d0216af364aff6416e5
-
 
 
 #### Model Selection
@@ -447,8 +442,8 @@ CS_ln = -log( 1 - plnorm(house$tom, 1.37373386 + -0.04454097*house$schdist + 0.0
 
 # Make appropriate graph using CoxSnell function
 
-CoxSnell( CS_w , house$status , main = "Cox-Snell Residuals", sub = "Weibull Model")
-CoxSnell( CS_ln , house$status , main = "Cox-Snell Residuals", sub = "Log-Normal Model")
+CoxSnell( CS_w , house$status , main = "Weibull Cox-Snell Residuals")
+CoxSnell( CS_ln , house$status , main = "Log-normal Cox-Snell Residuals")
 ```
 
 The log-normal model appears to perform better when evaluating performance graphically. However, the AIC prefers the Weibull model.
@@ -520,9 +515,7 @@ mcox
 ```
 
 ```{r echo=FALSE, warning=FALSE}
-<<<<<<< HEAD
 ggforest(mcox, data = house)
-=======
 ggforest(fit, data = house)
 ```
 
@@ -545,22 +538,17 @@ We first look at the PH assumption for the two cities: Saint Paul and Minneapoli
 ```{r echo = FALSE, include=FALSE}
 KM = survfit(Surv(tom) ~ city, data=house)
 plot(KM,fun='cloglog',mark.time=FALSE,col=1:2, xlim = c(15,220))
->>>>>>> df8f21ef19f88e1db7817d0216af364aff6416e5
 ```
 
 
-<<<<<<< HEAD
-=======
 ```{r echo = FALSE}
 mcox = coxph(Surv(tom) ~ city, data=house)
 plot( cox.zph(mcox) )
 #cox.zph( mcox )
 ```
->>>>>>> df8f21ef19f88e1db7817d0216af364aff6416e5
 
 
-<<<<<<< HEAD
-=======
+
 Kaplan-Meier c-log-log plot also has very narrow gap between the first and second list price groups, but a clearly unproportional gap in the lowest and the highest list price groups. The latter trend point to a strong evidence for the violoation of the PH assumption.
 
 ```{r include=FALSE}
