@@ -4,6 +4,7 @@ author: "Nick McMullen, April Choi"
 date: "April 20, 2018"
 header-includes:
    - \usepackage{dcolumn}
+   - \usepackage{tabularx}
 output:
   pdf_document:
     pandoc_args:
@@ -96,7 +97,13 @@ An essential assumption to our research is based on censoring. We intentionally 
 
 ### 2.4 Methods
 
-We utilize visualizations of parametric and non-parametric estimates of the true survival curve for `Time on Market (tom)` and test for significant differences in `tom` among houses with different characteristics, such as the price difference between list and sold price. 
+We first utilize nonparametric Kaplan-Meier curves to investigate relationships between time on market and certain variables like distance to the nearest school, crime in the home's neighborhood since 2015, list price, and municipal location. For crime and list price, it was necessary to create categorical variables to properly analyze their effect on time on market with some level of singificance and interpretability. 
+
+Next, we construct univariate parametric accelerated failure time models for each of the variables mentioned previously. We deploy two distribution families - the Weibull and log-normal distributions - and assess which model fits the data better primarily using the (Akaike Information Criterion) AIC, with some assistance from Cox-Snell residual plots. We utilize this comparison approach throughout our analysis as it allows us to observe the impact of a parametric assumption and determine the overall significance of the models we are using, whether they are univariate or multivariate. 
+
+We also fit a multivariate model using each of the variables mentioned above except city, as it appeared to have no significant relationship with time on market. Such an approach allowed us to control for multiple variables at once and see how each of their behavior changed in the presence of the others. With this multivariate strategy in mind, we also considered the possible interaction between list price and crime, as people living in higher crime areas may have to price their homes lower in order to sell. 
+
+Finally, throughout our analysis we employed Cox's Proportional Hazards model as a comparison tool to parametric methods. Since these models assume proportional hazard ratios between the baseline and covariates included, we also asses each proportional hazard assumption using Schoenfeld residual plots.
 
 ##3 | Results
 
@@ -188,7 +195,7 @@ mcox # sign agrees with weibull and it is significant
 ```
 
 
-The Weibull model indicates that the properties that are farther from schools have longer TOM than those closer to schools, with a significant p-value. However, the log-normal model yields the opposite result with an insignificant p-value. This result may be due to the inherent differences in the two models, rather than the school distance variable being insignificant. In fact, the Cox PH model agrees with the Weibull model in the variable's direction and p-value. According to the Cox PH model, the hazard ratio of school distance is 0.701, which means that the risk of being sold decreases by 70% for every one-mile increase in school distance. In other words, properties farther away from schools take longer to sell.
+The Weibull model indicates that the properties that are farther from schools have longer TOM than those closer to schools, with a significant p-value. However, the log-normal model yields the opposite result with an insignificant p-value. This result may be due to the inherent differences in the two models, rather than the school distance variable being insignificant. In fact, the Cox PH model agrees with the Weibull model in the variable's direction and p-value. According to the Cox PH model, the hazard ratio of school distance is 0.701, which means that the risk of being sold decreases by 30% for every one-mile increase in school distance. In other words, properties farther away from schools take longer to sell.
 
 
 ```{r include = FALSE}
@@ -199,10 +206,10 @@ CS_ln = -log( 1 - plnorm(house$tom, 4.3010 + -0.0313*house$schdist, 0.623) )
 
 ```{r echo=FALSE} 
 CoxSnell( CS_w , house$status, main="Weibull School Distance C-S Resids" )
-CoxSnell( CS_ln , house$status ,xlim=c(-7,5), main="log-normal School Distance C-S Resids")
+CoxSnell( CS_ln , house$status ,xlim=c(-7,5), main="Log-normal School Distance C-S Resids")
 ```
 
-The log-normal Cox-Snell residuals appear to fit the model better since they fit the line with intercept 0 and slope 1 better.
+The log-normal Cox-Snell residuals appear to fit the model better since they fit the line with intercept 0 and slope 1 better. For the other following univariate models, the same trend holds so we elected to only show these Cox-Snell residual plot. 
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
@@ -211,11 +218,7 @@ The log-normal Cox-Snell residuals appear to fit the model better since they fit
 # The AIC for the Weibull model is 3242.878, and that for the log-normal model is 3258.564. Thus, we conclude that the Weibull model fits better than the log-normal model. 
 ```
 
-AIC indicates that the Weibull model is a better fit. This contradiction between Cox-Snell residual plots and AIC could be attributed to... !!! (what could this be attributed to??)
-
-This trend for Cox-Snell plots indicating that log-normal models are a better fit for the data continues throughout the univariate models below. Thus, we do not include the actual Cox-Snell residual plots going forward for univariate models. 
-
-
+AIC indicates that the Weibull model is a better fit. This contradiction between Cox-Snell residual plots and AIC could be attributed to different calculation methods, as Cox-Snell residuals do not consider number of parameters like AIC does. This is merely speculation, though. The actual reason for this contradition is unknown to us.
 
 #### Crime 
 
@@ -245,8 +248,8 @@ CS_ln = -log( 1 - plnorm(house$tom, 4.3010 + -0.0313*house$schdist, 0.623) )
 ```
 
 ```{r echo=FALSE, include=FALSE}
-CoxSnell( CS_w , house$status, main="Weibull Crime Category C-S Resids")
-CoxSnell( CS_ln , house$status, main="log-normal Crime Category C-S Resids")
+#CoxSnell( CS_w , house$status, main="Weibull Crime Category C-S Resids")
+#CoxSnell( CS_ln , house$status, main="log-normal Crime Category C-S Resids")
 ```
 
 ```{r include = FALSE}
@@ -254,7 +257,7 @@ CoxSnell( CS_ln , house$status, main="log-normal Crime Category C-S Resids")
 2*(3-mln$loglik[2]) # mln
 ```
 
-Again, the AIC indicates that the Weibull model is a better fit than the log-normal model. This is the same contradiction observed previously and can be attributed to... !!! (what can this be attributed to???)
+Again, the AIC indicates that the Weibull model is a better fit than the log-normal model. 
 
 
 #### List Price
@@ -274,7 +277,9 @@ exp(0.120) #w
 exp(0.189) #ln
 ```
 
-Properties with higher list price has a longer TOM at the 5% level significance for both Weibull and the log-normal models. The effect is stronger with the log-normal model at 20% longer TOM with a much higher significance (4.20e-03) compared to 12% longer TOM for the Weibull model with a slightly lower significance (3.48e-02). The results are consistent with the logic that a more expensive homes will take longer to sell. Despite the greater significance with a stronger effect, the AIC still yields a stronger evidence in support of the Weibull model over the log-normal model by a slight margin. (!!! too detailed?)
+Properties with higher list prices tend to have a longer TOM at the 5% significance level for both Weibull and the log-normal models. The effect is stronger with the log-normal model at 20% longer TOM (p=.0043) compared to 12% longer TOM for the Weibull model with a slightly lower significance (p=.0348). 
+
+These results are consistent with the logic that a more expensive home will take longer to sell. The AIC yields a stronger evidence in support of the Weibull model over the log-normal model by a slight margin, which could indicate that the log-normal model is overplaying the impact that list price has on time to sale. 
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
@@ -311,8 +316,8 @@ CS_ln = -log( 1 - plnorm(house$tom, 4.25681878 + 0.06020683*house$cityn, 0.62196
 ```
 
 ```{r echo=FALSE}
-CoxSnell( CS_w , house$status )
-CoxSnell( CS_ln , house$status )
+#CoxSnell( CS_w , house$status )
+#CoxSnell( CS_ln , house$status )
 ```
 
 ```{r include = FALSE}
@@ -320,7 +325,7 @@ CoxSnell( CS_ln , house$status )
 2*(3-mln$loglik[2]) # mln
 ```
 
-Again, the Cox-Snell plot prefers the log-normal model, but the AIC results show otherwise.
+The AIC again shows that the Weibull model is a better fit for the data. This might be an indicator that there actually is a significant difference in time to sale between houses in Minneapolis and St. Paul, despite what appears to be a miniscule difference in the Kaplan-Meier curves. 
 
 
 
@@ -340,11 +345,14 @@ mcox
 
 According to the Weibull model, all variables are significant with expected signs except for the highest crime category. As have seen in univariate models, school distance and list price variables predict positive correlation with TOM. In other words, homes with the higher list price or and those farther away from schools tend to stay on market longer. The directions with these two variables makes sense. Expensive houses are harder to sell because not many people are able to afford the house, and these houses may often be overpriced (higher than its appraisal value). On the other hand, houses closer to schools tend to be in more populated and desirable areas, so it should follow that houses closer to a school would sell faster. 
 
+<<<<<<< HEAD
 All crime categories predict longer TOM compared to the lowest crime category, which is mostly consistent with the univariate crime category analysis previously conducted. Specifically, the second crime group is more likely to stay on market longer compared to the lowest crime group in line with the univariate model. However, the TOM for the third crime group is less than double that for the second crime group, which is a weaker effect than what we saw in the univariate analysis. With respect to p-values, both the second and third group are now significant at the 5% level, and the p-value for the highest crime group improved by a factor of 3. For example, houses that belong to the second and third crime category on average have 21% and 29% longer TOM, respectively, compared to those in the lowest crime category. On the other hand, the highest crime category indicates only 11% longer TOM compared to the lowest crime group and an insignificant p-value.
 
 Log-normal model had most of the coefficients in the right direction with worse significance, and the Cox PH model agrees with the Weibull model. 
 
 
+=======
+>>>>>>> df8f21ef19f88e1db7817d0216af364aff6416e5
 ```{r include=FALSE}
 summary(mw)
 mw$coefficients
@@ -402,11 +410,15 @@ curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134
 # crime gp 3
 curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*0 + 0.2515044*1 + 0.1093053*0 + 0.1309947*mean(log(house$listedatpr)))),add=TRUE,col='blue',lty=1)
 
+<<<<<<< HEAD
 # crime gp 4
 curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*0 + 0.2515044*0 + 0.1093053*1 + 0.1309947*mean(log(house$listedatpr)))),add=TRUE,col='red',lty=1)
 
 # time ratio
 ```
+=======
+The Weibull model has similar results to the univariate crime category analysis previously conducted. The second crime group is more likely to stay on market longer compared to the lowest crime group in line with the univariate model. However, the TOM for the third crime group is less than double that for the second crime group, which is a weaker effect than what we saw in the univariate analysis. With respect to p-values, both the second and third group are now significant at the 5% level, and the p-value for the highest crime group improved by a factor of 3. 
+>>>>>>> df8f21ef19f88e1db7817d0216af364aff6416e5
 
 
 
@@ -417,7 +429,7 @@ Now, we select the model by first plotting the Cox-Snell residuals for the Weibu
 
 *Cox-Snell Residuals*
 
-```{r echo=FALSE}
+```{r echo=FALSE, include=FALSE}
 mln$coefficients
 # Create Cox-Snell residuals
 CS_w = -log( 1 - pweibull(house$tom, 1/0.532846, exp(2.7119300 + 0.1843770*house$schdist +
@@ -429,7 +441,12 @@ CS_ln = -log( 1 - plnorm(house$tom, 1.37373386 + -0.04454097*house$schdist + 0.0
                            0.22584417*(house$crimeCat2=="(2e+03,5e+03]") + 0.16964559*(house$crimeCat2=="(5e+03,1e+04]") +
                            0.22797669*log(house$listedatpr), 0.6088315)) 
 
+```
+
+```{r echo=FALSE}
+
 # Make appropriate graph using CoxSnell function
+
 CoxSnell( CS_w , house$status , main = "Cox-Snell Residuals", sub = "Weibull Model")
 CoxSnell( CS_ln , house$status , main = "Cox-Snell Residuals", sub = "Log-Normal Model")
 ```
@@ -503,12 +520,72 @@ mcox
 ```
 
 ```{r echo=FALSE, warning=FALSE}
+<<<<<<< HEAD
 ggforest(mcox, data = house)
+=======
+ggforest(fit, data = house)
+```
+
+```{r include = FALSE}
+#stargazer(house[c(9,14,22),])
+#stargazer(house[c(9,14,22),], summary=FALSE, rownames=FALSE)
+stargazer(mw, mln, title="Results", align=TRUE)
+#stargazer(mcox, title="Results", align=TRUE)
 ```
 
 
 
+### 3.4 Testing the Cox PH Assumption
 
+To test the PH assumption, we instead turn to examining the Kaplan-Meier c-log-log plot and the Schoenfeld residuals.
+
+
+We first look at the PH assumption for the two cities: Saint Paul and Minneapolis. The very narrow gap in the two groups from the Kaplan-Meier c-log-log plot indicates essentially no difference between the two groups, providing a stronger evidence for the PH assumption.
+
+```{r echo = FALSE, include=FALSE}
+KM = survfit(Surv(tom) ~ city, data=house)
+plot(KM,fun='cloglog',mark.time=FALSE,col=1:2, xlim = c(15,220))
+>>>>>>> df8f21ef19f88e1db7817d0216af364aff6416e5
+```
+
+
+<<<<<<< HEAD
+=======
+```{r echo = FALSE}
+mcox = coxph(Surv(tom) ~ city, data=house)
+plot( cox.zph(mcox) )
+#cox.zph( mcox )
+```
+>>>>>>> df8f21ef19f88e1db7817d0216af364aff6416e5
+
+
+<<<<<<< HEAD
+=======
+Kaplan-Meier c-log-log plot also has very narrow gap between the first and second list price groups, but a clearly unproportional gap in the lowest and the highest list price groups. The latter trend point to a strong evidence for the violoation of the PH assumption.
+
+```{r include=FALSE}
+KM = survfit(Surv(tom) ~ listedatprCat, data=house)
+plot(KM,fun='cloglog',mark.time=FALSE,col=1:3, xlim = c(15,220))
+```
+
+As seen in the Kaplain-Meier c-log-log plot, the Schoenfeld residual plots illustrate that the PH assumption holds in the first two list price groups, while the opposite is true for the first and last list price groups. More specifically, the second group compared to the first group largely maintains the PH assumption throughout except at the very tip of the time frame. On the other hand, the highest list price group has visibly increasing (from large negative to positive) residuals, indicating a clear violation of the PH assumption. The residual output agrees in that the highest list price group has a non-constant positive HR with rho = 0.18 and a highly significant p-value. In other words, the hazard ratio is being underestimated as the residuals are increasing. The second group, on the other hand has rho close to 0 with insignificant p-value, indicating the validity of the PH assumption. 
+
+```{r echo = FALSE}
+mcox = coxph(Surv(tom) ~ listedatprCat, data=house)
+plot( cox.zph(mcox) )
+#cox.zph( mcox )
+```
+
+Finally, we look at the crime category variables. For this variable, we do not include the c-log-log for Kaplan-Meier because there are four groups with too small sample size for each group. 
+
+```{r echo = FALSE}
+mcox = coxph(Surv(tom) ~ crimeCat2, data=house)
+plot( cox.zph(mcox) )
+#cox.zph( mcox )
+```
+
+The slightly decresing residuals from the plots for the second crime group may make the PH assumption invalid. However, Schoenfeld residuals from both the third and the last crime group are constant throughout time, which indicate that the PH assumption is valid. In the residual fit output, all rhos are close to zero with insignificant p-values. This output demonstrates that the PH assumption is valid with all levels in the categorical crime variable. 
+>>>>>>> df8f21ef19f88e1db7817d0216af364aff6416e5
 
 ### 3.4 Testing the Cox PH Assumption
 
@@ -532,25 +609,72 @@ In summary, we observed some fascinating trends in the time a Twin Cities home s
 
 First, our data indicate that houses closer to the nearest school tend to sell faster, likely due to the more convenient and/or central location. We also observed that houses priced higher tend to take longer to sell, likely because higher prices are self-selective of buyers. We also believe that houses with higher prices are more likely to be overpriced relative to their appraised value. We also observed that houses in neighborhoods with a higher number of crimes since the start of 2015 take longer to sell, with the exception of houses in the highest crime neighborhoods. This could be explained by houses in higher crime neighborhoods generally having lower prices. Finally, in a  broader look at time on market compared to municipal location, we did not observe a significant relationship between how long a home took to sell and whether a house is located in Minneapolis or St. Paul. 
 
-Talk about coxph for univariate here. 
+Our Cox Proportional Hazards models for each variable revealed similar trends to our parametric models, though p-values were generally not significant with the exception of the second highest crime category, which showed a significantly decreased risk of selling the home compared to the lowest crime level. However, it is important to remember that insignificant p-values in a Cox Proportional Hazards model do not warrant ending the investigation since the proportional hazards assumption made in the model must be assessed. 
 
-We considered that some of these variables might also behave differently in the presence of each other, so we created a multivariate model.
+We considered that some of these variables might also behave differently in the presence of each other, so we created a multivariate model. Overall, this model verified our findings from the univariate models, including that more expensive houses tend to take longer to sell and houses in areas with higher crime also tend to stay on the market longer, though we did observe a weaker effect on TOM for the second-highest tier of neighborhood crimes. 
 
-Talk about coxph for multivariate here. 
+Our next thought was that an interaction may exist between the number of neighborhood crimes and list price, and our interaction model revealed in both the Weibull and log-normal cases that there is an interaction. We observed that the crime category that a house was associated with impacted the time on market for homes within the first 2 months of being listed on the market, and after that time the difference was negligible. The biggest effect was observed between the lowest level of crime and the next step up.  
 
-Overall coxph assumptions for each variable here. 
+The multivariate Cox Proportional Hazards model also verified our initial observations, including increased time on market when: distance from the nearest school increases, crime increases (especially for the second and third levels of crime), and the log of the list price increases. We also created the same proportional hazards assumption for the interaction model, which revealed some drastically different results with no significant p-values. Since not all of these p-values were significant, further investigation into the proportional hazards assumption was warranted. 
 
+Our assessment of the proportional hazards assumptions generally resulted in declaring a valid proportional hazards assumption, with the exception of list price category, which showed an especially strong positive trend in Schoenfeld residuals for the most expensive group of houses. This indicated to us that the impact of a higher list price on a house diminishes over time. 
 
+While our insights are generally not groundbreaking, they serve to produce an important base understanding for the interaction of the real estate market with the environment around it. We also believe that the results show some important aspects of consumer economic behavior. Hopefully our conclusions will help home buyers, sellers, and real estate agents alike to establish clear expectations for how long a home will remain on the market based on a variety of factors surrounding the listing. 
 
+\clearpage
 
 ##5 Appendix
 
-Weibull and log-normal output results:
+Weibull and log-normal multivariate model output results:
 
 \begin{table}[!htbp] \centering 
   \caption{Results} 
   \label{} 
 \begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-3} 
+\\[-1.8ex] & \multicolumn{2}{c}{tom} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{\textit{Weibull}} & \multicolumn{1}{c}{\textit{survreg: lognormal}} \\ 
+\\[-1.8ex] & \multicolumn{1}{c}{(1)} & \multicolumn{1}{c}{(2)}\\ 
+\hline \\[-1.8ex] 
+ schdist & 0.184^{**} & -0.045 \\ 
+  & (0.090) & (0.105) \\ 
+  & & \\ 
+ crimeCat2(250,2e+03] & 0.188^{**} & 0.094 \\ 
+  & (0.084) & (0.096) \\ 
+  & & \\ 
+ crimeCat2(2e+03,5e+03] & 0.252^{***} & 0.226^{**} \\ 
+  & (0.087) & (0.097) \\ 
+  & & \\ 
+ crimeCat2(5e+03,1e+04] & 0.109 & 0.170 \\ 
+  & (0.098) & (0.114) \\ 
+  & & \\ 
+ log(listedatpr) & 0.131^{**} & 0.228^{***} \\ 
+  & (0.059) & (0.073) \\ 
+  & & \\ 
+ Constant & 2.712^{***} & 1.374 \\ 
+  & (0.751) & (0.925) \\ 
+  & & \\ 
+\hline \\[-1.8ex] 
+Observations & \multicolumn{1}{c}{311} & \multicolumn{1}{c}{311} \\ 
+Log Likelihood & \multicolumn{1}{c}{-1,611.420} & \multicolumn{1}{c}{-1,619.327} \\ 
+$\chi^{2}$ (df = 5) & \multicolumn{1}{c}{22.426$^{***}$} & \multicolumn{1}{c}{13.995$^{**}$} \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table}
+
+\clearpage
+
+Weibull and log-normal interaction model output results:
+
+\begin{table}[!htbp] \centering 
+  \caption{Results} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} lp{5cm} }
 \\[-1.8ex]\hline 
 \hline \\[-1.8ex] 
  & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
@@ -595,4 +719,7 @@ $\chi^{2}$ (df = 8) & \multicolumn{1}{c}{26.691$^{***}$} & \multicolumn{1}{c}{23
 \textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
 \end{tabular} 
 \end{table} 
+
+
+
 
