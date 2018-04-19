@@ -338,22 +338,77 @@ summary(mln)
 mcox
 ```
 
+According to the Weibull model, all variables are significant with expected signs except for the highest crime category. As have seen in univariate models, school distance and list price variables predict positive correlation with TOM. In other words, homes with the higher list price or and those farther away from schools tend to stay on market longer. The directions with these two variables makes sense. Expensive houses are harder to sell because not many people are able to afford the house, and these houses may often be overpriced (higher than its appraisal value). On the other hand, houses closer to schools tend to be in more populated and desirable areas, so it should follow that houses closer to a school would sell faster. 
 
-```{r}
+All crime categories predict longer TOM compared to the lowest crime category, which is mostly consistent with the univariate crime category analysis previously conducted. Specifically, the second crime group is more likely to stay on market longer compared to the lowest crime group in line with the univariate model. However, the TOM for the third crime group is less than double that for the second crime group, which is a weaker effect than what we saw in the univariate analysis. With respect to p-values, both the second and third group are now significant at the 5% level, and the p-value for the highest crime group improved by a factor of 3. For example, houses that belong to the second and third crime category on average have 21% and 29% longer TOM, respectively, compared to those in the lowest crime category. On the other hand, the highest crime category indicates only 11% longer TOM compared to the lowest crime group and an insignificant p-value.
+
+Log-normal model had most of the coefficients in the right direction with worse significance, and the Cox PH model agrees with the Weibull model. 
+
+
+```{r include=FALSE}
 summary(mw)
 mw$coefficients
-exp(-.026)
+edays_crimeCat2_1 = exp(2.712 + 0.1843770*mean(house$schdist) + 0.1309947*mean(log(house$listedatpr)))
+edays_crimeCat2_2 = exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*1 + 0.2515044*0 + 0.1093053*0 + 0.1309947*mean(log(house$listedatpr)))
+edays_crimeCat2_3 = exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*0 + 0.2515044*1 + 0.1093053*0 + 0.1309947*mean(log(house$listedatpr)))
+edays_crimeCat2_4 = exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*0 + 0.2515044*0 + 0.1093053*1 + 0.1309947*mean(log(house$listedatpr)))
+
+(tr_21 = edays_crimeCat2_2/edays_crimeCat2_1)
+(tr_31 = edays_crimeCat2_3/edays_crimeCat2_1)
+(tr_41 = edays_crimeCat2_4/edays_crimeCat2_1)
+
+# time ratio matches with above
+# check with Nick and Victor!!!
+exp(0)
+exp(0.1876134*1) # houses that belong to crime group 2 on average have 21% longer TOM compared to those that belong to crime group 1
+exp(0.2515044*1)
+exp(0.1093053*1)
+
+crimeCat2_1 = function(x) 1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1309947*mean(log(house$listedatpr))))
+crimeCat2_2 = function(x) 1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*1 + 0.2515044*0 + 0.1093053*0 + 0.1309947*mean(log(house$listedatpr))))
+crimeCat2_3 = function(x) 1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*0 + 0.2515044*1 + 0.1093053*0 + 0.1309947*mean(log(house$listedatpr))))
+crimeCat2_4 = function(x) 1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*0 + 0.2515044*0 + 0.1093053*1 + 0.1309947*mean(log(house$listedatpr))))
+
+integrate(crimeCat2_1,0,Inf)
+integrate(crimeCat2_2,0,Inf)
+integrate(crimeCat2_3,0,Inf)
+integrate(crimeCat2_4,0,Inf)
+
+# Extra interpretation
+
+# find Pr(days > 100) for the crime group 1
+1-pweibull(100, 1/0.528, exp(2.712 + 0.1843770*mean(house$schdist) + 0.1309947*mean(log(house$listedatpr)))) # probability that the house will stay on market for 100 or more days if the house is in crime group 1 = 25%
+
+# At what time point does the survival curve for the crime group 2fall to the same value as in above?
+qweibull(1-0.2490305, 1/0.528, exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*1 + 0.2515044*0 + 0.1093053*0 + 0.1309947*mean(log(house$listedatpr))))
+
+# the above is the same as the following:
+100*exp(0.1876134*1) # how many days would it take a house in crime group 2 to reach 25% probability of staying on market for more than 100 days?
+100*exp(0.2515044*1) # how many days would it take a house in crime group 3 to reach 25% probability of staying on market for more than 100 days?
+100*exp(0.1093053*1) # how many days would it take a house in crime group 4 to reach 25% probability of staying on market for more than 100 days?
+
+## Note: look at differences in days
 ```
 
-If the price triples (mult by 2.81 or exp(1)), the probability of being sold is multiplied by 0.742. (Victor)
+Below is a survival comparison of the crime categories. 
 
-The model now has the list price variable as a control (!!!) for the crime variable. In the earlier analysis, we saw that the highest crime group did not show a difference in time on market compared to the lowest crime group, and we reasoned that one of the possible sources may be price. Holding all other variables equal, the highest crime variable is now more positive in its effect, with a slightly better p-value. Moreover, we see that all other variables have the expected signs and are significant at the 5% level. 
+```{r echo = FALSE}
+# crime gp 1
+curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1309947*mean(log(house$listedatpr)))),col='black',xlim=c(0,150),ylab="Probability of Sale", xlab = "Days", main = "TOM for Crime Categories") 
 
-The Weibull model has similar results to the univariate crime category analysis previously conducted. The second crime group is more likely to stay on market longer compared to the lowest crime group in line with the univariate model. However, the tom for the third crime group is less than double that for the second crime group, which is a weaker effect than what we saw in the univariate analysis. With respect to p-values, both the second and third group are now significant at the 5% level, and the p-value for the highest crime group improved by a factor of 3. 
+# crime gp 2
+curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*1 + 0.2515044*0 + 0.1093053*0 + 0.1309947*mean(log(house$listedatpr)))),col='purple',xlim=c(0,150),ylab="Survival",add=TRUE)
 
-The list price variable is significant with positive coefficient; in other words, homes with the higher list price tend to stay on market longer. The school distance is also positive with a significant p-value, meaning that the homes farther away from schools tend to stay on the market longer. The directions with these two variables makes sense. Expensive houses are harder to sell because not many people are able to afford the house, and these houses may often be overpriced (higher than its appraisal value). On the other hand, houses closer to schools tend to be in more populated and desirable areas, so it should follow that houses closer to a school would sell faster. 
+# crime gp 3
+curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*0 + 0.2515044*1 + 0.1093053*0 + 0.1309947*mean(log(house$listedatpr)))),add=TRUE,col='blue',lty=1)
 
-The log-normal model has similar directions as with the Weibull model but are insignificant. The Cox PH model outputs agree with Weibull, with all variables being significant except for the highest crime category.
+# crime gp 4
+curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134*0 + 0.2515044*0 + 0.1093053*1 + 0.1309947*mean(log(house$listedatpr)))),add=TRUE,col='red',lty=1)
+
+# time ratio
+```
+
+
 
 #### Model Selection
 
@@ -379,153 +434,95 @@ CoxSnell( CS_w , house$status , main = "Cox-Snell Residuals", sub = "Weibull Mod
 CoxSnell( CS_ln , house$status , main = "Cox-Snell Residuals", sub = "Log-Normal Model")
 ```
 
-The log-normal model appears to perform better when evaluating performance graphically.
+The log-normal model appears to perform better when evaluating performance graphically. However, the AIC prefers the Weibull model.
 
 ```{r echo=FALSE, include=FALSE}
 2*(10-mw$loglik[2]) # mw
 2*(10-mln$loglik[2]) # mln
 ```
 
+*Summary of Cox Model*
 
-#### School Distance, Crime Category, and List Price With Interaction Term (if we need this vs. strata !!!)
+```{r echo=FALSE, include=FALSE}
+library(survminer)
+mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , data = house )
+mcox
+```
+
+```{r echo=FALSE, warning=FALSE}
+ggforest(mcox, data = house)
+```
+
+
+#### School Distance, Crime Category, and List Price with Interaction Term 
 
 ```{r echo=FALSE, include=FALSE}
 mw = survreg( Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) + crimeCat2:log(listedatpr), dist = "weibull" , data = house )
 mln = survreg( Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) + crimeCat2:log(listedatpr), dist = "lognormal" , data = house )
 mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) + crimeCat2:log(listedatpr), data = house )
 
-
 summary(mw) 
 summary(mln) 
 mcox
-
-mean(log(house$listedatpr))
 ```
 
+Now, we include the interaction term between crime categories and list price. In the Weibull model with interaction, all terms are insignificant except for school distance, possibly due to significantly increased degrees of freedom. For interpretations, we pick three representative list price values to show how the probability of sale changes with respect to different crime categories at each of these list prices. The three prices are the 10th, 50th, and 90th percentile of the list price at \$129900,  \$219900, and \$480000, respectively. First, houses priced at the 10th percentile (\$129900) on average that belong to the second, third, and the highest crime category have 27%, 13%, and 7% longer TOM, respectively, compared to houses of the same price that belong to the lowest crime category. However, as the list price increases, we see that the houses in the second crime category have TOM that increases at a decreasing rate for each of the higher list prices, while those in both the third and last crime categories have TOM that increases at an increasing rate for each of the higher list prices. For example, houses priced at the 50th percentile (\$219900) project 19%, 24%, and 19% longer TOM for each incremental crime group compared to equally expensive houses in the lowest crime category. By the 90th percentile (\$480000), we see that houses in the second, third, and the last crime category have 9%, 43%, and 37% longer TOM, respectively, compared to equally expensive houses in the lowest crime category. These results suggest that cheapest houses have very small differences in TOM between houses in the lowest crime neighborhoods and those in the highest crime neighborhoods, possibly due to the fact that houses in the highest crime neighborhoods may be cheaper in price as well. On the other hand, the most expensive houses indicate the opposite; while houses in the first and second crime group do not differ much on TOM, houses in the third and the highest crime groups take longest to sell.
 
+```{r include=FALSE} 
+listedatpr_quant = quantile(house$listedatpr, c(0, 0.10, 0.5, 0.9, 1))
 
-```{r}
-# 25th, 50th, 75th percentile 
-exp(12)
-mean(house$listedatpr)
+logpr_10 = log(listedatpr_quant[[2]])
+logpr_50 = log(listedatpr_quant[[3]])
+logpr_90 = log(listedatpr_quant[[4]])
 
-exp(1.666-0.121*12)
-exp(-1.984+.179*12)
-exp(-2.118+.186*12)
+# 10th percentile
+### logpr_10 = 11.77452
+exp(1.666-0.121*logpr_10)
+exp(-1.984+.179*logpr_10)
+exp(-2.118+.186*logpr_10)
 
-exp(1.666-0.121*14)
-exp(-1.984+.179*14)
-exp(-2.118+.186*14)
+# 50th percentile
+### logpr_50 = 12.30093
+exp(1.666-0.121*logpr_50)
+exp(-1.984+.179*logpr_50)
+exp(-2.118+.186*logpr_50)
+
+# 90th percentile
+### logpr_90 = 13.08154
+exp(1.666-0.121*logpr_90)
+exp(-1.984+.179*logpr_90)
+exp(-2.118+.186*logpr_90)
 ```
-
 
 *Summary of Cox Model*
-!!!
 
 ```{r echo=FALSE, include=FALSE}
 library(survminer)
-fit = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , data = house )
-fit
+mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) + crimeCat2:log(listedatpr), data = house )
+mcox
 ```
 
 ```{r echo=FALSE, warning=FALSE}
-ggforest(fit, data = house)
+ggforest(mcox, data = house)
 ```
 
-```{r include = FALSE}
-#stargazer(house[c(9,14,22),])
-#stargazer(house[c(9,14,22),], summary=FALSE, rownames=FALSE)
-stargazer(mw, mln, title="Results", align=TRUE)
-#stargazer(mcox, title="Results", align=TRUE)
-```
+
 
 
 
 ### 3.4 Testing the Cox PH Assumption
 
-To test the PH assumption, we instead turn to examining the Kaplan-Meier c-log-log plot and the Schoenfeld residuals.
-
-
-We first look at the PH assumption for the two cities: Saint Paul and Minneapolis. The very narrow gap in the two groups from the Kaplan-Meier c-log-log plot indicates essentially no difference between the two groups, providing a stronger evidence for the PH assumption.
-
-```{r echo = FALSE}
-KM = survfit(Surv(tom) ~ city, data=house)
-plot(KM,fun='cloglog',mark.time=FALSE,col=1:2, xlim = c(15,220))
-```
-
-Similary, the constant residuals with essentially 0 rho and highly insignificant p-value in the Schoenfeld residual output indicates that the PH assumption is valid. In other words, it is safe to assume that the risk of being sold for a Saint Paul property over a Minneapolis property is constant over time, with the Saint Paul properties remaining in the market longer (HR = 0.86).  
-
-```{r echo = FALSE}
-mcox = coxph(Surv(tom) ~ city, data=house)
-plot( cox.zph(mcox) )
-cox.zph( mcox )
-```
-
-We now look at the categorical list price variable. 
-
-Kaplan-Meier c-log-log plot also has very narrow gap between the first and second list price groups, but a clearly unproportional gap in the lowest and the highest list price groups. The latter trend point to a strong evidence for the violoation of the PH assumption.
-
-```{r}
-KM = survfit(Surv(tom) ~ listedatprCat, data=house)
-plot(KM,fun='cloglog',mark.time=FALSE,col=1:3, xlim = c(15,220))
-```
-
-As seen in the Kaplain-Meier c-log-log plot, the Schoenfeld residual plots illustrate that the PH assumption holds in the first two list price groups, while the opposite is true for the first and last list price groups. More specifically, the second group compared to the first group largely maintains the PH assumption throughout except at the very tip of the time frame. On the other hand, the highest list price group has visibly increasing (from large negative to positive) residuals, indicating a clear violation of the PH assumption. The residual output agrees in that the highest list price group has a non-constant positive HR with rho = 0.18 and a highly significant p-value. In other words, the hazard ratio is being underestimated as the residuals are increasing. The second group, on the other hand has rho close to 0 with insignificant p-value, indicating the validity of the PH assumption. 
-
-```{r echo = FALSE}
-(mcox = coxph(Surv(tom) ~ listedatprCat, data=house))
-plot( cox.zph(mcox) )
-cox.zph( mcox )
-```
-
-Finally, we look at the crime category variables. For this variable, we do not include the c-log-log for Kaplan-Meier because there are four groups with too small sample size for each group. 
-
-```{r echo = FALSE}
-mcox = coxph(Surv(tom) ~ crimeCat2, data=house)
-plot( cox.zph(mcox) )
-cox.zph( mcox )
-```
-
-The slightly decresing residuals from the plots for the second crime group may make the PH assumption invalid. However, Schoenfeld residuals from both the third and the last crime group are constant throughout time, which indicate that the PH assumption is valid. In the residual fit output, all rhos are close to zero with insignificant p-values. This output demonstrates that the PH assumption is valid with all levels in the categorical crime variable. 
-
-
+To test the PH assumption, we instead turn to examining the Schoenfeld residuals.
 
 #### Multivariate Assessment of the PH Assumption
 
 ```{r echo = FALSE}
 mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr), data=house)
-# mcox = coxph(Surv(tom) ~ schdistCat + crimeCat2 + listedatprCat, data=house)
 plot( cox.zph(mcox) )
 cox.zph( mcox )
 ```
 
-PH doesn't seem to hold. (Victor)
-Before 84 days, list price has a strong impact.
-After 84 days, list price is not impactful.
-Mostly, it's negative but thiseffect is comining in the first two months. 
-If the houses are not selling by the two month peirod, there should be a reason why they are not selling. 
-We're more interested in the effects in the first two months than we are later.
-
-
-
-It seems that the PH assumption is valid for both school distance and list price, but not for crime categories. For school distance, the Schoenfeld residuals show a decreasing trends, while the list price Schoenfeld residuals increase with respect to time. The coefficients for school distance is consistent with the decreasing beta in the Schoenfeld residual plot, but that for list price is not consistent. !!!
-
-
-
-strata = if can't assume the PH, then use strata. (Victor)
-
-
-
-# More Questions for Victor outside of rmd
-
-!!! can we do this same procedure (mcox and plot of Schoenfeld) with multiple variables where some of these covariates are quantitative?
-
-!!! are three PH assumption tests enough? (city, crimeCat, and priceCat)
-
-!!! how does strata work for controlling instead of adding in new variables? doesn't adding in variables automatically control?
-
-!!! when do we use strata over interaction? (crime cat and price)
-
+According to the Schoenfeld residuals, PH assumption seems to be valid for crime categories, while it does not hold for both school distance and list price. For school distance, the Schoenfeld residuals show a decreasing trends, while the list price Schoenfeld residuals increase with respect to time. More specifically, school distance has a strong positive effect in the beginning, which gradually decreases until about 45 days, and becomes ineffective afterwards. On the other hand, list price has a strong negative effect in the beginning, which slowly increases throughout the first three months and slightly increases afterwards. In other words, school distance mostly has a positive effect on TOM but the effect is valid only for the first 45 days, while list price mostly shows a negative effect on TOM which is valid only for the first three months. School distance showing positive trend for the first 45 days can be attributed to that most families with kids feel more urgency in moving to a new place. List price showing negative trend for the first three months may be due to wealth constraints as well as a possible defects in the property contingent on the duration on the market. This should not matter so much, as we are mainly interested in the effects in the first three months.
 
 
 
