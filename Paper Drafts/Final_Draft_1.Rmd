@@ -151,7 +151,7 @@ ggsurvplot(KM1, data=house, legend.labs=c("price = 63,000 to 180,000", "180,000 
 
 Houses that fall into the highest price category appear to take the longest to sell, while houses in the middle price category appear to sell the fastest. 
 
-#### Municipal Location
+#### City
 
 ```{r echo=FALSE}
 KM2 = survfit( Surv(tom) ~ city , conf.type="plain" , data=house ) 
@@ -195,7 +195,7 @@ CoxSnell( CS_w , house$status, main="Weibull School Distance C-S Resids" )
 CoxSnell( CS_ln , house$status ,xlim=c(-7,5), main="Log-normal School Distance C-S Resids")
 ```
 
-The log-normal Cox-Snell residuals appear to fit the model better since they fit the line with intercept 0 and slope 1 better. For the other following univariate models, the same trend holds so we elected to only show these Cox-Snell residual plot. 
+The log-normal Cox-Snell residuals appear to fit the model better since they fit the line with intercept 0 and slope 1 better. For the other following univariate models, the same trend holds so we elected to only show these Cox-Snell residual plots. 
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
