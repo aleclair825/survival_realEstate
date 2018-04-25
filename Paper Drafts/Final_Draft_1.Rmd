@@ -1,16 +1,17 @@
 ---
-title: "Survival Analysis of Factors Affecting Time on Market for Twin Cities Single Family Homes"
-author: "April Leclair, Nick McMullen, "
+title: Survival Analysis of Factors Affecting Time on Market for Twin Cities Single
+  Family Homes
+author: 'April Leclair, Nick McMullen, '
 date: "April 20, 2018"
-header-includes:
-   - \usepackage{dcolumn}
-   - \usepackage{tabularx}
 output:
+  html_document: default
   pdf_document:
     pandoc_args:
     - -V
     - classoption=twocolumn
-  html_document: default
+header-includes:
+- \usepackage{dcolumn}
+- \usepackage{tabularx}
 ---
 
 
@@ -473,10 +474,6 @@ mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , data = house )
 mcox
 ```
 
-```{r echo=FALSE, warning=FALSE}
-ggforest(mcox, data = house)
-```
-
 
 #### School Distance, Crime Category, and List Price with Interaction Term 
 
@@ -601,7 +598,7 @@ plot( cox.zph(mcox) )
 #cox.zph( mcox )
 ```
 
-According to the Schoenfeld residuals, PH assumption seems to be valid for crime categories, while it does not hold for both school distance and list price. For school distance, the Schoenfeld residuals show a decreasing trends, while the list price Schoenfeld residuals increase with respect to time. More specifically, school distance has a strong positive effect in the beginning, which gradually decreases until about 45 days, and becomes ineffective afterwards. On the other hand, list price has a strong negative effect in the beginning, which slowly increases throughout the first three months and slightly increases afterwards. In other words, school distance mostly has a positive effect on TOM but the effect is valid only for the first 45 days, while list price mostly shows a negative effect on TOM which is valid only for the first three months. School distance showing positive trend for the first 45 days can be attributed to that most families with kids feel more urgency in moving to a new place. List price showing negative trend for the first three months may be due to wealth constraints as well as a possible defects in the property contingent on the duration on the market. This should not matter so much, as we are mainly interested in the effects in the first three months.
+According to the Schoenfeld residuals, PH assumption seems to be valid for crime categories, while it does not hold for both school distance and list price. For school distance, the Schoenfeld residuals show a decreasing trends, while the list price Schoenfeld residuals increase with respect to time. More specifically, school distance has a strong positive effect in the beginning, which gradually decreases until about 45 days, and becomes ineffective afterwards. On the other hand, list price has a strong negative effect in the beginning, which slowly increases throughout the first three months and slightly increases afterwards. In other words, school distance mostly has a positive effect on TOM but the effect is valid only for the first 45 days, while list price mostly shows a negative effect on TOM which is valid only for the first three months. However, one should take notice that this strong positive effect observed in the school distance residuals is due to the highest school distance outliers in the data. In fact, when these outliers are removed, PH assumption seemed to hold for school distance as well. List price showing negative trend for the first three months may be due to wealth constraints as well as a possible defects in the property contingent on the duration on the market. This should not matter so much, as we are mainly interested in the effects in the first three months. All in all, only the list price seems to violate the PH assumption.
 
 
 
