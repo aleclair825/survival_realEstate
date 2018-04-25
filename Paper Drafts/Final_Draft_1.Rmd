@@ -474,6 +474,10 @@ mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , data = house )
 mcox
 ```
 
+```{r echo=FALSE, warning=FALSE}
+ggforest(mcox, data = house)
+```
+
 
 #### School Distance, Crime Category, and List Price with Interaction Term 
 
@@ -572,10 +576,6 @@ summary(mln3)
 library(survminer)
 mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) + crimeCat2:log(listedatpr), data = house )
 mcox
-```
-
-```{r echo=FALSE, warning=FALSE}
-ggforest(mcox, data = house)
 ```
 
 ```{r include = FALSE}
