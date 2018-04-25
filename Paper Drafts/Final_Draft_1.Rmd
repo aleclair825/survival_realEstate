@@ -13,6 +13,7 @@ output:
   html_document: default
 ---
 
+
 ```{r setup, include=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -37,6 +38,7 @@ CoxSnell = function(cs, status, xlim=NULL, ylim=NULL, main=NULL, sub=NULL) {
 house$status <- rep(1, 311)
 ```
 
+
 ## 1 | Introduction
 
 
@@ -51,21 +53,21 @@ The real estate market in the Twin Cities (Minneapolis and St. Paul, MN, USA), a
 
 One of the most obvious factors that may influence TOM for any house is price. A high price may scare potential buyers away, while a low price might invite skepticism or a long bidding war. Moreover, a high price limits the number of potential buyers even if the price appropriately reflects the quality of the property. The "right" pricing decision is a difficult one to make for sellers and agents, but reaching an equilibrium between buyer and seller satisfaction may be the best way to minimize TOM. Cheng, Lin, and Liu (2008) developed a closed-form formula to uncover the theoretical relationship between price and TOM. They aim to describe the marginal benefit of keeping a house on the market longer.
 
-The authors used house sales data from Fannie Mae and Freddie Mac, U.S. federal mortgage agencies, and identified a nonlinear positive relationship between price and TOM. They approached this analysis by assuming that a buyer and seller arrive at an agreed upon price following the Poisson processes at rate $\lambda$. While utilizing methods from Bond et al. (2007), they investiaged some assumptions about the shape of TOM data, including normal, chi-square, Weibull, and exponential distributions. Like Bond et al. (2007), Cheng, Lin, and Liu (2008) found that the exponential distribution best fit the TOM data. 
+The authors used house sales data from Fannie Mae and Freddie Mac, U.S. federal mortgage agencies, and identified a nonlinear positive relationship between price and TOM. They approached this analysis by assuming that a buyer and seller arrive at an agreed upon price following the Poisson processes at rate $\lambda$. While utilizing methods from Bond et al. (2007), they investiaged some assumptions about the shape of TOM data, including normal, chi-square, Weibull, and exponential distributions. Like Bond et al. (2007), Cheng, Lin, and Liu (2008) found that the exponential distribution best fit the TOM data$^1$. 
 
-The findings from Cheng, Lin, and Liu's (2008) investigation was that marginal benefit on sale price decreases after each offer that is made on a house. As a house's price approaches equilibrium between seller and buyer satisfaction, it does the seller little good to leave the house on the market longer.
+The findings from Cheng, Lin, and Liu's (2008) investigation was that marginal benefit on sale price decreases after each offer that is made on a house$^1$. As a house's price approaches equilibrium between seller and buyer satisfaction, it does the seller little good to leave the house on the market longer.
 
 \textbf{Duration Dependence}
 
-Another interesting question regarding TOM is how the probability of sale changes with time. Thomas W. Zuehlke (1987) conducted research on this very topic. He used 290 single family detached homes obtained from a 1982 multiple listing service (MLS) book in Tallahassee, FL, USA and observed how likely each house was to sell based on its vacancy status. Zuehlke utilized a Weibull hazard model to compare the two and found that sellers of vacant houses have stronger incentives to reduce prices faster than those of occupied houses. Thus, Zuehlke finds that vacant houses tend to exhibit positive duration dependence, while occupied homes show little evidence of duration dependence. 
+Another interesting question regarding TOM is how the probability of sale changes with time. Thomas W. Zuehlke (1987) conducted research on this very topic. He used 290 single family detached homes obtained from a 1982 multiple listing service (MLS) book in Tallahassee, FL, USA and observed how likely each house was to sell based on its vacancy status. Zuehlke utilized a Weibull hazard model to compare the two and found that sellers of vacant houses have stronger incentives to reduce prices faster than those of occupied houses$^2$. Thus, Zuehlke finds that vacant houses tend to exhibit positive duration dependence, while occupied homes show little evidence of duration dependence. 
 
-Motivated by a Massachusetts state policy adopted in 2006 that prohibits sellers from resetting their home's TOM by relisting, Tucker, Zhang, and Zhu (2013) also investigated the impact of TOM on sale price. The authors agree that longer TOM is negatively associated with buyer perception, which lines up with the Massachusetts relisting policy. To investigate if TOM was indeed a significant deterrent for buyers looking at an otherwise appealing house, the authors analyzed the TOM for homes before and after the enactment of the policy. They obtained listings data for residential properties on the market between January 2005 and June 2007 from two MLSs: MLS-PIN, which serves Massachusetts, and the State-Wide Rhode Island MLS. Their analysis consisted of three groupings of homes: listed and sold before the policy change, listed before and sold after, and listed and sold after. The authors utilized simple linear regression between the three groups and found that the homes listed before the policy and sold after were most severely impacted, resulting in an average sale price reduction of $16,000. 
+Motivated by a Massachusetts state policy adopted in 2006 that prohibits sellers from resetting their home's TOM by relisting, Tucker, Zhang, and Zhu (2013) also investigated the impact of TOM on sale price. The authors agree that longer TOM is negatively associated with buyer perception, which lines up with the Massachusetts relisting policy. To investigate if TOM was indeed a significant deterrent for buyers looking at an otherwise appealing house, the authors analyzed the TOM for homes before and after the enactment of the policy. They obtained listings data for residential properties on the market between January 2005 and June 2007 from two MLSs: MLS-PIN, which serves Massachusetts, and the State-Wide Rhode Island MLS. Their analysis consisted of three groupings of homes: listed and sold before the policy change, listed before and sold after, and listed and sold after$^3$. The authors utilized simple linear regression between the three groups and found that the homes listed before the policy and sold after were most severely impacted, resulting in an average sale price reduction of $16,000$. 
 
 \textbf{Listing Price Changes}
 
 Listing price changes may also affect the TOM for a house. A listing price change could attract more attention to a house on the market, but could also indicate a longer TOM. John R. Knight (2002) conducted an analysis on listing price changes, investigated which types of homes were most likely to go through multiple listing price changes, and which price changes tend to give the worst results for the seller.
 
-Knight used 3490 detached single family homes that sold between January 1997 and December 1998 by Metroservices Inc. of Sacramento, CA, USA. He notes that price adjustment data is generally missing from TOM datasets, but his study incorporated the price changes into the analysis to examine the determinants of list price changes. He utilized a maximum likelihood probit model and found that the two most important determinants of price changes are TOM and initial markup. Atypical homes tend to not see significant price changes because there is little market precedent for price changes after a certain TOM. Knight's findings are consistent with previous research on pricing under demand uncertainty. 
+Knight used 3490 detached single family homes that sold between January 1997 and December 1998 by Metroservices Inc. of Sacramento, CA, USA. He notes that price adjustment data is generally missing from TOM datasets, but his study incorporated the price changes into the analysis to examine the determinants of list price changes. He utilized a maximum likelihood probit model and found that the two most important determinants of price changes are TOM and initial markup$^4$. Atypical homes tend to not see significant price changes because there is little market precedent for price changes after a certain TOM. Knight's findings are consistent with previous research on pricing under demand uncertainty. 
 
 
 ### 1.3 Research Question (and mapping paragraph)
@@ -84,7 +86,7 @@ Our data represents a random sample of 311 single family homes in the Twin Citie
 
 #### Crime Data
 
-We also obtained crime data beginning on January 1, 2015 from the government websites for the cities of Minneapolis and St. Paul. Each crime was matched with a neighborhood, aggregated into total neighborhood crime counts, and then joined with the house sales data. This addition will provide insight on the number of crimes that have been recorded over the past three years near each sold house. 
+We also obtained crime data beginning on January 1, 2015 from the government websites for the cities of Minneapolis and St. Paul$^{5,6}$. Each crime was matched with a neighborhood, aggregated into total neighborhood crime counts, and then joined with the house sales data. This addition will provide insight on the number of crimes that have been recorded over the past three years near each sold house. 
 
 ### 2.2 Variables
 
@@ -592,7 +594,7 @@ To test the PH assumption, we instead turn to examining the Schoenfeld residuals
 ```{r echo = FALSE}
 mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr), data=house)
 plot( cox.zph(mcox) )
-cox.zph( mcox )
+#cox.zph( mcox )
 ```
 
 According to the Schoenfeld residuals, PH assumption seems to be valid for crime categories, while it does not hold for both school distance and list price. For school distance, the Schoenfeld residuals show a decreasing trends, while the list price Schoenfeld residuals increase with respect to time. More specifically, school distance has a strong positive effect in the beginning, which gradually decreases until about 45 days, and becomes ineffective afterwards. On the other hand, list price has a strong negative effect in the beginning, which slowly increases throughout the first three months and slightly increases afterwards. In other words, school distance mostly has a positive effect on TOM but the effect is valid only for the first 45 days, while list price mostly shows a negative effect on TOM which is valid only for the first three months. School distance showing positive trend for the first 45 days can be attributed to that most families with kids feel more urgency in moving to a new place. List price showing negative trend for the first three months may be due to wealth constraints as well as a possible defects in the property contingent on the duration on the market. This should not matter so much, as we are mainly interested in the effects in the first three months.
@@ -617,9 +619,31 @@ Our assessment of the proportional hazards assumptions generally resulted in dec
 
 While our insights are generally not groundbreaking, they serve to produce an important base understanding for the interaction of the real estate market with the environment around it. We also believe that the results show some important aspects of consumer economic behavior. Hopefully our conclusions will help home buyers, sellers, and real estate agents alike to establish clear expectations for how long a home will remain on the market based on a variety of factors surrounding the listing. 
 
+
 \clearpage
 
-##5 Appendix
+\onecolumn
+
+##5 References
+
+
+1. Cheng, P., Lin, Z., & Liu, Y. (2008). A Model of Time-on-Market and Real Estate Price Under Sequential \ \ \ Search with Recall. \textit{Real Estate Economics}, 36(4), 813-843. 
+
+2. Zuehlke, T. W. (1987). Duration Dependence in the Housing Market. \textit{The Review of Economics and \ \ \ Statistics}, 69(4), 701. 
+
+3. Tucker, C., Zhang, J., & Zhu, T. (2012). Days on Market and Home Sales. \textit{SSRN Electronic Journal}.
+
+4. Knight, J. R. (2002). Listing Price, Time on Market, and Ultimate Selling Price: Causes and Effects of \ \ \ Listing Price Changes. Real Estate Economics, 30(2), 213-237.
+
+5. Crime Incident Report - Dataset | Open Data | St Paul. (2016, April 3). Retrieved February 1, 2018, \ \ \ from https://information.stpaul.gov/Public-Safety/Crime-Incident-Report-Dataset/gppb-g9cg
+
+6. Neighborhood Crime Statistics | City of Minneapolis. (n.d.). Retrieved February 1, 2018, from \ \ \ http://www.ci.minneapolis.mn.us/police/statistics/crime-statistics_codefor_statistics
+
+
+
+\clearpage
+
+##6 Appendix
 
 Weibull and log-normal multivariate model output results:
 
