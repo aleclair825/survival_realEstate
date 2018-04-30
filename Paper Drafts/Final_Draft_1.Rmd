@@ -4,11 +4,11 @@ title: Survival Analysis of Factors Affecting Time on Market for Twin Cities Sin
 author: 'April Leclair, Nick McMullen, '
 date: "April 20, 2018"
 output:
-  html_document: default
   pdf_document:
     pandoc_args:
     - -V
     - classoption=twocolumn
+  html_document: default
 header-includes:
 - \usepackage{dcolumn}
 - \usepackage{tabularx}
@@ -73,7 +73,7 @@ Knight used 3490 detached single family homes that sold between January 1997 and
 
 ### 1.3 Research Question (and mapping paragraph)
 
-We are interested in investigating the factors that affect the TOM for a single family homes in the Twin Cities (Minneapolis and Saint Paul) that were sold between July 26, 2017 and February 1, 2018. Some variables of interest include the amount of recorded crime in a house's designated neighborhood and the proximity of a house to the nearest school. 
+We are interested in investigating the factors that affect the TOM for a single family homes in the Twin Cities that were listed between January 22, 2017 and January 16, 2018. Some variables of interest include the amount of recorded crime in a house's designated neighborhood, the proximity of a house to the nearest school, and the list price of the house. 
 
 In the following sections, we outline our data collection and methods and provide a brief description of our assumptions. 
 
@@ -83,11 +83,11 @@ In the following sections, we outline our data collection and methods and provid
 
 #### Real Estate Data
 
-Our data represents a random sample of 311 single family homes in the Twin Cities that were sold between July 26th, 2017 and February 1st, 2018. A search of all recently sold homes in the area was conducted in the Coldwell Banker MLS and 311 unique addresses were randomly selected for the project. Some variables were scraped directly from the Coldwell Banker site, while others were manually inputted. 
+Our data represents a random sample of 311 single family homes in the Twin Cities that were listed between January 22nd, 2017 and January 16th, 2018. A search of all recently sold homes in the area was conducted in the Coldwell Banker MLS and 311 unique addresses were randomly selected. Some variables were scraped directly from the Coldwell Banker site, while others were manually inputted. We observed a mean TOM of 85.97 days and a median TOM of 73 days. This could indicate a slight right skew in the data. 
 
 #### Crime Data
 
-We also obtained crime data beginning on January 1, 2015 from the government websites for the cities of Minneapolis and St. Paul$^{5,6}$. Each crime was matched with a neighborhood, aggregated into total neighborhood crime counts, and then joined with the house sales data. This addition will provide insight on the number of crimes that have been recorded over the past three years near each sold house. 
+We also obtained crime data beginning on January 1, 2015 from the government websites for the cities of Minneapolis and St. Paul$^{5,6}$. We decided to include three years worth of crime data to account for delayed changes in perception of neighborhoods based on past crime. Each crime was matched with a neighborhood, aggregated into total neighborhood crime counts, and then joined with the house sales data. This addition will provide insight on the number of crimes that have been recorded over the past three years near each sold house. 
 
 ### 2.2 Variables
 
@@ -95,29 +95,29 @@ For all 311 observations, we collected unique addresses `address`, city of resid
 
 ### 2.3 Assumptions
 
-An essential assumption to our research is based on censoring. We intentionally collected our data from a sample of recently sold houses to limit censoring. If we were to take a true random sample of all houses listed for sale in the past $X$ number of years, we realize that a significant amount of right censoring could be present, because at the time of data collection some houses in our sample would have not been sold yet. We acknowledge that sampling from a set of recently sold houses may introduce some bias into our results - all recently sold houses in this particular date range (late January to early Februray 2018) may share certain unknown or unaccounted-for characteristics that made them sell. This bias is acceptable considering the convenience and added accuracy provided by uncensored data.
+An essential assumption to our research is based on censoring. We intentionally collected our data from a sample of recently sold houses to limit censoring. If we were to take a true random sample of all houses listed for sale in the past $X$ number of years, we realize that a significant amount of right censoring could be present, because at the time of data collection some houses in our sample would have not been sold yet. We acknowledge that sampling from a set of recently sold houses may introduce some bias into our results, all recently sold houses in this particular date range (late January to early Februray 2018) may share certain unknown or unaccounted-for characteristics that made them sell. This bias is acceptable considering the convenience and added accuracy provided by uncensored data.
 
 ### 2.4 Methods
 
 We first utilize nonparametric Kaplan-Meier curves to investigate relationships between time on market and certain variables like distance to the nearest school, crime in the home's neighborhood since 2015, list price, and municipal location. For crime and list price, it was necessary to create categorical variables to properly analyze their effect on time on market with some level of singificance and interpretability. 
 
-Next, we construct univariate parametric accelerated failure time models for each of the variables mentioned previously. We deploy two distribution families - the Weibull and log-normal distributions - and assess which model fits the data better primarily using the (Akaike Information Criterion) AIC, with some assistance from Cox-Snell residual plots. We utilize this comparison approach throughout our analysis as it allows us to observe the impact of a parametric assumption and determine the overall significance of the models we are using, whether they are univariate or multivariate. 
+Next, we construct univariate parametric accelerated failure time models for each of the variables mentioned previously. We deploy two distribution families, the Weibull and log-normal distributions, and assess which model fits the data better primarily using the Akaike Information Criterion (AIC), with some assistance from Cox-Snell residual plots. We utilize this comparison approach throughout our analysis as it allows us to observe the impact of a parametric assumption and determine the overall fit of the models we are using, whether they are univariate or multivariate. 
 
 We also fit a multivariate model using each of the variables mentioned above except city, as it appeared to have no significant relationship with time on market. Such an approach allowed us to control for multiple variables at once and see how each of their behavior changed in the presence of the others. With this multivariate strategy in mind, we also considered the possible interaction between list price and crime, as people living in higher crime areas may have to price their homes lower in order to sell. 
 
-Finally, throughout our analysis we employed Cox's Proportional Hazards model as a comparison tool to parametric methods. Since these models assume proportional hazard ratios between the baseline and covariates included, we also asses each proportional hazard assumption using Schoenfeld residual plots.
+Finally, throughout our analysis we employed Cox's Proportional Hazards (Cox PH) model as a comparison tool to parametric methods. Since these models assume proportional hazard ratios between the baseline and covariates included, we also asses each proportional hazard assumption using Schoenfeld residual plots.
 
 ##3 | Results
 
-We begin our preliminary analysis by investigating the length of time that houses in the Twin Cities remain on the market after their preliminary listing date.
+We begin our analysis by investigating the length of time that houses in the Twin Cities remain on the market after their preliminary listing date.
 
 ### 3.1 Non-Parametric (Kaplan-Meier) Survival Curve Estimates 
 
 #### Proximity to Nearest School
 
-Kaplan-Meier curves allow us to observe the general trends in the data, with time on market being the most important variable in the analysis. Our parametric analysis that follows will be informed by basic insights obtained from these Kaplan-Meier curves. 
+Kaplan-Meier curves allow us to observe the general trends in the data, with TOM being the most important variable in the analysis. Our parametric analysis that follows will be informed by basic insights obtained from these Kaplan-Meier curves. 
 
-First, we fit a Kaplan-Meier curve for time on market by distance from the nearest school ($Figure \hspace{0.1cm} 1 $). In order to do this, we identify the closest 50% of homes as "close" and the farthest 50% of homes as "far."
+First, we fit a Kaplan-Meier curve for TOM by distance from the nearest school ($Figure \hspace{0.1cm} 1 $). In order to do this, we identify the closest 50% of homes as "near" and the farthest 50% of homes as "far."
 
 $ Figure \hspace{0.1cm} 1 $
 
@@ -128,7 +128,7 @@ ggsurvplot(KM0, data=house, legend.labs=c("Near", "Far"), xlim=c(0,230)) +
   labs(x = "Days on Market", y = "Survival Probability", title="Days on Market by Proximity to Nearest School")
 ```
 
-There appears to be no difference based on distance to school. However, this may be due to the over-generalization (near vs. far) of school distance. This variable warrants further investigation. 
+There appears to be no difference based on distance to school. However, this may be due to the over-generalization (near vs. far) of school distance. This variable warrants further investigation in a parametric model. 
 
 #### Crime 
 
@@ -670,21 +670,23 @@ According to the Schoenfeld residuals, PH assumption seems to be valid for crime
 
 ##4 Conclusions and Discussion
 
-In summary, we observed some fascinating trends in the time a Twin Cities home spends on the market when controlling for variables such as distance to nearest school, list price, crime in neighborhood since 2015, and municipal location. 
+We observed expected trends in the time a Twin Cities home spends on the market when considering variables such as distance to nearest school, list price, crime in neighborhood since 2015, and municipal location. 
 
-First, our data indicate that houses closer to the nearest school tend to sell faster, likely due to the more convenient and/or central location. We also observed that houses priced higher tend to take longer to sell, likely because higher prices are self-selective of buyers. We also believe that houses with higher prices are more likely to be overpriced relative to their appraised value. We also observed that houses in neighborhoods with a higher number of crimes since the start of 2015 take longer to sell, with the exception of houses in the highest crime neighborhoods. This phenomena was explained by the crime and list price interaction model where we observed that cheaper houses in higher crime neighborhoods generally having similar TOM to houses in the lowest crime neighborhoods. Finally, in a broader look at time on market compared to municipal location, we did not observe a significant relationship between how long a home took to sell and whether a house is located in Minneapolis or St. Paul. 
+First, our data indicate that houses closer to the nearest school tend to sell faster, likely due to the more convenient and/or central location. Similarly, we observed that houses priced higher tend to take longer to sell, likely because higher prices are self-selective of buyers and because houses with higher prices are more likely to be overpriced relative to their appraised value. We also observed that houses in neighborhoods with a higher number of crimes since the start of 2015 take longer to sell, with the exception of houses in the highest crime neighborhoods. This is likely related to price, as houses in the highest crime category are likely to be priced low enough to still attract buyers. Finally, in a broader look at time on market compared to municipal location, we did not observe a significant relationship between how long a home took to sell based on the city of the residence. 
 
-Our Cox Proportional Hazards models for each variable revealed similar trends to our parametric models, though p-values were generally not significant with the exception of the second highest crime category, which showed a significantly decreased risk of selling the home compared to the lowest crime level. However, it is important to remember that insignificant p-values in a Cox Proportional Hazards model do not warrant ending the investigation since the proportional hazards assumption made in the model must be assessed. 
+Our Cox Proportional Hazards models for each variable revealed similar trends to our Weibull models, though p-values were generally not significant with the exception of the second highest crime category, which showed a significantly decreased risk of selling the home compared to the lowest crime level. However, it is important to remember that insignificant p-values in a Cox Proportional Hazards model do not warrant ending the investigation since the proportional hazards assumption made in the model must be assessed. 
 
-Our multivariate model verified our findings from the univariate models, including that more expensive houses tend to take longer to sell and houses in areas with higher crime also tend to stay on the market longer, though we did observe a weaker effect on TOM for the second-highest tier of neighborhood crimes. 
+Our multivariate model verified our findings from the univariate models. We observed that more expensive houses tend to take longer to sell and houses in areas with higher crime also tend to stay on the market longer. However, we did observe a weaker effect on TOM for the second-highest tier of neighborhood crimes. 
 
-Our next thought was that an interaction may exist between the number of neighborhood crimes and list price, and our interaction model revealed in both the Weibull and log-normal cases that there is an interaction. We observed that the crime category that a house was associated with impacted the time on market for homes within the first 2 months of being listed on the market, and after that time the difference was negligible. The biggest effect was observed between the lowest level of crime and the next step up.  
+Our next thought was that an interaction may exist between the number of neighborhood crimes and list price, and our interaction model revealed in both the Weibull and log-normal cases that there is not an interaction. 
 
-The multivariate Cox Proportional Hazards model also verified our initial observations, including increased time on market when: distance from the nearest school increases, crime increases (especially for the second and third levels of crime), and the log of the list price increases. We also created the same proportional hazards assumption for the interaction model, which revealed some drastically different results with no significant p-values. Since not all of these p-values were significant, further investigation into the proportional hazards assumption was warranted. 
+The multivariate Cox Proportional Hazards model also verified our initial observations, including increased time on market when: distance from the nearest school increases, crime increases, especially for the second and third levels of crime, and the log of the list price increases. We also created the same proportional hazards assumption for the interaction model, which revealed similar results with no significant p-values. Since not all of these p-values were significant, further investigation into the proportional hazards assumption was warranted. 
 
-Our assessment of the proportional hazards assumptions generally resulted in declaring a valid proportional hazards assumption, with the exception of list price category, which showed an especially strong positive trend in Schoenfeld residuals for the most expensive group of houses. This indicated to us that the impact of a higher list price on a house diminishes over time. 
+Our assessment of the proportional hazards assumptions generally resulted in declaring a valid proportional hazards assumption, with the exception of log of the list price, which showed decreasing effect in Schoenfeld residuals for the most expensive group of houses. This indicated to us that a higher list price hurt the chance of a house selling, but the effect was diminishing over time. This is likely because over time sellers tend to decrease the list price of a house in order to attract attention. 
 
-While our insights are generally not groundbreaking, they serve to produce an important base understanding for the interaction of the real estate market with the environment around it. We also believe that the results show some important aspects of consumer economic behavior. Hopefully our conclusions will help home buyers, sellers, and real estate agents alike to establish clear expectations for how long a home will remain on the market based on a variety of factors surrounding the listing. 
+While our insights are generally not groundbreaking, they serve to produce an important base understanding for the interaction of the real estate market with the environment around it. We also believe that the results show some important aspects of consumer behavior. Hopefully our conclusions will help home buyers, sellers, and real estate agents alike to establish clear expectations for how long a Twin Cities home will remain on the market based on a variety of factors surrounding the listing. 
+
+In the future, we believe incorporating school quality into this analysis would be insightful, as distance to nearest school is likely not as effective of a measure for attractiveness of a home in an urban area. We also believe accounting for differences in neighborhood, which would naturally account for some demographic differences, would be a fascinating addition to this paper because of the vast diversity in the Twin Cities. 
 
 
 \clearpage
