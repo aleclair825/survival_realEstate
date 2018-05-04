@@ -671,7 +671,7 @@ According to the Schoenfeld residuals, PH assumption seems to be valid for crime
 
 
 
-##4 Conclusions and Discussion
+##4 | Conclusions and Discussion
 
 We observed expected trends in the time a Twin Cities home spends on the market when considering variables such as distance to nearest school, list price, crime in neighborhood since 2015, and municipal location. 
 
@@ -696,7 +696,7 @@ In the future, we believe incorporating school quality into this analysis would 
 
 \onecolumn
 
-##5 References
+##5 | References
 
 
 1. Cheng, P., Lin, Z., & Liu, Y. (2008). A Model of Time-on-Market and Real Estate Price Under Sequential \ \ \ Search with Recall. \textit{Real Estate Economics}, 36(4), 813-843. 
@@ -715,7 +715,7 @@ In the future, we believe incorporating school quality into this analysis would 
 
 \clearpage
 
-##6 Appendix
+##6 | Appendix
 
 Weibull and log-normal multivariate model output results:
 
