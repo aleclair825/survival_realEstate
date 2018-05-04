@@ -1,8 +1,8 @@
 ---
 title: Survival Analysis of Factors Affecting Time on Market for Twin Cities Single
   Family Homes
-author: 'April Leclair, Nick McMullen, '
-date: "April 20, 2018"
+author: 'April Leclair, Nick McMullen '
+date: "May 7, 2018"
 output:
   pdf_document:
     pandoc_args:
@@ -117,9 +117,8 @@ We begin our analysis by investigating the length of time that houses in the Twi
 
 Kaplan-Meier curves allow us to observe the general trends in the data, with TOM being the most important variable in the analysis. Our parametric analysis that follows will be informed by basic insights obtained from these Kaplan-Meier curves. 
 
-First, we fit a Kaplan-Meier curve for TOM by distance from the nearest school ($Figure \hspace{0.1cm} 1 $). In order to do this, we identify the closest 50% of homes as "near" and the farthest 50% of homes as "far."
+First, we fit a Kaplan-Meier curve for TOM by distance from the nearest school (Figure 1). In order to do this, we identify the closest 50% of homes as "near" and the farthest 50% of homes as "far."
 
-$ Figure \hspace{0.1cm} 1 $
 
 ```{r echo=FALSE}
 house$schdistCat <- cut(house$schdist, breaks = quantile(house$schdist, probs=c(0, .5, 1)))
@@ -127,14 +126,14 @@ KM0 <- survfit(Surv(tom) ~ schdistCat, conf.type="plain", data=house)
 ggsurvplot(KM0, data=house, legend.labs=c("Near", "Far"), xlim=c(0,230)) + 
   labs(x = "Days on Market", y = "Survival Probability", title="Days on Market by Proximity to Nearest School")
 ```
+$$ Figure \ 1 $$
 
 There appears to be no difference based on distance to school. However, this may be due to the over-generalization (near vs. far) of school distance. This variable warrants further investigation in a parametric model. 
 
 #### Crime 
 
-Next, we fit a Kaplan-Meier curve for time on market based on number of crimes committed in that house's neighborhood since the beginning of 2015 $Figure \hspace{0.1cm} 2 $. 
+Next, we fit a Kaplan-Meier curve for time on market based on number of crimes committed in that house's neighborhood since the beginning of 2015 (Figure 2). 
 
-$Figure \hspace{0.1cm} 2 $
 
 ```{r echo=FALSE}
 house$crimeCat2 = cut(house$ncrime, breaks = c(0,250,2000,5000,10000))
@@ -142,15 +141,14 @@ KM = survfit( Surv(tom) ~ crimeCat2, conf.type="plain" , data=house )
 ggsurvplot(KM, data=house, legend.labs=c("0 to 250 crimes", "250 to 2000", "2000 to 5000", "5000 to 10000"), xlim=c(0,230)) +
   labs(x = "Days on Market", y = "Survival Probability", title = "Days on Market by Crime Since 2015 Category")
 ```
-
+$$ Figure \ 2 $$
 
 We see that homes that fit into the second highest number of crimes category take the longest to sell, while homes in the lowest crime neighborhoods sell fastest. This progression seems logical, except for homes in the highest crime neighborhoods, which appear to sell generally the second fastest. This is likely because these homes in the highest crime category may be cheap enough to attract more home buyers and therefore stay on market shorter.
 
 #### List Price
 
-Now, we look at the Kaplan-Meier curve to see how TOM changes based on the list price categories ($Figure \hspace{0.1cm} 3 $). 
+Now, we look at the Kaplan-Meier curve to see how TOM changes based on the list price categories (Figure 3). 
 
-$Figure \hspace{0.1cm} 3 $
 
 ```{r echo=FALSE}
 house$listedatprCat = cut(house$listedatpr, breaks = quantile(house$listedatpr, probs=c(0, .33, .67, 1)))
@@ -158,21 +156,22 @@ KM1 = survfit( Surv(tom) ~ listedatprCat , conf.type="plain" , data=house )
 ggsurvplot(KM1, data=house, legend.labs=c("price = 63,000 to 180,000", "180,000 to 275,000", "275,000 to 1,300,000"), xlim=c(0,230)) +
   labs(x = "Days on Market", y = "Survival Probability", title = "Days on Market by List Price Category")
 ```
+$$ Figure \ 3 $$
 
 Houses that fall into the highest price category appear to take the longest to sell, while houses in the middle price category appear to sell the fastest. One explanation for this relationship is that while people prefer good quality homes which is reflected in the list price, not many people are able to afford the most expensive homes, and diminishing marginal utility may be in play. Homes in the cheapest price category have a longer TOM compared to those in the middle category because the cheap price reflects lower home quality, perhaps with potential defects unknown to buyers. Another aspect of the curves is that the survival differences in list price are minimal in the earlier times, become larger as the curves approach 3 months, and decrease back again toward 5 months and onward. This pattern indicates that survival differences among houses in various list price categories change over time.
 
 
 #### City
 
-Finally, we examine the effect of municipal locations on TOM through Kaplan-Meier ($Figure \hspace{0.1cm} 4 $). 
+Finally, we examine the effect of municipal locations on TOM through Kaplan-Meier (Figure 4). 
 
-$Figure \hspace{0.1cm} 4 $
 
 ```{r echo=FALSE}
 KM2 = survfit( Surv(tom) ~ city , conf.type="plain" , data=house ) 
 ggsurvplot(KM2, data=house, legend.labs=c("Minneapolis", "St. Paul"), xlim=c(0,230)) +
   labs(x = "Days on Market", y = "Survival Probability", title = "Days on Market by City")
 ```
+$$ Figure \ 4 $$
 
 St. Paul homes seem to take slightly longer to sell compared to Minneapolis homes based on this Kaplan-Meier curve. While this relationship may seem negligible, this small difference warrants further investigation in parametric models. 
 
@@ -209,19 +208,18 @@ CS_w = -log( 1 - pweibull(house$tom, 1/0.537, exp(4.443 + 0.246*house$schdist) )
 CS_ln = -log( 1 - plnorm(house$tom, 4.3010 + -0.0313*house$schdist, 0.623) ) 
 ```
 
-$Figure \hspace{0.1cm} 5 $
 
 ```{r echo=FALSE} 
 CoxSnell( CS_w , house$status, main="Weibull School Distance C-S Resids" )
 ```
-
-$Figure \hspace{0.1cm} 6 $
+$$ Figure \ 5 $$
 
 ```{r echo=FALSE}
 CoxSnell( CS_ln , house$status ,xlim=c(-7,5), main="Log-normal School Distance C-S Resids")
 ```
+$$ Figure \ 6 $$
 
-The Cox-Snell residuals select log-normal as the better model since the residuals fit the line with intercept 0 and slope 1 better ($Figure \hspace{0.1cm} 5, 6 $). The same trend holds for the following univariate models, so we show Cox-Snell residuals only for school distance.
+The Cox-Snell residuals select log-normal as the better model since the residuals fit the line with intercept 0 and slope 1 better (Figures 5, 6). The same trend holds for the following univariate models, so we show Cox-Snell residuals only for school distance.
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
@@ -309,7 +307,7 @@ exp(0.189*logpr_50) #ln 50th percentile
 exp(0.189*logpr_90) #ln 90th percentile
 ```
 
-Properties with higher list prices tend to have a longer TOM at the 5% significance level for both Weibull and the log-normal models. The effect is stronger with the log-normal model at 20% longer TOM ($p=.0043$) for every increase in the log of list price compared to 12% longer TOM for the Weibull model with a slightly lower significance ($p=.0348$). To put these numbers into perspective, we can say that every time price multiplies by 2.81, TOM increases by 12% and 20% for the Weibull and log-normal model, respectively. The effect sizes indicate that the TOM is largely insensitive to list price. !!!(Victor) Finally, according to the Cox PH model the probability of sale decreases by 33% ($p=.011$). These results are consistent with the logic that a more expensive home will take longer to sell due to financial constraints and diminishing marginal utility. The AIC yields a stronger evidence in support of the Weibull model over the log-normal model by a slight margin, which could indicate that the log-normal model is overplaying the impact that list price has on time to sale. 
+Properties with higher list prices tend to have a longer TOM at the 5% significance level for both Weibull and the log-normal models. The effect is stronger with the log-normal model at 20% longer TOM ($p=.0043$) for every increase in the log of list price compared to 12% longer TOM for the Weibull model with a slightly lower significance ($p=.0348$). To put these numbers into perspective, we can say that every time price multiplies by 2.81, TOM increases by 12% and 20% for the Weibull and log-normal model, respectively. The effect sizes indicate that the TOM is largely insensitive to list price. Finally, according to the Cox PH model the probability of sale decreases by 33% ($p=.011$). These results are consistent with the logic that a more expensive home will take longer to sell due to financial constraints and diminishing marginal utility. The AIC yields a stronger evidence in support of the Weibull model over the log-normal model by a slight margin, which could indicate that the log-normal model is overplaying the impact that list price has on time to sale. 
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
@@ -356,8 +354,6 @@ CS_ln = -log( 1 - plnorm(house$tom, 4.25681878 + 0.06020683*house$cityn, 0.62196
 ```
 
 
-
-
 ### 3.3 Multivariate Parametric Models
 
 #### School Distance, Crime Category, and List Price Without Interaction Term
@@ -381,7 +377,7 @@ According to the Weibull model in Table 1 in the Appendix, all variables are sig
 
 All crime categories predict longer TOM compared to the lowest crime category, which is mostly consistent with the univariate crime category analysis previously conducted. Specifically, the second crime group is more likely to stay on market longer compared to the lowest crime group in line with the univariate model. However, the TOM for the third crime group is less than double that for the second crime group, which is a weaker effect than what we observed in the univariate analysis. For example, houses that belong to the second and third crime category on average have 21% and 29% longer TOM, respectively, compared to those in the lowest crime category. On the other hand, the highest crime category indicates only 11% longer TOM compared to the lowest crime group with an insignificant p-value. With respect to p-values, both the second and third group are now significant at the 5% level, and the p-value for the highest crime group improved by a factor of 3. The log-normal model and Cox PH model agree with Weibull but the log-normal model was far less significant overall. 
 
-Consistent with our univariate models, the multivariate Cox PH model in $Figure \hspace{0.1cm} 8 $ illustrates that longer distance to school and higher list price lowers the chance of a home being sold and that homes in higher crime categories are also generally less likely to be sold compared to homes in the lowest crime category. Although school distance and the highest crime category are insignificant, the overall directions are consistent with Weibull.  
+Consistent with our univariate models, the multivariate Cox PH model in Figure 7 illustrates that longer distance to school and higher list price lowers the chance of a home being sold and that homes in higher crime categories are also generally less likely to be sold compared to homes in the lowest crime category. Although school distance and the highest crime category are insignificant, the overall directions are consistent with Weibull.  
 
 ```{r include=FALSE}
 summary(mw)
@@ -428,7 +424,6 @@ qweibull(1-0.2490305, 1/0.528, exp(2.712 + 0.1843770*mean(house$schdist) + 0.187
 ## Note: look at differences in days
 ```
 
-$Figure \hspace{0.1cm} 8 $
 
 *Summary of Cox PH Model*
 
@@ -441,11 +436,10 @@ mcox
 ```{r echo=FALSE, warning=FALSE}
 ggforest(mcox, data = house)
 ```
+$$ Figure \ 7 $$
 
+Figure 8  is a survival comparison of the crime categories. As mentioned previously, the highest crime category and the lowest crime category differ the least in survival.
 
-$Figure \hspace{0.1cm} 9 $ is a survival comparison of the crime categories. As mentioned previously, the highest crime category and the lowest crime category differ the least in survival.
-
-$Figure \hspace{0.1cm} 9 $
 
 ```{r echo = FALSE}
 # crime gp 1
@@ -463,11 +457,13 @@ curve(1-pweibull(x,1/0.528,exp(2.712 + 0.1843770*mean(house$schdist) + 0.1876134
 legend(0.5,0.35,c("0 to 250 crimes", "250 to 2000 crimes", "2000 to 5000 crimes", "5000 to 10000 crimes"),col=c("black","purple", "blue", "red") , text.col=c("black","purple", "blue", "red") , lty=1 , cex=0.8 ) 
 # time ratio
 ```
+$$ Figure \ 8 $$
 
+\vspace{-1.05cm}
 
 #### Model Selection
 
-Now, we select the model by first plotting the Cox-Snell residuals for the Weibull and log-normal models ($Figure \hspace{0.1cm} 10,11 $) and then comparing the AIC calculations for each model. Utilizing both a graphical and analytical approach to assessing model fit will help ensure thorough vetting of models. 
+Now, we select the model by first plotting the Cox-Snell residuals for the Weibull and log-normal models (Figures 9, 10) and then comparing the AIC calculations for each model. Utilizing both a graphical and analytical approach to assessing model fit will help ensure thorough vetting of models. 
 
 
 *Cox-Snell Residuals*
@@ -486,18 +482,18 @@ CS_ln = -log( 1 - plnorm(house$tom, 1.37373386 + -0.04454097*house$schdist + 0.0
 
 ```
 
-$Figure \hspace{0.1cm} 10 $
 
 ```{r echo=FALSE}
 # Make appropriate graph using CoxSnell function
 CoxSnell( CS_w , house$status , main = "Weibull Cox-Snell Residuals")
 ```
+$$ Figure \ 9 $$
 
-$Figure \hspace{0.1cm} 11 $
 
 ```{r echo=FALSE}
 CoxSnell( CS_ln , house$status , main = "Log-normal Cox-Snell Residuals")
 ```
+$$ Figure \ 10 $$
 
 The log-normal model appears to perform better when evaluating the Cox-Snell residual plots. However, the AIC prefers the Weibull model.
 
@@ -522,11 +518,14 @@ mcox
 
 Now, we include the interaction term between crime categories and list price as presented in Table 2 in the Appendix. In the Weibull model with interaction, all terms are insignificant except for school distance, possibly due to significantly increased degrees of freedom. However, the insignificant p-values do not concern us as our aim is to examine the effect of list price on TOM controlling for crime rates in the neighborhood. 
 
-For interpretations, we pick three representative list price values to show how the probability of sale changes with respect to different crime categories at each of these list prices (Table 3). The three prices are the 10th, 50th, and 90th percentile of the list price at \$129,900,  \$219,900, and \$480,000, respectively. First, among houses priced at the 10th percentile (\$129,900), those in the second crime category show a significant increase in TOM (27%) compared to those in the lowest crime category, while those in the highest crime category show almost no change in TOM (7%). However, as the list price increases to the 50th percentile (\$219,900), we see that homes in the second and the highest crime categories increase in TOM by about the same amount compared to those in the lowest crime category. Finally, if a house is priced at the 90th percentile (\$480,000), the second and lowest crime category do not differ much in TOM (9%), while the third and highest crime category project a significantly increased TOM (43% and 37%, respectively) compared to the lowest crime category. These results suggest that the houses in the lowest and highest crime neighborhoods that have a small difference in TOM are also the cheapest in price and that as price rises, the difference in TOM between the homes in the lowest and the highest crime categories tend to magnify. As previously mentioned, houses in the highest crime neighborhoods sell about as fast as those in the lowest crime neighborhoods because of the low list price.
+For ease of demonstration, we pick three representative list price values to show how the probability of sale changes with respect to different crime categories at each of these list prices (Table 3). The three prices are the 10th, 50th, and 90th percentile of the list price at \$129,900,  \$219,900, and \$480,000, respectively. First, among houses priced at the 10th percentile (\$129,900), those in the second crime category show a significant increase in TOM (27%) compared to those in the lowest crime category, while those in the highest crime category show almost no change in TOM (7%). However, as the list price increases to the 50th percentile (\$219,900), we see that homes in the second and the highest crime categories increase in TOM by about the same amount compared to those in the lowest crime category. Finally, if a house is priced at the 90th percentile (\$480,000), the second and lowest crime category do not differ much in TOM (9%), while the third and highest crime category project a significantly increased TOM (43% and 37%, respectively) compared to the lowest crime category. 
 
-$Table \hspace{0.1cm} 3$
+![Table 3](CrimeListPriceTable.PNG)\
 
-![](CrimeListPriceTable.PNG)
+$$Table \ 3$$
+
+These results suggest that the houses in the lowest and highest crime neighborhoods that have a small difference in TOM are also the cheapest in price and that as price rises, the difference in TOM between the homes in the lowest and the highest crime categories tend to magnify. As previously mentioned, houses in the highest crime neighborhoods sell about as fast as those in the lowest crime neighborhoods because of the low list price.
+
 
 ```{r include=FALSE} 
 listedatpr_quant = quantile(house$listedatpr, c(0, 0.10, 0.5, 0.9, 1))
@@ -620,10 +619,9 @@ stargazer(mw, mln, title="Results", align=TRUE)
 #stargazer(mcox, title="Results", align=TRUE)
 ```
 
-
 ### 3.4 Testing the Cox PH Assumption
 
-To test the PH assumption, we turn to examining the Schoenfeld residuals of our multivariate model ($Figures $ 12-16).
+To test the PH assumption, we turn to examining the Schoenfeld residuals of our multivariate model in Figures 11 through 15.
 
 #### Multivariate Assessment of the PH Assumption
 
@@ -633,35 +631,40 @@ mcox = coxph(Surv(tom) ~ schdist + crimeCat2 + log(listedatpr), data=house)
 #cox.zph( mcox )
 ```
 
-$Figure \hspace{0.1cm} 12 $
 
 ```{r echo = FALSE}
 plot( cox.zph(mcox)[1] , main = "Schoenfeld Residuals: School Distance")
 ```
 
-$Figure \hspace{0.1cm} 13 $
+$$ Figure \ 11 $$
+
 
 ```{r echo = FALSE}
 plot( cox.zph(mcox)[2] , main = "Schoenfeld Residuals: Second Crime Category")
 ```
 
-$Figure \hspace{0.1cm} 14 $
+$$ Figure \ 12 $$
+
 
 ```{r echo = FALSE}
 plot( cox.zph(mcox)[3] , main = "Schoenfeld Residuals: Third Crime Category")
 ```
 
-$Figure \hspace{0.1cm} 15 $
+$$ Figure \ 13 $$
+
 
 ```{r echo = FALSE}
 plot( cox.zph(mcox)[4] , main = "Schoenfeld Residuals: Highest Crime Category")
 ```
 
-$Figure \hspace{0.1cm} 16 $
+$$ Figure \ 14 $$
+
 
 ```{r echo = FALSE}
 plot( cox.zph(mcox)[5] , main = "Schoenfeld Residuals: Log of the List Price")
 ```
+
+$$ Figure \ 15 $$
 
 
 According to the Schoenfeld residuals, PH assumption seems to be valid for crime categories, while it does not hold for both school distance and list price. For school distance, the Schoenfeld residuals show a decreasing trend, while the list price Schoenfeld residuals increase with respect to time. More specifically, school distance has a strong positive effect in the beginning, which gradually decreases until about 45 days, and becomes ineffective afterwards. On the other hand, list price has a strong negative effect in the beginning, which slowly increases throughout the first three months and convergest to 0 afterwards. In other words, school distance mostly has a positive effect on TOM but the effect is valid only for the first 45 days, while list price mostly shows a negative effect on TOM which is valid only for the first three months. However, one should note that the strong positive effect observed in the school distance residuals is due to the three outliers in the data. In fact, when these outliers are removed, PH assumption seemed to hold for school distance as well. Although removing outliers is usually not encouraged, it can be helpful in explaining the violation of PH assumption. List price showing negative trend for the first three months may be due to wealth constraints as well as a possible defect in the property contingent on the duration on the market. However, this should not be of concern, as we are mainly interested in the effects in the first three months. Overall, only the list price seems to violate the PH assumption.
