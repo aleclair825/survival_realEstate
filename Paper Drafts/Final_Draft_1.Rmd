@@ -52,9 +52,9 @@ The real estate market in the Twin Cities (Minneapolis and St. Paul, MN, USA), a
 
 \textbf{Price}
 
-One of the most obvious factors that may influence TOM for any house is price. A high price may scare potential buyers away, while a low price might invite skepticism or a long bidding war. Moreover, a high price limits the number of potential buyers even if the price appropriately reflects the quality of the property. The "right" pricing decision is a difficult one to make for sellers and agents, but reaching an equilibrium between buyer and seller satisfaction may be the best way to minimize TOM. Cheng, Lin, and Liu (2008) developed a closed-form formula to uncover the theoretical relationship between price and TOM. They aim to describe the marginal benefit of keeping a house on the market longer.
+One of the most obvious factors that may influence TOM for any house is price. A high price may scare potential buyers away, while a low price might invite skepticism or a long bidding war. Moreover, a high price limits the number of potential buyers even if the price appropriately reflects the quality of the property. The "right" pricing decision is a difficult one to make for sellers and agents, but reaching an equilibrium between buyer and seller satisfaction is the best way to minimize TOM. 
 
-The authors used house sales data from Fannie Mae and Freddie Mac, U.S. federal mortgage agencies, and identified a nonlinear positive relationship between price and TOM. They approached this analysis by assuming that a buyer and seller arrive at an agreed upon price following the Poisson processes at rate $\lambda$. While utilizing methods from Bond et al. (2007), they investiaged some assumptions about the shape of TOM data, including normal, chi-square, Weibull, and exponential distributions. Like Bond et al. (2007), Cheng, Lin, and Liu (2008) found that the exponential distribution best fit the TOM data$^1$. 
+Cheng, Lin, and Liu (2008) developed a closed-form formula to uncover the theoretical relationship between price and TOM. They aim to describe the marginal benefit of keeping a house on the market longer. The authors used house sales data from Fannie Mae and Freddie Mac, U.S. federal mortgage agencies, and identified a nonlinear positive relationship between price and TOM. They approached this analysis by assuming that a buyer and seller arrive at an agreed upon price following the Poisson processes at rate $\lambda$. While utilizing methods from Bond et al. (2007), the authors investiaged some assumptions about the shape of TOM data, including normal, chi-square, Weibull, and exponential distributions. Like Bond et al. (2007), Cheng, Lin, and Liu (2008) found that the exponential distribution best fit the TOM data$^1$. 
 
 The findings from Cheng, Lin, and Liu's (2008) investigation was that marginal benefit on sale price decreases after each offer that is made on a house$^1$. As a house's price approaches equilibrium between seller and buyer satisfaction, it does the seller little good to leave the house on the market longer.
 
@@ -71,7 +71,7 @@ Listing price changes may also affect the TOM for a house. A listing price chang
 Knight used 3490 detached single family homes that sold between January 1997 and December 1998 by Metroservices Inc. of Sacramento, CA, USA. He notes that price adjustment data is generally missing from TOM datasets, but his study incorporated the price changes into the analysis to examine the determinants of list price changes. He utilized a maximum likelihood probit model and found that the two most important determinants of price changes are TOM and initial markup$^4$. Atypical homes tend to not see significant price changes because there is little market precedent for price changes after a certain TOM. Knight's findings are consistent with previous research on pricing under demand uncertainty. 
 
 
-### 1.3 Research Question (and mapping paragraph)
+### 1.3 Research Question
 
 We are interested in investigating the factors that affect the TOM for a single family homes in the Twin Cities that were listed between January 22, 2017 and January 16, 2018. Some variables of interest include the amount of recorded crime in a house's designated neighborhood, the proximity of a house to the nearest school, and the list price of the house. 
 
@@ -95,17 +95,17 @@ For all 311 observations, we collected unique addresses `address`, city of resid
 
 ### 2.3 Assumptions
 
-An essential assumption to our research is based on censoring. We intentionally collected our data from a sample of recently sold houses to limit censoring. If we were to take a true random sample of all houses listed for sale in the past $X$ number of years, we realize that a significant amount of right censoring could be present, because at the time of data collection some houses in our sample would have not been sold yet. We acknowledge that sampling from a set of recently sold houses may introduce some bias into our results, all recently sold houses in this particular date range (late January to early Februray 2018) may share certain unknown or unaccounted-for characteristics that made them sell. This bias is acceptable considering the convenience and added accuracy provided by uncensored data.
+An essential assumption to our research is based on censoring. We intentionally collected our data from a sample of recently sold houses to limit censoring. If we were to take a true random sample of all houses listed for sale in the past $X$ number of years, we realize that a significant amount of right censoring could be present, because at the time of data collection some houses in our sample would have not been sold yet. We acknowledge that sampling from a set of recently sold houses may introduce some bias into our results. For example, all recently sold houses in this particular date range (late January to early Februray 2018) may share certain unknown or unaccounted-for characteristics that made them sell. This bias is acceptable considering the convenience and added accuracy provided by uncensored data.
 
 ### 2.4 Methods
 
-We first utilize nonparametric Kaplan-Meier curves to investigate relationships between time on market and certain variables like distance to the nearest school, crime in the home's neighborhood since 2015, list price, and municipal location. For crime and list price, it was necessary to create categorical variables to properly analyze their effect on time on market with some level of singificance and interpretability. 
+We first utilize nonparametric Kaplan-Meier curves to investigate relationships between time on market and certain variables like distance to the nearest school, crime in the home's neighborhood since 2015, list price, and municipal location. For crime and list price, it was necessary to create categorical variables to properly analyze their effect on time on market with some level of singificance and interpretability. All other variables mentioned in the variable section showed weak correlations with TOM.
 
-Next, we construct univariate parametric accelerated failure time models for each of the variables mentioned previously. We deploy two distribution families, the Weibull and log-normal distributions, and assess which model fits the data better primarily using the Akaike Information Criterion (AIC), with some assistance from Cox-Snell residual plots. We utilize this comparison approach throughout our analysis as it allows us to observe the impact of a parametric assumption and determine the overall fit of the models we are using, whether they are univariate or multivariate. 
+Next, we construct univariate parametric accelerated failure time models for each of the variables mentioned previously. We deploy two distribution families, the Weibull and log-normal distributions and assess which model fits the data better primarily using the Akaike Information Criterion (AIC), with some assistance from Cox-Snell residual plots. We utilize this comparison approach throughout our analysis as it allows us to observe the impact of a parametric assumption and determine the overall fit of the univariate or multivariate models we use. 
 
 We also fit a multivariate model using each of the variables mentioned above except city, as it appeared to have no significant relationship with time on market. Such an approach allowed us to control for multiple variables at once and see how each of their behavior changed in the presence of the others. With this multivariate strategy in mind, we also considered the possible interaction between list price and crime, as people living in higher crime areas may have to price their homes lower in order to sell. 
 
-Finally, throughout our analysis we employed Cox's Proportional Hazards (Cox PH) model as a comparison tool to parametric methods. Since these models assume proportional hazard ratios between the baseline and covariates included, we also asses each proportional hazard assumption using Schoenfeld residual plots.
+Finally, throughout our analysis we employed Cox's Proportional Hazards (Cox PH) model as a comparison tool to parametric methods. Since these models assume proportional hazard ratios between the baseline and covariates included, we also assess each proportional hazard assumption using Schoenfeld residual plots.
 
 ##3 | Results
 
@@ -115,7 +115,7 @@ We begin our analysis by investigating the length of time that houses in the Twi
 
 #### Proximity to Nearest School
 
-Kaplan-Meier curves allow us to observe the general trends in the data, with TOM being the most important variable in the analysis. Our parametric analysis that follows will be informed by basic insights obtained from these Kaplan-Meier curves. 
+Kaplan-Meier curves allow us to observe the effect of different groups on TOM from the data. Our parametric analysis that follows will be informed by basic insights obtained from these Kaplan-Meier curves. 
 
 First, we fit a Kaplan-Meier curve for TOM by distance from the nearest school (Figure 1). In order to do this, we identify the closest 50% of homes as "near" and the farthest 50% of homes as "far."
 
@@ -143,7 +143,7 @@ ggsurvplot(KM, data=house, legend.labs=c("0 to 250 crimes", "250 to 2000", "2000
 ```
 $$ Figure \ 2 $$
 
-We see that homes that fit into the second highest number of crimes category take the longest to sell, while homes in the lowest crime neighborhoods sell fastest. This progression seems logical, except for homes in the highest crime neighborhoods, which appear to sell generally the second fastest. This is likely because these homes in the highest crime category may be cheap enough to attract more home buyers and therefore stay on market shorter.
+We see that homes that fit into the second highest number of crimes category take the longest to sell, while homes in the lowest crime neighborhoods sell the fastest. This progression seems logical, except for homes in the highest crime neighborhoods, which appear to sell generally the second fastest. This is likely because these homes in the highest crime category may be cheap enough to attract more home buyers and therefore stay on market shorter.
 
 #### List Price
 
@@ -158,7 +158,7 @@ ggsurvplot(KM1, data=house, legend.labs=c("price = 63,000 to 180,000", "180,000 
 ```
 $$ Figure \ 3 $$
 
-Houses that fall into the highest price category appear to take the longest to sell, while houses in the middle price category appear to sell the fastest. One explanation for this relationship is that while people prefer good quality homes which is reflected in the list price, not many people are able to afford the most expensive homes, and diminishing marginal utility may be in play. Homes in the cheapest price category have a longer TOM compared to those in the middle category because the cheap price reflects lower home quality, perhaps with potential defects unknown to buyers. Another aspect of the curves is that the survival differences in list price are minimal in the earlier times, become larger as the curves approach 3 months, and decrease back again toward 5 months and onward. This pattern indicates that survival differences among houses in various list price categories change over time.
+Houses that fall into the highest price category appear to take the longest to sell, while houses in the middle price category appear to sell the fastest. One explanation for this relationship is that while people prefer good quality homes, which is reflected in the list price, not many people are able to afford the most expensive homes, and diminishing marginal utility may be in play. Homes in the cheapest price category have a longer TOM compared to those in the middle category because the cheap price reflects lower home quality, perhaps with potential defects unknown to buyers. Another aspect of the curves is that the survival differences in list price are minimal in the earlier times, become larger as the curves approach 3 months, and decrease back again toward 5 months and onward. This pattern indicates that the survival differences among houses in various list price categories change over time.
 
 
 #### City
@@ -175,14 +175,14 @@ $$ Figure \ 4 $$
 
 St. Paul homes seem to take slightly longer to sell compared to Minneapolis homes based on this Kaplan-Meier curve. While this relationship may seem negligible, this small difference warrants further investigation in parametric models. 
 
-Now that we have taken a brief look at Kaplan-Meier curves for these variables, we will create some models with parametric assumptions to verify or refute previously observed trends by assessing for significant relationships. 
+Now that we have taken a brief look at Kaplan-Meier curves for these variables, we will create models with parametric assumptions to verify or refute previously observed trends by assessing the significance of the variables.
 
 
 ### 3.2 Univariate Parametric Models
 
 #### Proximity to Nearest School
 
-The Kaplan-Meier curve shown in the previous section revealed what appears to be no difference in how long a house takes to sell based on its municipal designation. In order to verify the previous graphical findings, we create three different models to further assess the impact of school distance on time to sale. 
+In order to verify the previous graphical findings, we create three different models to further assess the impact of school distance on time to sale. 
 
 ```{r include=FALSE}
 mw = survreg( Surv(tom) ~ schdist , dist = "weibull" , data = house )
@@ -199,7 +199,7 @@ exp(0.246)
 exp(-0.0313)
 ```
 
-The Weibull model indicates that the TOM is 28% longer on average for every mile increase in the distance to the closest school with a significant p-value at 0.00486. However, the log-normal model yields the opposite result with 3% shorter TOM with a highly insignificant p-value at 0.77. This result may be due to the inherent differences in the two models, rather than the school distance variable being insignificant, as a number of literature deem school distance as an important factor affecting TOM of a property. In addition, the Cox PH model agrees with the Weibull model in the variable's direction and p-value. According to the Cox PH model, the hazard ratio of school distance is 0.701, which means that the risk of being sold decreases by 30% for every one mile increase in school distance. In other words, properties farther away from schools take longer to sell.
+The Weibull model indicates that the TOM is 28% longer on average for every mile increase in the distance to the closest school with a high significance (p = 0.00486). However, the log-normal model yields the opposite result with 3% shorter TOM with a highly insignificant p-value at 0.77. This result may be due to the inherent differences in the two models, rather than the school distance variable being insignificant, as a number of literature deem school distance as an important factor affecting TOM of a property. In addition, the Cox PH model agrees with the Weibull model in the variable's direction and p-value. According to the Cox PH model, the hazard ratio of school distance is 0.701, which means that the risk of being sold decreases by 30% for every one mile increase in school distance. In other words, properties farther away from schools take longer to sell.
 
 
 ```{r include = FALSE}
@@ -219,7 +219,7 @@ CoxSnell( CS_ln , house$status ,xlim=c(-7,5), main="Log-normal School Distance C
 ```
 $$ Figure \ 6 $$
 
-The Cox-Snell residuals select log-normal as the better model since the residuals fit the line with intercept 0 and slope 1 better (Figures 5, 6). The same trend holds for the following univariate models, so we show Cox-Snell residuals only for school distance.
+The Cox-Snell residuals select the log-normal model as the better model since the residuals fit the line with intercept 0 and slope 1 better (Figures 5, 6). The same trend holds for the following univariate models, so we show Cox-Snell residuals only for school distance.
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
@@ -228,7 +228,7 @@ The Cox-Snell residuals select log-normal as the better model since the residual
 # The AIC for the Weibull model is 3242.878, and that for the log-normal model is 3258.564. Thus, we conclude that the Weibull model fits better than the log-normal model. 
 ```
 
-AIC indicates that the Weibull model is a better fit. This contradiction between Cox-Snell residual plots and AIC could be attributed to different calculation methods, as Cox-Snell residuals do not consider number of parameters like AIC does. This is merely speculation, though. We do not know the actual reason for this contradition.
+In contrast to Cox-Snell residual plot, the AIC indicates that the Weibull model is a better fit. This disagreement between Cox-Snell residual plots and AIC could be attributed to different calculation methods, as Cox-Snell residuals do not consider number of parameters like AIC does. This is merely speculation, however. We do not know the actual reason for this contradition.
 
 #### Crime 
 
@@ -246,11 +246,11 @@ mcox
 
 Crime as a continuous variable was insignificant for all three models. Thus, we analyze the effect of crime as a categorical variable to allow detection of a possible non-linear trend. Our categorical crime variable has four groups: crime count ranging from 0 to 250, 250 to 2000, 2000 to 5000, and 5000 to 10000.  
 
-In the Weibull model, the 250-2000 crime group has TOM that is 14% longer than the 0-250 crime group, and the next group, the 2000-5000 crime group, has more than double the TOM of the previous group at 33%. While the p-value for 250-2000 crime group is at borderline significance ($p = .0872$), that for the 2000-5000 crime group is significant at the 5% level ($p = .00554$). The fact that the houses in the neighborhoods with less crime (250-2000) would sell faster than those in the neighborhoods with more crime (2000-5000) makes sense since people generally prefer neighborhoods with less crime. 
+In the Weibull model, the 250-2000 crime group has TOM that is 14% longer than the 0-250 crime group, and the next group, the 2000-5000 crime group, has more than double the TOM of the previous group at 33% longer TOM compared to the baseline. While the p-value for 250-2000 crime group is at borderline significance ($p = .0872$), that for the 2000-5000 crime group is significant at the 5% level ($p = .00554$). The fact that the houses in the neighborhoods with less crime (250-2000) would sell faster than those in the neighborhoods with more crime (2000-5000) is expected since people generally prefer neighborhoods with less crime. 
 
-On the other hand, the highest crime group (5000-10000) shows almost no difference in TOM compared to the lowest crime group (time ratio = $1.039$), and its p-value is highly insignificant ($p = .668$). This result is possibly due to the fact that properties located in high-crime neighborhoods tend to be discounted to reflect high crime levels. 
+On the other hand, the highest crime group (5000-10000) shows almost no difference in TOM compared to the lowest crime group (time ratio = $1.039$), and its p-value is highly insignificant ($p = .668$). As mentioned previously, this result is possibly due to the fact that properties located in high-crime neighborhoods tend to be discounted to reflect high crime levels. 
 
-The Cox PH model agrees with the Weibull model. The hazard ratio for the 250-2000 crime group is approximately 19% less than that of the 0-250 crime group ($p = .1736$), and that for the 2000-5000 group is approximately 36% less than that of the 0-250 crime group ($p = .0056$). Finally, the hazard ratio for the 5000-10000 crime group is only about 6% lower than the 0-250 crime group, again with insignificant p-value ($p = .7296$). The log-normal model too is insignificant for all crime categories with weaker effect sizes. 
+The Cox PH model agrees with the Weibull model. The hazard ratio for the 250-2000 crime group is approximately 19% less than that of the 0-250 crime group ($p = .1736$), and that for the 2000-5000 group is approximately 36% less than that of the 0-250 crime group ($p = .0056$). Finally, the hazard ratio for the 5000-10000 crime group is only about 6% lower than the 0-250 crime group, again with an insignificant p-value ($p = .7296$). The log-normal model, too, is insignificant for all crime categories with weaker effect sizes. 
 
 ```{r include = FALSE}
 CS_w = -log( 1 - pweibull(house$tom, 1/0.533, exp(4.45486375 +  0.13794492*(house$crimeCat2=="(250,2e+03]") + .28846076*(house$crimeCat2=="(2e+03,5e+03]") +   0.03853525*(house$crimeCat2=="(5e+03,1e+04]")     ) ) )
@@ -307,7 +307,7 @@ exp(0.189*logpr_50) #ln 50th percentile
 exp(0.189*logpr_90) #ln 90th percentile
 ```
 
-Properties with higher list prices tend to have a longer TOM at the 5% significance level for both Weibull and the log-normal models. The effect is stronger with the log-normal model at 20% longer TOM ($p=.0043$) for every increase in the log of list price compared to 12% longer TOM for the Weibull model with a slightly lower significance ($p=.0348$). To put these numbers into perspective, we can say that every time price multiplies by 2.81, TOM increases by 12% and 20% for the Weibull and log-normal model, respectively. The effect sizes indicate that the TOM is largely insensitive to list price. Finally, according to the Cox PH model the probability of sale decreases by 33% ($p=.011$). These results are consistent with the logic that a more expensive home will take longer to sell due to financial constraints and diminishing marginal utility. The AIC yields a stronger evidence in support of the Weibull model over the log-normal model by a slight margin, which could indicate that the log-normal model is overplaying the impact that list price has on time to sale. 
+Properties with higher list prices tend to have a longer TOM at the 5% significance level for both Weibull and the log-normal models. The effect is stronger with the log-normal model at 20% longer TOM ($p=.0043$) for every increase in the log of list price compared to 12% longer TOM for the Weibull model with a slightly lower significance ($p=.0348$). To put these numbers into perspective, we can say that every time price multiplies by 2.81, TOM increases by 12% and 20% for the Weibull and log-normal model, respectively. It is important to note that the effect sizes indicate that the TOM is largely insensitive to list price. Finally, according to the Cox PH model the probability of sale decreases by 33% ($p=.011$). These results are consistent with the logic that a more expensive home will take longer to sell due to financial constraints and diminishing marginal utility. The AIC yields a stronger evidence in support of the Weibull model over the log-normal model by a slight margin, which could indicate that the log-normal model is overplaying the impact that list price has on time to sale. 
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
@@ -331,7 +331,7 @@ exp(0.101)
 exp(0.0602)
 ```
 
-In the Weibull model, city of St. Paul has a positive coefficient with a borderline insignificant p-value ($p=.107$), indicating that properties in St. Paul on average has 11% longer TOM compared to those in Minneapolis. The log-normal model, on the other hand, was not at all significant with a very small effect. The Cox PH is in line with the Weibull model with hazard ratio of St. Paul to Minneapolis at 0.86 ($p=.19$). This hazard ratio illustrates that the chance of being sold for a house in St. Paul is 14% less than that for a house in Minneapolis, which translates into a longer TOM for a house in Saint Paul than that in Minneapolis. The AIC selects Weibull.
+In the Weibull model, city of St. Paul has a positive coefficient with a borderline insignificant p-value ($p=.107$), indicating that properties in St. Paul on average has 11% longer TOM compared to those in Minneapolis. The log-normal model, on the other hand, was not at all significant with a very small effect. The Cox PH is in line with the Weibull model with hazard ratio of St. Paul to Minneapolis at 0.86 ($p=.19$). This hazard ratio illustrates that the chance of being sold for a house in St. Paul is 14% less than that for a house in Minneapolis, which translates into a longer TOM for a house in Saint Paul than a house in Minneapolis. The AIC selects Weibull.
 
 
 ```{r include = FALSE}
@@ -356,7 +356,7 @@ CS_ln = -log( 1 - plnorm(house$tom, 4.25681878 + 0.06020683*house$cityn, 0.62196
 
 ### 3.3 Multivariate Parametric Models
 
-#### School Distance, Crime Category, and List Price Without Interaction Term
+#### School Distance, Crime Category, and List Price
 
 ```{r include=FALSE}
 mw = survreg( Surv(tom) ~ schdist + crimeCat2 + log(listedatpr) , dist = "weibull" , data = house )
@@ -373,9 +373,9 @@ exp(0.184)
 exp(0.131)
 ```
 
-According to the Weibull model in Table 1 in the Appendix, all variables are significant with expected signs except for the highest crime category. Consistent with the univariate models, every unit increase in school distance and log of list price lengthen TOM by 20% and 14%, respectively. In other words, homes with the higher list price or and those farther away from schools tend to stay on market longer. The directions with these variables are logical. Besides income limitations and decreasing utility per every dollar increase in list price, expensive houses are harder to sell because they may often be overpriced at more than their appraisal values. On the other hand, houses closer to schools tend to be in more populated and desirable areas, so it should follow that houses closer to a school would sell faster. Moreover, the kind of buyers who purchase homes near schools may have kids and therefore tend to purchase homes faster.
+According to the Weibull model in Table 1 in the Appendix, all variables are significant with expected signs except for the highest crime category. Consistent with the univariate models, every unit increase in school distance and log of list price lengthen TOM by 20% and 14%, respectively. In other words, homes with the higher list price or and those farther away from schools tend to stay on market longer. The directions with these variables are logical. Besides income limitations and decreasing utility per every dollar increase in list price, expensive houses are harder to sell because they may often be overpriced at more than their appraisal values. On the other hand, houses closer to schools tend to be in more populated and desirable areas, so it should follow that houses closer to a school would sell faster. Moreover, the kind of buyers who purchase homes near schools may have kids and therefore may tend to purchase homes faster.
 
-All crime categories predict longer TOM compared to the lowest crime category, which is mostly consistent with the univariate crime category analysis previously conducted. Specifically, the second crime group is more likely to stay on market longer compared to the lowest crime group in line with the univariate model. However, the TOM for the third crime group is less than double that for the second crime group, which is a weaker effect than what we observed in the univariate analysis. For example, houses that belong to the second and third crime category on average have 21% and 29% longer TOM, respectively, compared to those in the lowest crime category. On the other hand, the highest crime category indicates only 11% longer TOM compared to the lowest crime group with an insignificant p-value. With respect to p-values, both the second and third group are now significant at the 5% level, and the p-value for the highest crime group improved by a factor of 3. The log-normal model and Cox PH model agree with Weibull but the log-normal model was far less significant overall. 
+All crime categories predict longer TOM compared to the lowest crime category, which is mostly consistent with the univariate crime category analysis previously conducted. Specifically, the second crime group is more likely to stay on market longer compared to the lowest crime group in line with the univariate model. However, the TOM for the third crime group is less than double that for the second crime group, which is a weaker effect than what we observed in the univariate analysis. For example, houses that belong to the second and third crime category on average have 21% and 29% longer TOM, respectively, compared to those in the lowest crime category. On the other hand, the highest crime category indicates only 11% longer TOM compared to the lowest crime group with an insignificant p-value. With respect to p-values, both the second and third group are now significant at the 5% level, and the p-value for the highest crime group improved by a factor of 3. The log-normal model and Cox PH model agree with Weibull, but the log-normal model was far less significant overall. 
 
 Consistent with our univariate models, the multivariate Cox PH model in Figure 7 illustrates that longer distance to school and higher list price lowers the chance of a home being sold and that homes in higher crime categories are also generally less likely to be sold compared to homes in the lowest crime category. Although school distance and the highest crime category are insignificant, the overall directions are consistent with Weibull.  
 
@@ -516,7 +516,9 @@ summary(mln)
 mcox
 ```
 
-Now, we include the interaction term between crime categories and list price as presented in Table 2 in the Appendix. In the Weibull model with interaction, all terms are insignificant except for school distance, possibly due to significantly increased degrees of freedom. However, the insignificant p-values do not concern us as our aim is to examine the effect of list price on TOM controlling for crime rates in the neighborhood. 
+Now, we include the interaction term between crime categories and list price as presented in Table 2 in the Appendix. Our rationale for including the interaction term is to investigate whether homes in the highest crime neighborhoods are actually lower in list price.
+
+In the Weibull model with interaction, all terms are insignificant except for school distance, possibly due to significantly increased degrees of freedom. However, the insignificant p-values do not concern us as our aim is to examine the effect of list price on TOM controlling for crime rates in the neighborhood. 
 
 For ease of demonstration, we pick three representative list price values to show how the probability of sale changes with respect to different crime categories at each of these list prices (Table 3). The three prices are the 10th, 50th, and 90th percentile of the list price at \$129,900,  \$219,900, and \$480,000, respectively. First, among houses priced at the 10th percentile (\$129,900), those in the second crime category show a significant increase in TOM (27%) compared to those in the lowest crime category, while those in the highest crime category show almost no change in TOM (7%). However, as the list price increases to the 50th percentile (\$219,900), we see that homes in the second and the highest crime categories increase in TOM by about the same amount compared to those in the lowest crime category. Finally, if a house is priced at the 90th percentile (\$480,000), the second and lowest crime category do not differ much in TOM (9%), while the third and highest crime category project a significantly increased TOM (43% and 37%, respectively) compared to the lowest crime category. 
 
@@ -524,7 +526,7 @@ For ease of demonstration, we pick three representative list price values to sho
 
 $$Table \ 3$$
 
-These results suggest that the houses in the lowest and highest crime neighborhoods that have a small difference in TOM are also the cheapest in price and that as price rises, the difference in TOM between the homes in the lowest and the highest crime categories tend to magnify. As previously mentioned, houses in the highest crime neighborhoods sell about as fast as those in the lowest crime neighborhoods because of the low list price.
+These results suggest that the houses in the lowest and highest crime neighborhoods that have a small difference in TOM are also the cheapest in price and that as price rises, the difference in TOM between the homes in the lowest and the highest crime categories tend to magnify. Thus, our multivariate interaction model confirms that houses in the highest crime neighborhoods sell about as fast as those in the lowest crime neighborhoods because of the low list price.
 
 
 ```{r include=FALSE} 
@@ -553,12 +555,12 @@ exp(-1.984+.179*logpr_90)
 exp(-2.118+.186*logpr_90)
 ```
 
-The log-normal model is insignificant with inconsistent effect sizes, and the Cox PH model again agrees with Weibull.
+The log-normal model is insignificant with inconsistent effect sizes, and the Cox PH model agrees with Weibull again.
 
 
 #### Model Selection
 
-As with the previous multivariate model, Cox-Snell favors log-normal, while the AIC favors Weibull.
+As with the previous multivariate model, Cox-Snell residual plots favors log-normal, while the AIC favors Weibull.
 
 ```{r echo=FALSE, include=FALSE}
 2*(10-mw$loglik[2]) # mw
@@ -667,7 +669,7 @@ plot( cox.zph(mcox)[5] , main = "Schoenfeld Residuals: Log of the List Price")
 $$ Figure \ 15 $$
 
 
-According to the Schoenfeld residuals, PH assumption seems to be valid for crime categories, while it does not hold for both school distance and list price. For school distance, the Schoenfeld residuals show a decreasing trend, while the list price Schoenfeld residuals increase with respect to time. More specifically, school distance has a strong positive effect in the beginning, which gradually decreases until about 45 days, and becomes ineffective afterwards. On the other hand, list price has a strong negative effect in the beginning, which slowly increases throughout the first three months and convergest to 0 afterwards. In other words, school distance mostly has a positive effect on TOM but the effect is valid only for the first 45 days, while list price mostly shows a negative effect on TOM which is valid only for the first three months. However, one should note that the strong positive effect observed in the school distance residuals is due to the three outliers in the data. In fact, when these outliers are removed, PH assumption seemed to hold for school distance as well. Although removing outliers is usually not encouraged, it can be helpful in explaining the violation of PH assumption. List price showing negative trend for the first three months may be due to wealth constraints as well as a possible defect in the property contingent on the duration on the market. However, this should not be of concern, as we are mainly interested in the effects in the first three months. Overall, only the list price seems to violate the PH assumption.
+According to the Schoenfeld residuals, PH assumption seems to be valid for crime categories, while it does not hold for both school distance and list price. For school distance, the Schoenfeld residuals show a decreasing trend, while the list price Schoenfeld residuals increase with respect to time. More specifically, school distance has a strong positive effect in the beginning, which gradually decreases until about 45 days and becomes ineffective afterwards. On the other hand, list price has a strong negative effect in the beginning, which slowly increases throughout the first three months and converges to 0 afterwards. In other words, school distance mostly has a positive effect on TOM but the effect is valid only for the first 45 days, while list price mostly shows a negative effect on TOM that is valid only for the first three months. However, one should note that the strong positive effect observed in the school distance residuals is due to the three outliers in the data. In fact, when these outliers are removed, PH assumption seemed to hold for school distance as well. Although removing outliers is usually not encouraged, it can be helpful in explaining the violation of PH assumption. List price showing negative trend for the first three months may be due to wealth constraints as well as a possible defect in the property contingent on the duration on the market. However, this should not be of concern, as we are mainly interested in the effects in the first three months. Hence, we conclude that overall only the list price seems to violate the PH assumption.
 
 
 
@@ -685,7 +687,7 @@ Our next thought was that an interaction may exist between the number of neighbo
 
 The multivariate Cox Proportional Hazards model also verified our initial observations, including increased time on market when: distance from the nearest school increases, crime increases, especially for the second and third levels of crime, and the log of the list price increases. We also created the same proportional hazards assumption for the interaction model, which revealed similar results with no significant p-values. Since not all of these p-values were significant, further investigation into the proportional hazards assumption was warranted. 
 
-Our assessment of the proportional hazards assumptions generally resulted in declaring a valid proportional hazards assumption, with the exception of log of the list price, which showed decreasing effect in Schoenfeld residuals for the most expensive group of houses. This indicated to us that a higher list price hurt the chance of a house selling, but the effect was diminishing over time. This is likely because over time sellers tend to decrease the list price of a house in order to attract attention. 
+Our assessment of the proportional hazards assumptions generally resulted in declaring a valid proportional hazards assumption, with the exception of log of the list price, which showed decreasing effect in Schoenfeld residuals for the most expensive group of houses. This indicated to us that a higher list price hurt the chance of a house selling, but the effect was diminishing over time. This is likely because over time sellers tend to decrease the list price of a house in order to increase market demand. 
 
 While our insights are generally not groundbreaking, they serve to produce an important base understanding for the interaction of the real estate market with the environment around it. We also believe that the results show some important aspects of consumer behavior. Hopefully our conclusions will help home buyers, sellers, and real estate agents alike to establish clear expectations for how long a Twin Cities home will remain on the market based on a variety of factors surrounding the listing. 
 
