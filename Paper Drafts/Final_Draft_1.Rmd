@@ -73,9 +73,8 @@ Knight used 3490 detached single family homes that sold between January 1997 and
 
 ### 1.3 Research Question
 
-We are interested in investigating the factors that affect the TOM for a single family homes in the Twin Cities that were listed between January 22, 2017 and January 16, 2018. Some variables of interest include the amount of recorded crime in a house's designated neighborhood, the proximity of a house to the nearest school, and the list price of the house. 
+We are interested in investigating the factors that affect the TOM for sold single family homes in the Twin Cities that were listed between January 22, 2017 and January 16, 2018. Some variables of interest include the amount of recorded crime in a house's designated neighborhood, the proximity of a house to the nearest school, and the list price of the house. 
 
-In the following sections, we outline our data collection and methods and provide a brief description of our assumptions. 
 
 ##2 | Data and Methods
 
@@ -83,7 +82,7 @@ In the following sections, we outline our data collection and methods and provid
 
 #### Real Estate Data
 
-Our data represents a random sample of 311 single family homes in the Twin Cities that were listed between January 22nd, 2017 and January 16th, 2018. A search of all recently sold homes in the area was conducted in the Coldwell Banker MLS and 311 unique addresses were randomly selected. Some variables were scraped directly from the Coldwell Banker site, while others were manually inputted. We observed a mean TOM of 85.97 days and a median TOM of 73 days. This could indicate a slight right skew in the data. 
+Our data represents a random sample of 311 sold single family homes in the Twin Cities that were listed between January 22nd, 2017 and January 16th, 2018. A search of all recently sold homes in the area was conducted in the Coldwell Banker MLS and 311 unique addresses were randomly selected. Some variables were scraped directly from the Coldwell Banker site, while others were manually inputted. We observed a mean TOM of 85.97 days and a median TOM of 73 days. This could indicate a slight right skew in the data. 
 
 #### Crime Data
 
@@ -99,7 +98,7 @@ An essential assumption to our research is based on censoring. We intentionally 
 
 ### 2.4 Methods
 
-We first utilize nonparametric Kaplan-Meier curves to investigate relationships between time on market and certain variables like distance to the nearest school, crime in the home's neighborhood since 2015, list price, and municipal location. For crime and list price, it was necessary to create categorical variables to properly analyze their effect on time on market with some level of singificance and interpretability. All other variables mentioned in the variable section showed weak correlations with TOM.
+We first utilize Kaplan-Meier curves to investigate relationships between TOM and certain variables like distance to the nearest school, crime in the home's neighborhood since 2015, list price, and municipal location. For crime and list price, it was necessary to create categorical variables to properly analyze their effect on time on market with some level of singificance and interpretability. All other variables mentioned in the variable section showed weak correlations with TOM.
 
 Next, we construct univariate parametric accelerated failure time models for each of the variables mentioned previously. We deploy two distribution families, the Weibull and log-normal distributions and assess which model fits the data better primarily using the Akaike Information Criterion (AIC), with some assistance from Cox-Snell residual plots. We utilize this comparison approach throughout our analysis as it allows us to observe the impact of a parametric assumption and determine the overall fit of the univariate or multivariate models we use. 
 
@@ -307,7 +306,7 @@ exp(0.189*logpr_50) #ln 50th percentile
 exp(0.189*logpr_90) #ln 90th percentile
 ```
 
-Properties with higher list prices tend to have a longer TOM at the 5% significance level for both Weibull and the log-normal models. The effect is stronger with the log-normal model at 20% longer TOM ($p=.0043$) for every increase in the log of list price compared to 12% longer TOM for the Weibull model with a slightly lower significance ($p=.0348$). To put these numbers into perspective, we can say that every time price multiplies by 2.81, TOM increases by 12% and 20% for the Weibull and log-normal model, respectively. It is important to note that the effect sizes indicate that the TOM is largely insensitive to list price. Finally, according to the Cox PH model the probability of sale decreases by 33% ($p=.011$). These results are consistent with the logic that a more expensive home will take longer to sell due to financial constraints and diminishing marginal utility. The AIC yields a stronger evidence in support of the Weibull model over the log-normal model by a slight margin, which could indicate that the log-normal model is overplaying the impact that list price has on time to sale. 
+Properties with higher list prices tend to have a longer TOM at the 5% significance level for both Weibull and the log-normal models. The effect is stronger with the log-normal model at 20% longer TOM ($p=.0043$) for every increase in the log of list price compared to 12% longer TOM for the Weibull model with a slightly lower significance ($p=.0348$). To put these numbers into perspective, we can say due to the log transform that every time price multiplies by 2.81, TOM increases by 12% and 20% for the Weibull and log-normal model, respectively. It is important to note that the effect sizes indicate that the TOM is largely insensitive to list price. Finally, according to the Cox PH model the probability of sale decreases by 33% ($p=.011$). These results are consistent with the logic that a more expensive home will take longer to sell due to financial constraints and diminishing marginal utility. The AIC yields a stronger evidence in support of the Weibull model over the log-normal model by a slight margin, which could indicate that the log-normal model is overplaying the impact that list price has on time to sale. 
 
 ```{r include = FALSE}
 2*(3-mw$loglik[2]) # mw
@@ -683,7 +682,7 @@ Our Cox Proportional Hazards models for each variable revealed similar trends to
 
 Our multivariate model verified our findings from the univariate models. We observed that more expensive houses tend to take longer to sell and houses in areas with higher crime also tend to stay on the market longer. However, we did observe a weaker effect on TOM for the second-highest tier of neighborhood crimes. 
 
-Our next thought was that an interaction may exist between the number of neighborhood crimes and list price, and our interaction model revealed in both the Weibull and log-normal cases that there is not an interaction. 
+We then created an interaction model between the number of neighborhood crimes and list price and observed that homes in the highest crime neighborhoods tend to be cheaper and thus they sell faster. However, the model in both the Weibull and log-normal cases revealed that the relationship was insignificant. 
 
 The multivariate Cox Proportional Hazards model also verified our initial observations, including increased time on market when: distance from the nearest school increases, crime increases, especially for the second and third levels of crime, and the log of the list price increases. We also created the same proportional hazards assumption for the interaction model, which revealed similar results with no significant p-values. Since not all of these p-values were significant, further investigation into the proportional hazards assumption was warranted. 
 
